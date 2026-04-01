@@ -5,6 +5,7 @@ import { FeaturesSection } from "./FeaturesSection";
 import { HowItWorks } from "./HowItWorks";
 import { BookDemoSection } from "./BookDemoSection";
 import { Footer } from "./Footer";
+import { CookieConsent } from "../CookieConsent";
 
 // ─── Main Component ──────────────────────────────────────────────────────────
 export default function LedgerAI() {
@@ -30,6 +31,7 @@ export default function LedgerAI() {
         <BookDemoSection />
       </div>
       <Footer />
+      <CookieConsent />
     </div>
   );
 }
