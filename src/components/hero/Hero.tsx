@@ -1,10 +1,13 @@
 import { useRef } from "react";
+import { TopBar } from "./TopBar";
 import { Nav } from "./Nav";
 import { HeroSection } from "./HeroSection";
+import { ShowcaseSection } from "./ShowcaseSection";
 import { FeaturesSection } from "./FeaturesSection";
 import { HowItWorks } from "./HowItWorks";
 import { BookDemoSection } from "./BookDemoSection";
 import { Footer } from "./Footer";
+import { EmailPopupProvider } from "./EmailPopupContext";
 import { CookieConsent } from "../CookieConsent";
 
 // ─── Main Component ──────────────────────────────────────────────────────────
@@ -16,22 +19,26 @@ export default function LedgerAI() {
   };
 
   return (
-    <div className="min-h-screen bg-white font-sans" style={{ fontFamily: "'Sora', 'DM Sans', sans-serif" }}>
-      <style>{`
-        @import url('https://fonts.googleapis.com/css2?family=Sora:wght@300;400;500;600;700;800&family=IBM+Plex+Mono:wght@400;500;600&display=swap');
-        * { box-sizing: border-box; }
-        html { scroll-behavior: smooth; }
-      `}</style>
+    <EmailPopupProvider>
+      <div className="min-h-screen bg-white font-sans" style={{ fontFamily: "'Sora', 'DM Sans', sans-serif" }}>
+        <style>{`
+          @import url('https://fonts.googleapis.com/css2?family=Sora:wght@300;400;500;600;700;800&family=IBM+Plex+Mono:wght@400;500;600&display=swap');
+          * { box-sizing: border-box; }
+          html { scroll-behavior: smooth; }
+        `}</style>
 
-      <Nav scrollToBooking={scrollToBooking} />
-      <HeroSection scrollToBooking={scrollToBooking} />
-      <FeaturesSection />
-      <HowItWorks />
-      <div ref={bookingRef}>
-        <BookDemoSection />
+        <TopBar />
+        <Nav scrollToBooking={scrollToBooking} />
+        <HeroSection scrollToBooking={scrollToBooking} />
+        <ShowcaseSection />
+        <FeaturesSection />
+        <HowItWorks />
+        <div ref={bookingRef}>
+          <BookDemoSection />
+        </div>
+        <Footer />
+        <CookieConsent />
       </div>
-      <Footer />
-      <CookieConsent />
-    </div>
+    </EmailPopupProvider>
   );
 }

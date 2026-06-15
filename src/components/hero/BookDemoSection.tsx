@@ -37,25 +37,16 @@ export const BookDemoSection = () => {
                 transition={{ delay: 0.2 }}
                 className="w-full"
               >
-                <div className="flex items-center gap-3 mb-4">
-                  <div className="w-12 h-12 rounded-full bg-[#13b5ea] flex items-center justify-center flex-shrink-0">
-                    <span className="text-white font-bold text-sm">RH</span>
-                  </div>
-                  <div>
-                    <p className="font-semibold text-slate-900 text-sm">Rachel Hughes</p>
-                    <p className="text-xs text-slate-400">Hughes & Associates</p>
-                  </div>
-                </div>
-                <p className="text-slate-600 text-sm leading-relaxed mb-3 italic">
-                  "Ledger AI transformed how we handle statements. What used to take a day now takes minutes. Exceptional accuracy."
-                </p>
-                <div className="flex gap-0.5">
+                <div className="flex gap-0.5 mb-3">
                   {[...Array(5)].map((_, j) => (
                     <span key={j} className="text-[#13b5ea] text-sm">
                       ★
                     </span>
                   ))}
                 </div>
+                <p className="text-slate-600 text-sm leading-relaxed italic">
+                  "Ledger AI transformed how we handle statements. What used to take a day now takes minutes. Exceptional accuracy."
+                </p>
               </motion.div>
             </div>
           </div>

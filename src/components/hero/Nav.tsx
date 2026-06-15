@@ -11,7 +11,7 @@ export const Nav = ({ scrollToBooking }: NavProps) => {
       initial={{ y: -20, opacity: 0 }}
       animate={{ y: 0, opacity: 1 }}
       transition={{ duration: 0.5 }}
-      className="sticky top-0 z-50 bg-white/95 backdrop-blur-sm border-b border-slate-100"
+      className="sticky top-10 z-50 bg-white/95 backdrop-blur-sm border-b border-slate-100"
     >
       <div className="max-w-6xl mx-auto px-6 h-16 flex items-center justify-between">
         <div className="flex items-center gap-2.5">
@@ -33,7 +33,7 @@ export const Nav = ({ scrollToBooking }: NavProps) => {
         </div>
         <button
           onClick={scrollToBooking}
-          className="bg-[#13b5ea] text-white text-sm font-semibold px-5 py-2.5 rounded-lg hover:bg-[#0e9fd2] transition-colors"
+          className="bg-white text-slate-700 text-sm font-semibold px-5 py-2.5 rounded-lg border border-slate-200 hover:border-[#13b5ea] hover:text-[#13b5ea] transition-colors"
         >
           Book a Demo
         </button>
