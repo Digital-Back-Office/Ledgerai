@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useRef } from "react";
 import { motion } from "framer-motion";
 import { Sparkles, ArrowRight, Check, CheckCircle2, Loader } from "lucide-react";
 
@@ -11,6 +11,7 @@ export const HeroSection = ({ scrollToBooking }: HeroSectionProps) => {
   const [isLoading, setIsLoading] = useState(false);
   const [submitted, setSubmitted] = useState(false);
   const [error, setError] = useState("");
+  const emailStartedRef = useRef(false);
 
   const onSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
@@ -30,6 +31,7 @@ export const HeroSection = ({ scrollToBooking }: HeroSectionProps) => {
       const data = await response.json();
       if (data.success) {
         localStorage.setItem("ledgerSignedUp", "true");
+        window.gtag?.("event", "form_submitted", { event_category: "conversion", event_label: "hero" });
         setSubmitted(true);
         setEmail("");
       } else {
@@ -102,13 +104,20 @@ export const HeroSection = ({ scrollToBooking }: HeroSectionProps) => {
                   required
                   autoFocus
                   value={email}
-                  onChange={(e) => setEmail(e.target.value)}
+                  onChange={(e) => {
+                    setEmail(e.target.value);
+                    if (!emailStartedRef.current && e.target.value.length > 0) {
+                      emailStartedRef.current = true;
+                      window.gtag?.("event", "email_started", { event_category: "engagement", event_label: "hero" });
+                    }
+                  }}
                   placeholder="Enter your work email"
                   className="flex-1 bg-transparent text-slate-900 text-base rounded-xl px-5 py-4 placeholder-slate-400 focus:outline-none"
                 />
                 <button
                   type="submit"
                   disabled={isLoading}
+                  onClick={() => window.gtag?.("event", "cta_click", { event_category: "engagement", event_label: "hero" })}
                   className="inline-flex items-center justify-center gap-2 bg-[#13b5ea] text-white font-semibold px-8 py-4 rounded-xl hover:bg-[#0e9fd2] transition-colors text-base shadow-lg shadow-[#13b5ea]/30 disabled:cursor-not-allowed whitespace-nowrap"
                 >
                   {isLoading ? (

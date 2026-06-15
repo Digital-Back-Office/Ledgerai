@@ -34,12 +34,23 @@ export const EmailPopup = ({ isOpen, onClose }: EmailPopupProps) => {
   const [error, setError] = useState("");
   const [spotsLeft, setSpotsLeft] = useState(BASE_SPOTS_LEFT);
   const inputRef = useRef<HTMLInputElement>(null);
+  const emailStartedRef = useRef(false);
+  const submittedRef = useRef(false);
+
+  const handleClose = () => {
+    if (!submittedRef.current) {
+      window.gtag?.("event", "popup_dismissed", { event_category: "engagement" });
+    }
+    onClose();
+  };
 
   // Recompute the spots from today's date + this visitor's sign-up whenever the
   // popup opens. Also drop the cursor straight into the email field on open.
   useEffect(() => {
     if (isOpen) {
       setSpotsLeft(computeSpotsLeft(!!localStorage.getItem("ledgerSignedUp")));
+      emailStartedRef.current = false;
+      submittedRef.current = false;
       const t = setTimeout(() => inputRef.current?.focus(), 120);
       return () => clearTimeout(t);
     }
@@ -66,6 +77,8 @@ export const EmailPopup = ({ isOpen, onClose }: EmailPopupProps) => {
       const data = await response.json();
       if (data.success) {
         localStorage.setItem("ledgerSignedUp", "true");
+        submittedRef.current = true;
+        window.gtag?.("event", "form_submitted", { event_category: "conversion", event_label: "popup" });
         setSpotsLeft(computeSpotsLeft(true));
         setSubmitted(true);
         setEmail("");
@@ -87,7 +100,7 @@ export const EmailPopup = ({ isOpen, onClose }: EmailPopupProps) => {
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
           className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/70 backdrop-blur-sm"
-          onClick={onClose}
+          onClick={handleClose}
         >
           <motion.div
             initial={{ opacity: 0, scale: 0.95, y: 20 }}
@@ -98,7 +111,7 @@ export const EmailPopup = ({ isOpen, onClose }: EmailPopupProps) => {
             className="relative w-full max-w-lg rounded-3xl overflow-hidden border border-white/10 bg-[#0a0e17] shadow-2xl"
           >
             <button
-              onClick={onClose}
+              onClick={handleClose}
               aria-label="Close"
               className="absolute top-5 right-5 text-white/40 hover:text-white transition-colors z-10"
             >
@@ -173,7 +186,13 @@ export const EmailPopup = ({ isOpen, onClose }: EmailPopupProps) => {
                       required
                       autoFocus
                       value={email}
-                      onChange={(e) => setEmail(e.target.value)}
+                      onChange={(e) => {
+                        setEmail(e.target.value);
+                        if (!emailStartedRef.current && e.target.value.length > 0) {
+                          emailStartedRef.current = true;
+                          window.gtag?.("event", "email_started", { event_category: "engagement", event_label: "popup" });
+                        }
+                      }}
                       placeholder="Enter your work email"
                       className="w-full bg-white/5 border border-white/10 text-white text-base rounded-xl px-5 py-4 placeholder-white/30 focus:outline-none focus:border-[#13b5ea] focus:bg-white/10 transition-all"
                     />

@@ -1,8 +1,27 @@
+import { useEffect, useRef } from "react";
 import { BookOpen } from "lucide-react";
 
 export const Footer = () => {
+  const footerRef = useRef<HTMLElement>(null);
+
+  useEffect(() => {
+    const el = footerRef.current;
+    if (!el) return;
+    const observer = new IntersectionObserver(
+      (entries) => {
+        if (entries[0].isIntersecting) {
+          window.gtag?.("event", "scrolled_to_bottom", { event_category: "engagement" });
+          observer.disconnect();
+        }
+      },
+      { threshold: 0.5 }
+    );
+    observer.observe(el);
+    return () => observer.disconnect();
+  }, []);
+
   return (
-    <footer className="bg-white border-t border-slate-100 py-8">
+    <footer ref={footerRef} className="bg-white border-t border-slate-100 py-8">
       <div className="max-w-6xl mx-auto px-6 flex flex-col md:flex-row items-center justify-between gap-4">
         <div className="flex items-center gap-2">
           <div className="w-7 h-7 rounded-lg bg-[#13b5ea] flex items-center justify-center">

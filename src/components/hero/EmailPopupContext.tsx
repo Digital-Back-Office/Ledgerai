@@ -23,6 +23,7 @@ export const EmailPopupProvider = ({ children }: { children: ReactNode }) => {
     const observer = new IntersectionObserver(
       (entries) => {
         if (entries[0].isIntersecting) {
+          window.gtag?.("event", "popup_opened", { event_category: "engagement", event_label: "auto" });
           setIsOpen(true);
           localStorage.setItem("leadPopupSeen", "true");
           observer.disconnect();
@@ -34,7 +35,10 @@ export const EmailPopupProvider = ({ children }: { children: ReactNode }) => {
     return () => observer.disconnect();
   }, []);
 
-  const open = () => setIsOpen(true);
+  const open = () => {
+    window.gtag?.("event", "popup_opened", { event_category: "engagement", event_label: "manual" });
+    setIsOpen(true);
+  };
   const close = () => {
     localStorage.setItem("leadPopupSeen", "true");
     setIsOpen(false);

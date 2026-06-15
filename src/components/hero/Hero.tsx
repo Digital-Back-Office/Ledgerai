@@ -1,4 +1,4 @@
-import { useRef } from "react";
+import { useRef, useEffect } from "react";
 import { TopBar } from "./TopBar";
 import { Nav } from "./Nav";
 import { HeroSection } from "./HeroSection";
@@ -13,6 +13,30 @@ import { CookieConsent } from "../CookieConsent";
 // ─── Main Component ──────────────────────────────────────────────────────────
 export default function LedgerAI() {
   const bookingRef = useRef(null);
+
+  useEffect(() => {
+    const sections = [
+      { id: "features", label: "features" },
+      { id: "how-it-works", label: "how_it_works" },
+      { id: "book-demo", label: "book_demo" },
+    ];
+    const observers = sections.map(({ id, label }) => {
+      const el = document.getElementById(id);
+      if (!el) return null;
+      const observer = new IntersectionObserver(
+        (entries) => {
+          if (entries[0].isIntersecting) {
+            window.gtag?.("event", "section_view", { event_category: "scroll_funnel", event_label: label });
+            observer.disconnect();
+          }
+        },
+        { threshold: 0.3 }
+      );
+      observer.observe(el);
+      return observer;
+    });
+    return () => observers.forEach((obs) => obs?.disconnect());
+  }, []);
 
   const scrollToBooking = () => {
     bookingRef.current?.scrollIntoView({ behavior: "smooth", block: "center" });

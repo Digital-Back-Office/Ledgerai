@@ -65,7 +65,10 @@ export const ShowcaseSection = () => {
           </div>
 
           <button
-            onClick={open}
+            onClick={() => {
+              window.gtag?.("event", "cta_click", { event_category: "engagement", event_label: "showcase" });
+              open();
+            }}
             className="inline-flex items-center gap-2 bg-[#13b5ea] text-white font-semibold px-9 py-4 rounded-xl hover:bg-[#0e9fd2] transition-colors text-base shadow-lg shadow-[#13b5ea]/30"
           >
             Claim 1 Month Free <ArrowRight size={18} />

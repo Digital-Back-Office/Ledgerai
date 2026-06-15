@@ -8,7 +8,10 @@ export const TopBar = () => {
     <div className="sticky top-0 z-[60] bg-[#0b1220] text-white">
       <div className="max-w-7xl mx-auto px-6 h-10 flex items-center justify-center text-sm">
         <button
-          onClick={open}
+          onClick={() => {
+            window.gtag?.("event", "banner_click", { event_category: "engagement" });
+            open();
+          }}
           className="flex items-center gap-2 font-medium hover:opacity-90 transition-opacity"
         >
           <Sparkles size={13} className="text-[#13b5ea]" />
