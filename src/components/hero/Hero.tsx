@@ -40,6 +40,7 @@ export default function LedgerAI() {
 
   const scrollToBooking = () => {
     bookingRef.current?.scrollIntoView({ behavior: "smooth", block: "center" });
+    window.gtag?.("event", "book_demo_clicked", { event_category: "engagement", event_label: "nav" })
   };
 
   return (
