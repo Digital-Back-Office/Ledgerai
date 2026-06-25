@@ -35,7 +35,7 @@ export const BookingForm = ({ onClose }: BookingFormProps) => {
       if (data.success) {
           // Google Ads Conversion
         window.gtag?.("event", "conversion", {
-          send_to: "AW-18022362771/GedICMT5uIocEJPd3ZFD",
+          send_to: "AW-18022362771/E1vVCJf9ncUcEJPd3ZFD",
           value: 1.0,
           currency: "INR",
         });
