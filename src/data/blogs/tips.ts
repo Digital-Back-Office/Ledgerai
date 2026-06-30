@@ -1,6 +1,4 @@
 export const bookkeepingTipsContent = `
-# From PDF to Trial Balance: A Faster Workflow for Modern Accountants
-
 In the modern accounting landscape, speed, precision, and efficiency are no longer optional. They are the baseline requirements for survival and growth. 
 
 For decades, UK accounting practices followed a rigid, time-consuming workflow: clients handed over shopping bags of receipts, paper records, or disorganised PDF bank statements, and junior accountants manually transcribed this data into spreadsheets or desktop software. 

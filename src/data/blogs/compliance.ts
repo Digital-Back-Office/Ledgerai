@@ -1,6 +1,4 @@
 export const complianceContent = `
-# The Complete Guide to Bookkeeping Automation for UK Accounting Firms (2026)
-
 As we enter 2026, the UK accounting sector is facing a perfect storm. The labor market for qualified staff remains tight, client expectations for real-time financial reporting are higher than ever, and HMRC continues to press forward with its digital transformation agenda. 
 
 In this environment, traditional manual bookkeeping practices are no longer viable. They are too slow, too expensive, and impossible to scale. 

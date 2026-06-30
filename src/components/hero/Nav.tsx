@@ -41,9 +41,6 @@ export const Nav = ({ scrollToBooking }: NavProps) => {
           <Link href="/blogs" className="hover:text-slate-900 transition-colors">
             Blogs
           </Link>
-          <Link href="/#book-demo" className="hover:text-slate-900 transition-colors">
-            Book a demo
-          </Link>
         </div>
         <button
           onClick={handleBookingClick}

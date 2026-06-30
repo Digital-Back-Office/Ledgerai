@@ -487,7 +487,6 @@ export default function BlogDetail({ slug }: BlogDetailProps) {
           </span>
           <h1
             className="text-3xl sm:text-4xl lg:text-5xl font-extrabold text-slate-900 leading-tight tracking-tight mb-6"
-            style={{ fontFamily: "'DM Sans', sans-serif" }}
           >
             {post.title}
           </h1>

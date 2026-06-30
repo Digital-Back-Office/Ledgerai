@@ -1,6 +1,4 @@
 export const differenceContent = `
-# The Hidden Cost of Manual Bank Statement Processing for UK Accounting Firms
-
 In the competitive UK accounting market, firm profitability is dictated by two variables: pricing and delivery costs. While pricing is often constrained by market competition, delivery costs are controlled entirely by the efficiency of your internal workflows. 
 
 One of the most persistent drains on firm profitability is manual bank statement processing. 

@@ -108,7 +108,6 @@ export default function BlogsList() {
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.1 }}
             className="text-4xl sm:text-5xl font-bold text-slate-900 tracking-tight mb-5 leading-tight"
-            style={{ fontFamily: "'DM Sans', sans-serif" }}
           >
             Accounting & <span className="text-[#13b5ea]">Bookkeeping</span> Insights
           </motion.h1>

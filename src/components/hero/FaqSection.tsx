@@ -1,6 +1,6 @@
-import { useState } from "react";
-import { motion, AnimatePresence } from "framer-motion";
-import { ChevronDown, HelpCircle } from "lucide-react";
+import { useState, useRef } from "react";
+import { motion, AnimatePresence, useInView } from "framer-motion";
+import { ChevronDown } from "lucide-react";
 
 interface FAQItem {
   question: string;
@@ -34,44 +34,60 @@ const faqData: FAQItem[] = [
   },
 ];
 
+const useScrollInView = (threshold = 0.15) => {
+  const ref = useRef(null);
+  const isInView = useInView(ref, { once: true, amount: threshold });
+  return { ref, isInView };
+};
+
 export const FaqSection = () => {
   const [openIndex, setOpenIndex] = useState<number | null>(null);
+  const { ref: faqRef, isInView: faqInView } = useScrollInView();
 
   const toggleFAQ = (index: number) => {
     setOpenIndex(openIndex === index ? null : index);
   };
 
   return (
-    <section id="faq" className="py-24 bg-slate-50 border-t border-slate-100">
-      <div className="max-w-4xl mx-auto px-6">
+    <section
+      id="faq"
+      className="bg-slate-50 border-t border-slate-100 py-24"
+      ref={faqRef}
+    >
+      <div className="max-w-6xl mx-auto px-6">
         {/* Header */}
-        <div className="text-center max-w-2xl mx-auto mb-16">
-          <div className="inline-flex items-center gap-2 bg-[#13b5ea]/10 text-[#13b5ea] text-xs font-bold px-4 py-2 rounded-full mb-6 uppercase tracking-widest">
-            <HelpCircle size={12} /> Questions & Answers
-          </div>
-          <h2
-            className="text-3xl sm:text-4xl font-bold text-slate-900 tracking-tight mb-5"
-            style={{ fontFamily: "'DM Sans', sans-serif" }}
-          >
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={faqInView ? { opacity: 1, y: 0 } : {}}
+          transition={{ duration: 0.5 }}
+          className="text-center mb-14"
+        >
+          <p className="text-[11px] font-bold uppercase tracking-[0.15em] text-[#13b5ea] mb-3">
+            FAQ
+          </p>
+          <h2 className="text-[2.2rem] font-extrabold text-slate-900 tracking-tight">
             Frequently Asked Questions
           </h2>
-          <p className="text-slate-600 text-base sm:text-lg leading-relaxed">
+          <p className="text-slate-400 mt-3 text-base max-w-lg mx-auto">
             Everything you need to know about our AI-powered bookkeeping automation and how it integrates into your UK accounting practice.
           </p>
-        </div>
+        </motion.div>
 
         {/* Accordion List */}
-        <div className="space-y-4">
+        <div className="space-y-4 max-w-3xl mx-auto">
           {faqData.map((item, idx) => {
             const isOpen = openIndex === idx;
             return (
-              <div
+              <motion.div
                 key={idx}
-                className="bg-white rounded-2xl border border-slate-100 shadow-sm overflow-hidden transition-all hover:border-slate-200"
+                initial={{ opacity: 0, y: 15 }}
+                animate={faqInView ? { opacity: 1, y: 0 } : {}}
+                transition={{ duration: 0.4, delay: idx * 0.08 }}
+                className="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden transition-all hover:border-slate-300"
               >
                 <button
                   onClick={() => toggleFAQ(idx)}
-                  className="w-full px-6 py-5 flex items-center justify-between text-left font-semibold text-slate-800 text-base sm:text-lg hover:text-[#13b5ea] transition-colors focus:outline-none cursor-pointer"
+                  className="w-full px-6 py-4.5 flex items-center justify-between text-left font-bold text-slate-800 text-base sm:text-lg hover:text-[#13b5ea] transition-colors focus:outline-none cursor-pointer"
                 >
                   <span>{item.question}</span>
                   <motion.div
@@ -79,7 +95,7 @@ export const FaqSection = () => {
                     transition={{ duration: 0.2 }}
                     className="text-slate-400 shrink-0 ml-4"
                   >
-                    <ChevronDown size={20} />
+                    <ChevronDown size={18} />
                   </motion.div>
                 </button>
 
@@ -91,13 +107,13 @@ export const FaqSection = () => {
                       exit={{ height: 0, opacity: 0 }}
                       transition={{ duration: 0.25, ease: "easeInOut" }}
                     >
-                      <div className="px-6 pb-6 pt-1 text-slate-600 text-sm sm:text-base leading-relaxed border-t border-slate-50">
+                      <div className="px-6 pb-5 pt-1 text-slate-500 text-sm sm:text-base leading-relaxed border-t border-slate-100/50">
                         {item.answer}
                       </div>
                     </motion.div>
                   )}
                 </AnimatePresence>
-              </div>
+              </motion.div>
             );
           })}
         </div>

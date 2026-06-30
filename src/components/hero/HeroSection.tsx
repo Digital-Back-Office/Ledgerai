@@ -61,7 +61,6 @@ export const HeroSection = ({ scrollToBooking }: HeroSectionProps) => {
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.2 }}
           className="text-5xl sm:text-6xl font-bold text-gray-900 leading-[1.05] tracking-tight mb-6"
-          // style={{ fontFamily: "'DM Sans', sans-serif" }}
         >
           Save <span className="text-[#13b5ea]">80% of the time</span> you
           spend on bookkeeping
