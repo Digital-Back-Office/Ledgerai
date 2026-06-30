@@ -46,7 +46,7 @@ export const HeroSection = ({ scrollToBooking }: HeroSectionProps) => {
 
   return (
     <section className="relative bg-white">
-      <div className="relative max-w-3xl mx-auto px-6 pt-24 pb-28 text-center">
+      <div className="relative max-w-4xl mx-auto px-6 pt-24 pb-28 text-center">
         <motion.div
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
@@ -61,7 +61,6 @@ export const HeroSection = ({ scrollToBooking }: HeroSectionProps) => {
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.2 }}
           className="text-5xl sm:text-6xl font-bold text-gray-900 leading-[1.05] tracking-tight mb-6"
-          style={{ fontFamily: "'DM Sans', sans-serif" }}
         >
           Save <span className="text-[#13b5ea]">80% of the time</span> you
           spend on bookkeeping

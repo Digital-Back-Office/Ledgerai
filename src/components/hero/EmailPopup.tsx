@@ -152,7 +152,6 @@ export const EmailPopup = ({ isOpen, onClose }: EmailPopupProps) => {
 
                   <h3
                     className="text-4xl font-bold leading-tight text-white"
-                    style={{ fontFamily: "'DM Sans', sans-serif" }}
                   >
                     Get your <span className="text-[#13b5ea]">first month free</span>
                   </h3>

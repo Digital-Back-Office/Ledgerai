@@ -38,7 +38,6 @@ export const ShowcaseSection = () => {
 
           <h2
             className="text-4xl sm:text-5xl font-bold text-gray-900 leading-tight tracking-tight mb-5"
-            style={{ fontFamily: "'DM Sans', sans-serif" }}
           >
             Try Ledger AI free for a{" "}
             <span className="text-[#13b5ea]">full month</span>
