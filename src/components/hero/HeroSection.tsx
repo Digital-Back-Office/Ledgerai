@@ -147,7 +147,7 @@ export const HeroSection = ({ scrollToBooking }: HeroSectionProps) => {
           transition={{ delay: 0.6 }}
           className="flex flex-wrap items-center justify-center gap-x-6 gap-y-2 mt-10 text-sm text-gray-500"
         >
-          {["No credit card required", "SOC 2 compliant", "GDPR ready"].map((t, i) => (
+          {["No credit card required", "GDPR ready"].map((t, i) => (
             <span key={i} className="flex items-center gap-1.5">
               <Check size={14} className="text-[#13b5ea]" /> {t}
             </span>
