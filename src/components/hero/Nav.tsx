@@ -1,6 +1,7 @@
 import { motion } from "framer-motion";
 import { BookOpen } from "lucide-react";
 import { Link } from "../Link";
+import Logo from '../../../public/Logo.png'
 
 interface NavProps {
   scrollToBooking: () => void;
@@ -25,11 +26,15 @@ export const Nav = ({ scrollToBooking }: NavProps) => {
       className="sticky top-10 z-50 bg-white/95 backdrop-blur-sm border-b border-slate-100"
     >
       <div className="max-w-6xl mx-auto px-6 h-16 flex items-center justify-between">
-        <Link href="/" className="flex items-center gap-2.5 hover:opacity-90 transition-opacity">
-          <div className="w-8 h-8 rounded-lg bg-[#13b5ea] flex items-center justify-center">
-            <BookOpen size={15} className="text-white" />
-          </div>
-          <span className="font-bold text-slate-900 text-lg tracking-tight">Ledger AI</span>
+        <Link
+          href="/"
+          className="flex items-center gap-2.5 hover:opacity-90 transition-opacity"
+        >
+          <img
+            src={Logo}
+            alt="Logo"
+            className="w-24 sm:w-32 md:w-36 lg:w-40 h-auto"
+          />
         </Link>
         <div className="hidden md:flex items-center gap-8 text-sm text-slate-500 font-medium">
           <Link href="/#features" className="hover:text-slate-900 transition-colors">
