@@ -1,5 +1,5 @@
 import { motion } from "framer-motion";
-import { BookOpen } from "lucide-react";
+import { BookOpen, LogIn } from "lucide-react";
 import { Link } from "../Link";
 import Logo from '../../../public/Logo.png'
 
@@ -47,12 +47,23 @@ export const Nav = ({ scrollToBooking }: NavProps) => {
             Blogs
           </Link>
         </div>
-        <button
-          onClick={handleBookingClick}
-          className="bg-white text-slate-700 text-sm font-semibold px-5 py-2.5 rounded-lg border border-slate-200 hover:border-[#13b5ea] hover:text-[#13b5ea] transition-colors cursor-pointer"
-        >
-          Book a Demo
-        </button>
+        <div className="flex items-center gap-3">
+          <a
+            href="https://la.backoffice.digital/"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="flex items-center gap-2 text-slate-700 text-sm font-semibold px-5 py-2.5 rounded-lg border border-slate-200 hover:border-[#13b5ea] hover:text-[#13b5ea] transition-colors"
+          >
+            <LogIn size={16} />
+            Login
+          </a>
+          <button
+            onClick={handleBookingClick}
+            className="bg-[#13b5ea] text-white text-sm font-semibold px-5 py-2.5 rounded-lg hover:bg-[#0e9fd2] transition-colors cursor-pointer"
+          >
+            Book a Demo
+          </button>
+        </div>
       </div>
     </motion.nav>
   );
