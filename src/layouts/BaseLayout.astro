@@ -63,8 +63,12 @@ const graphs = jsonLd ? (Array.isArray(jsonLd) ? jsonLd : [jsonLd]) : [];
     <link rel="canonical" href={canonicalUrl} />
     {noindex && <meta name="robots" content="noindex, nofollow" />}
 
-    <link rel="icon" type="image/png" href="/favicon.png" />
-    <link rel="icon" type="image/svg+xml" href={brand.favicon} />
+    {/* One icon only, and it comes from brand.favicon. Offering favicon.svg
+         alongside the PNG made every browser prefer the SVG — and
+         public/favicon.svg is the purple Backoffice bolt, not the Ledger AI
+         mark, so the tab silently showed the wrong brand. */}
+    <link rel="icon" type="image/png" href={brand.favicon} />
+    <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
     <meta name="theme-color" content="#13b5ea" />
     <meta name="generator" content={Astro.generator} />
 
@@ -84,7 +88,11 @@ const graphs = jsonLd ? (Array.isArray(jsonLd) ? jsonLd : [jsonLd]) : [];
     <meta property="og:url" content={canonicalUrl} />
     <meta property="og:image" content={ogImageUrl} />
     <meta property="og:image:width" content="1200" />
-    <meta property="og:image:height" content="630" />
+    {/* 600, not the usual 630 — og-image.png really is 1200x600. Declaring a
+         height the file does not have makes some scrapers discard the card. */}
+    <meta property="og:image:height" content="600" />
+    <meta property="og:image:type" content="image/png" />
+    <meta property="og:image:alt" content={ogTitle} />
     <meta property="og:site_name" content={brand.name} />
     <meta property="og:locale" content="en_GB" />
 
