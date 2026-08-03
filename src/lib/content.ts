@@ -1,7 +1,7 @@
 import { getCollection, getEntry, type CollectionEntry } from "astro:content";
 
 /** Collections that are one-file-per-item and render in `order`. */
-export async function getOrdered<C extends "features" | "steps" | "faqs" | "blog">(
+export async function getOrdered<C extends "features" | "steps" | "faqs" | "blog" | "legal">(
   collection: C
 ): Promise<CollectionEntry<C>[]> {
   const entries = await getCollection(collection);
@@ -27,6 +27,11 @@ export async function getSite(id: "brand" | "navigation" | "footer") {
 /** Posts in reading order (matches the old `blogPosts` array order). */
 export async function getPosts() {
   return getOrdered("blog");
+}
+
+/** Privacy / terms / cookies / GDPR, in the order they appear in the footer. */
+export async function getLegalPages() {
+  return getOrdered("legal");
 }
 
 /** "2026-06-25" -> "25 June 2026", matching the old hand-written dates. */

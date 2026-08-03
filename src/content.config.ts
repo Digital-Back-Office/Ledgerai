@@ -184,6 +184,23 @@ const blog = defineCollection({
   }),
 });
 
+/** Privacy, terms, cookie and GDPR pages. Body = the policy text itself. */
+const legal = defineCollection({
+  loader: md("legal"),
+  schema: z.object({
+    /** Order in the legal sidebar and the footer. */
+    order: z.number(),
+    title: z.string(),
+    /** Short label used in the footer and the cross-links between policies. */
+    shortTitle: z.string(),
+    /** One-line summary rendered under the H1. */
+    summary: z.string(),
+    /** ISO date — shown as "Last updated" and used for `dateModified`. */
+    updated: z.string(),
+    seo: z.object({ title: z.string(), description: z.string() }),
+  }),
+});
+
 const sections = defineCollection({
   loader: md("sections"),
   schema: z.object({
@@ -318,4 +335,4 @@ const site = defineCollection({
   }),
 });
 
-export const collections = { features, steps, faqs, blog, sections, site };
+export const collections = { features, steps, faqs, blog, legal, sections, site };

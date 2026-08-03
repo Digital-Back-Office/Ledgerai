@@ -1,0 +1,127 @@
+---
+import type { GetStaticPaths } from "astro";
+import { render } from "astro:content";
+import BaseLayout from "../../layouts/BaseLayout.astro";
+import TopBar from "../../components/TopBar.astro";
+import Nav from "../../components/Nav.astro";
+import Footer from "../../components/Footer.astro";
+import CookieConsent from "../../components/CookieConsent.astro";
+import Icon from "../../components/Icon.astro";
+import { formatDate, getLegalPages, getSite } from "../../lib/content";
+import { breadcrumbs } from "../../lib/schema";
+
+export const getStaticPaths: GetStaticPaths = async () => {
+  const pages = await getLegalPages();
+  return pages.map((entry) => ({ params: { slug: entry.id }, props: { entry } }));
+};
+
+const brand = await getSite("brand");
+const { entry } = Astro.props;
+const page = entry.data;
+
+// Compiled to HTML at build time, exactly as the blog posts are — crawlers get
+// the full policy text rather than an empty container.
+const { Content } = await render(entry);
+
+const pages = await getLegalPages();
+
+const jsonLd = [
+  {
+    "@context": "https://schema.org",
+    "@type": "WebPage",
+    name: page.title,
+    description: page.summary,
+    url: `${(brand.url ?? "").replace(/\/$/, "")}/legal/${entry.id}`,
+    dateModified: page.updated,
+    inLanguage: "en-GB",
+    isPartOf: { "@id": `${(brand.url ?? "").replace(/\/$/, "")}/#website` },
+    publisher: { "@id": `${(brand.url ?? "").replace(/\/$/, "")}/#organization` },
+  },
+  breadcrumbs(brand, [
+    { name: "Home", item: "/" },
+    { name: page.title, item: `/legal/${entry.id}` },
+  ]),
+];
+---
+
+<BaseLayout
+  title={page.seo.title}
+  description={page.seo.description}
+  canonical={`/legal/${entry.id}`}
+  ogTitle={page.seo.title}
+  ogDescription={page.seo.description}
+  jsonLd={jsonLd}
+  bodyClass="bg-slate-50"
+>
+  <TopBar />
+  <Nav />
+
+  <div class="bg-white border-b border-slate-100">
+    <div class="max-w-5xl mx-auto px-6 py-6">
+      <nav
+        aria-label="Breadcrumb"
+        class="flex items-center gap-2 text-xs font-medium text-slate-500"
+      >
+        <a href="/" class="hover:text-[#13b5ea] flex items-center gap-1 transition-colors">
+          <Icon name="Home" size={12} /> Home
+        </a>
+        <Icon name="ChevronRight" size={10} class="text-slate-400" />
+        <span class="text-slate-800" aria-current="page">{page.title}</span>
+      </nav>
+    </div>
+  </div>
+
+  <main class="max-w-5xl mx-auto px-6 pt-12 pb-20">
+    <header class="text-center max-w-3xl mx-auto mb-12">
+      <span
+        class="inline-flex items-center gap-2 bg-[#13b5ea]/10 text-[#13b5ea] text-xs font-bold px-4 py-2 rounded-full mb-6 uppercase tracking-widest"
+      >
+        <Icon name="FileText" size={12} />
+        Legal
+      </span>
+      <h1
+        class="text-3xl sm:text-4xl lg:text-5xl font-extrabold text-slate-900 tracking-tight leading-tight mb-5"
+      >
+        {page.title}
+      </h1>
+      <p class="text-base sm:text-lg text-slate-600 leading-relaxed mb-6">{page.summary}</p>
+      <p class="text-xs font-medium text-slate-400 uppercase tracking-wider">
+        Last updated <time datetime={page.updated}>{formatDate(page.updated)}</time>
+      </p>
+    </header>
+
+    {/* Sibling policies, so a visitor who lands on one can reach the rest. */}
+    <nav
+      aria-label="Legal pages"
+      class="flex flex-wrap items-center justify-center gap-2 mb-12"
+    >
+      {
+        pages.map((other) => (
+          <a
+            href={`/legal/${other.id}`}
+            aria-current={other.id === entry.id ? "page" : undefined}
+            class="text-xs font-semibold px-4 py-2 rounded-xl transition-all bg-white text-slate-600 border border-slate-100 hover:text-slate-900 hover:border-slate-200 aria-[current=page]:bg-[#13b5ea] aria-[current=page]:text-white aria-[current=page]:border-[#13b5ea] aria-[current=page]:shadow-sm aria-[current=page]:shadow-[#13b5ea]/25"
+          >
+            {other.data.shortTitle}
+          </a>
+        ))
+      }
+    </nav>
+
+    <div
+      class="prose-content max-w-none select-text bg-white rounded-3xl border border-slate-100 shadow-sm p-6 sm:p-10 lg:p-12"
+    >
+      <Content />
+    </div>
+
+    <p class="text-center text-sm text-slate-500 mt-10">
+      Questions about this page? <a
+        href="/#book-demo"
+        class="text-[#13b5ea] font-semibold hover:underline">Get in touch</a
+      >.
+    </p>
+  </main>
+
+  <Footer />
+  <CookieConsent />
+</BaseLayout>
