@@ -1,0 +1,50 @@
+name: PR Build Check
+
+# deploy.yml only runs on push to main, so until now a pull request ran no
+# checks at all — a PR that failed to compile merged clean and broke the live
+# site. This builds the same way deploy.yml does, but stops short of deploying.
+
+on:
+  pull_request:
+    branches:
+      - main
+
+permissions:
+  contents: read
+
+# One run per PR. Pushing a new commit cancels the in-flight run for the old one.
+concurrency:
+  group: pr-check-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: 'npm'
+
+      # `ci`, not `install` — it installs the lockfile exactly and fails if
+      # package.json and package-lock.json have drifted, which is the point of
+      # a pre-merge check. Same command deploy.yml uses.
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build project
+        run: npm run build
+
+      # GitHub Pages serves one site per repo and cannot host a per-PR preview
+      # URL. This is the nearest thing: the built site, downloadable from the
+      # run summary. Drop this step if the artifacts are not worth the storage.
+      - name: Upload build output
+        uses: actions/upload-artifact@v4
+        with:
+          name: dist-pr-${{ github.event.pull_request.number }}
+          path: dist/
+          retention-days: 7
