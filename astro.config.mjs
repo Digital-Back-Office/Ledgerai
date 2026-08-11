@@ -1,43 +1,6 @@
 // @ts-check
-import { readFileSync, readdirSync } from 'node:fs';
 import { defineConfig } from 'astro/config';
-import sitemap from '@astrojs/sitemap';
 import tailwindcss from '@tailwindcss/vite';
-
-/**
- * `lastmod` dates for the XML sitemap, read straight out of the content
- * frontmatter that the pages themselves render from.
- *
- * Search Console ignores `changefreq` and `priority` but does read `lastmod`,
- * so it is the only optional field worth emitting — and it has to be true, or
- * Google starts distrusting it. Using the build date for every URL would mark
- * three-month-old posts as changed on every deploy, which is exactly that.
- */
-const frontmatterDates = (dir, field, urlPath) => {
-  const pattern = new RegExp(`^${field}:\\s*"?([0-9]{4}-[0-9]{2}-[0-9]{2})`, 'm');
-  return Object.fromEntries(
-    readdirSync(`./src/content/${dir}`)
-      .filter((file) => file.endsWith('.md'))
-      .map((file) => {
-        const match = pattern.exec(readFileSync(`./src/content/${dir}/${file}`, 'utf8'));
-        return [urlPath(file.replace(/\.md$/, '')), match?.[1]];
-      })
-      .filter(([, date]) => date)
-  );
-};
-
-const posts = frontmatterDates('blog', 'date', (slug) => `/blogs/${slug}`);
-const legal = frontmatterDates('legal', 'updated', (slug) => `/legal/${slug}`);
-const newestPost = Object.values(posts).sort().at(-1);
-
-/** Pages assembled from that content inherit the newest date they show. */
-const lastmodByPath = {
-  ...posts,
-  ...legal,
-  '/': newestPost,
-  '/blogs': newestPost,
-  '/sitemap': [...Object.values(posts), ...Object.values(legal)].sort().at(-1),
-};
 
 // https://astro.build/config
 export default defineConfig({
@@ -54,15 +17,10 @@ export default defineConfig({
     // resolves a bare /blogs to the directory, which has no index and 404s.
     format: 'preserve',
   },
-  integrations: [
-    sitemap({
-      serialize(item) {
-        const path = new URL(item.url).pathname.replace(/\/$/, '') || '/';
-        const lastmod = lastmodByPath[path];
-        return lastmod ? { ...item, lastmod: `${lastmod}T00:00:00+00:00` } : item;
-      },
-    }),
-  ],
+  // No @astrojs/sitemap: the XML sitemap is served by src/pages/sitemap.xml.ts,
+  // a single flat urlset matching the format dataflow.zone uses. Running both
+  // would publish two competing sitemaps of the same site.
+  integrations: [],
   vite: {
     plugins: [tailwindcss()],
   },
