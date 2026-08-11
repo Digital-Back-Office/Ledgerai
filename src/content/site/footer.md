@@ -11,4 +11,6 @@ links:
     href: "/legal/cookie-policy"
   - label: "GDPR"
     href: "/legal/gdpr"
+  - label: "Sitemap"
+    href: "/sitemap"
 ---
