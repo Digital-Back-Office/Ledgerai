@@ -1,0 +1,279 @@
+---
+/**
+ * Human-readable sitemap.
+ *
+ * The XML sitemap that @astrojs/sitemap emits is for crawlers; this is the
+ * version a visitor can read. Every link is derived from the same content
+ * collections the rest of the site renders from, so a new post or policy shows
+ * up here without anyone remembering to edit this file.
+ */
+import BaseLayout from "../layouts/BaseLayout.astro";
+import TopBar from "../components/TopBar.astro";
+import Nav from "../components/Nav.astro";
+import Footer from "../components/Footer.astro";
+import CookieConsent from "../components/CookieConsent.astro";
+import Icon from "../components/Icon.astro";
+import { formatDate, getLegalPages, getPosts, getSection, getSite } from "../lib/content";
+import { breadcrumbs } from "../lib/schema";
+
+const brand = await getSite("brand");
+const navigation = await getSite("navigation");
+const section = await getSection("sitemap");
+const posts = await getPosts();
+const legal = await getLegalPages();
+
+const site = (brand.url ?? "").replace(/\/$/, "");
+
+/** On-page anchors come from the nav, so the two can't drift apart. */
+const homeLinks = [
+  { label: "Home", href: "/", note: "Overview of the product" },
+  ...navigation.links
+    .filter((link) => link.href.startsWith("/#"))
+    .map((link) => ({ label: link.label, href: link.href, note: undefined })),
+  { label: "Book a Demo", href: "/#book-demo", note: "Talk to the team" },
+];
+
+const jsonLd = [
+  {
+    "@context": "https://schema.org",
+    "@type": "WebPage",
+    name: section.pageTitle,
+    description: section.pageDescription,
+    url: `${site}/sitemap`,
+    inLanguage: "en-GB",
+    isPartOf: { "@id": `${site}/#website` },
+    publisher: { "@id": `${site}/#organization` },
+  },
+  breadcrumbs(brand, [
+    { name: "Home", item: "/" },
+    { name: "Sitemap", item: "/sitemap" },
+  ]),
+];
+
+const cardClass =
+  "bg-white rounded-3xl border border-slate-100 shadow-sm p-6 sm:p-8 flex flex-col";
+const linkClass =
+  "group flex items-start justify-between gap-4 py-3 border-b border-slate-100 last:border-0 hover:text-[#13b5ea] transition-colors";
+---
+
+<BaseLayout
+  title={section.pageTitle!}
+  description={section.pageDescription}
+  canonical="/sitemap"
+  ogTitle={section.pageTitle}
+  ogDescription={section.pageDescription}
+  jsonLd={jsonLd}
+  bodyClass="bg-slate-50"
+>
+  <TopBar />
+  <Nav />
+
+  <div class="bg-white border-b border-slate-100">
+    <div class="max-w-6xl mx-auto px-6 py-6">
+      <nav
+        aria-label="Breadcrumb"
+        class="flex items-center gap-2 text-xs font-medium text-slate-500"
+      >
+        <a href="/" class="hover:text-[#13b5ea] flex items-center gap-1 transition-colors">
+          <Icon name="Home" size={12} /> Home
+        </a>
+        <Icon name="ChevronRight" size={10} class="text-slate-400" />
+        <span class="text-slate-800" aria-current="page">Sitemap</span>
+      </nav>
+    </div>
+  </div>
+
+  <main class="max-w-6xl mx-auto px-6 pt-12 pb-20">
+    <header class="text-center max-w-3xl mx-auto mb-14">
+      <span
+        class="inline-flex items-center gap-2 bg-[#13b5ea]/10 text-[#13b5ea] text-xs font-bold px-4 py-2 rounded-full mb-6 uppercase tracking-widest"
+      >
+        <Icon name="Search" size={12} />
+        {section.badge}
+      </span>
+      <h1
+        class="text-3xl sm:text-4xl lg:text-5xl font-extrabold text-slate-900 tracking-tight leading-tight mb-5"
+      >
+        {section.headline?.before}<span class="text-[#13b5ea]"
+          >{section.headline?.accent}</span
+        >{section.headline?.after}
+      </h1>
+      <p class="text-base sm:text-lg text-slate-600 leading-relaxed">{section.subheading}</p>
+    </header>
+
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 items-start">
+      {/* Main pages and on-page sections */}
+      <section class={cardClass} aria-labelledby="sitemap-pages">
+        <h2
+          id="sitemap-pages"
+          class="flex items-center gap-2 text-lg font-bold text-slate-900 mb-4"
+        >
+          <Icon name="Home" size={16} class="text-[#13b5ea]" />
+          Main pages
+        </h2>
+        <ul class="text-sm">
+          {
+            homeLinks.map((link) => (
+              <li>
+                <a href={link.href} class={linkClass}>
+                  <span class="font-semibold text-slate-800 group-hover:text-[#13b5ea]">
+                    {link.label}
+                  </span>
+                  <span class="flex items-center gap-2 shrink-0 text-slate-400 text-xs">
+                    {link.note}
+                    <Icon
+                      name="ArrowRight"
+                      size={14}
+                      class="group-hover:translate-x-0.5 transition-transform"
+                    />
+                  </span>
+                </a>
+              </li>
+            ))
+          }
+          <li>
+            <a href="/blogs" class={linkClass}>
+              <span class="font-semibold text-slate-800 group-hover:text-[#13b5ea]">Blogs</span>
+              <span class="flex items-center gap-2 shrink-0 text-slate-400 text-xs">
+                {posts.length} article{posts.length === 1 ? "" : "s"}
+                <Icon
+                  name="ArrowRight"
+                  size={14}
+                  class="group-hover:translate-x-0.5 transition-transform"
+                />
+              </span>
+            </a>
+          </li>
+          <li>
+            <a href={navigation.login.href} class={linkClass} rel="noopener">
+              <span class="font-semibold text-slate-800 group-hover:text-[#13b5ea]">
+                {navigation.login.label}
+              </span>
+              <span class="flex items-center gap-2 shrink-0 text-slate-400 text-xs">
+                App
+                <Icon
+                  name="ArrowRight"
+                  size={14}
+                  class="group-hover:translate-x-0.5 transition-transform"
+                />
+              </span>
+            </a>
+          </li>
+        </ul>
+      </section>
+
+      {/* Legal */}
+      <section class={cardClass} aria-labelledby="sitemap-legal">
+        <h2
+          id="sitemap-legal"
+          class="flex items-center gap-2 text-lg font-bold text-slate-900 mb-4"
+        >
+          <Icon name="FileText" size={16} class="text-[#13b5ea]" />
+          Legal
+        </h2>
+        <ul class="text-sm">
+          {
+            legal.map((page) => (
+              <li>
+                <a href={`/legal/${page.id}`} class={linkClass}>
+                  <span class="font-semibold text-slate-800 group-hover:text-[#13b5ea]">
+                    {page.data.title}
+                  </span>
+                  <span class="flex items-center gap-2 shrink-0 text-slate-400 text-xs">
+                    <time datetime={page.data.updated}>{formatDate(page.data.updated)}</time>
+                    <Icon
+                      name="ArrowRight"
+                      size={14}
+                      class="group-hover:translate-x-0.5 transition-transform"
+                    />
+                  </span>
+                </a>
+              </li>
+            ))
+          }
+          <li>
+            <a href="/sitemap-index.xml" class={linkClass}>
+              <span class="font-semibold text-slate-800 group-hover:text-[#13b5ea]">
+                XML sitemap
+              </span>
+              <span class="flex items-center gap-2 shrink-0 text-slate-400 text-xs">
+                For search engines
+                <Icon
+                  name="ArrowRight"
+                  size={14}
+                  class="group-hover:translate-x-0.5 transition-transform"
+                />
+              </span>
+            </a>
+          </li>
+          <li>
+            <a href="/rss.xml" class={linkClass}>
+              <span class="font-semibold text-slate-800 group-hover:text-[#13b5ea]">RSS feed</span>
+              <span class="flex items-center gap-2 shrink-0 text-slate-400 text-xs">
+                Latest posts
+                <Icon
+                  name="ArrowRight"
+                  size={14}
+                  class="group-hover:translate-x-0.5 transition-transform"
+                />
+              </span>
+            </a>
+          </li>
+        </ul>
+      </section>
+
+      {/* Every post, grouped by category so the list stays scannable. */}
+      <section class={`${cardClass} lg:col-span-2`} aria-labelledby="sitemap-blogs">
+        <h2
+          id="sitemap-blogs"
+          class="flex items-center gap-2 text-lg font-bold text-slate-900 mb-4"
+        >
+          <Icon name="Sparkles" size={16} class="text-[#13b5ea]" />
+          Blog articles
+        </h2>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-x-10 text-sm">
+          {
+            [...new Set(posts.map((post) => post.data.category))].map((category) => (
+              <div class="mb-6 last:mb-0">
+                <h3 class="text-[11px] font-bold uppercase tracking-wider text-slate-400 mb-2">
+                  {category}
+                </h3>
+                <ul>
+                  {posts
+                    .filter((post) => post.data.category === category)
+                    .map((post) => (
+                      <li>
+                        <a href={`/blogs/${post.id}`} class={linkClass}>
+                          <span class="font-semibold text-slate-800 group-hover:text-[#13b5ea] line-clamp-2">
+                            {post.data.title}
+                          </span>
+                          <span class="flex items-center gap-2 shrink-0 text-slate-400 text-xs">
+                            <time datetime={post.data.date}>{formatDate(post.data.date)}</time>
+                            <Icon
+                              name="ArrowRight"
+                              size={14}
+                              class="group-hover:translate-x-0.5 transition-transform"
+                            />
+                          </span>
+                        </a>
+                      </li>
+                    ))}
+                </ul>
+              </div>
+            ))
+          }
+        </div>
+      </section>
+    </div>
+
+    <p class="text-center text-sm text-slate-500 mt-10">
+      Can't find what you're looking for? <a
+        href="/#book-demo"
+        class="text-[#13b5ea] font-semibold hover:underline">Get in touch</a
+      >.
+    </p>
+  </main>
+
+  <Footer />
+  <CookieConsent />
+</BaseLayout>
