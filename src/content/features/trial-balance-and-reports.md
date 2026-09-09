@@ -22,3 +22,4 @@ ledger:
       credit: "£178,440"
   footer: "Balanced — £248,500 = £248,500"
 ---
+
