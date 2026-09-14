@@ -1,4 +1,5 @@
 ---
+menuLabel: "For small business"
 links:
   - label: "Features"
     href: "/#features"

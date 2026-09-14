@@ -1,5 +1,5 @@
 import type { APIRoute } from "astro";
-import { getLegalPages, getPosts } from "../lib/content";
+import { getLegalPages, getPosts, getSolutions } from "../lib/content";
 
 /**
  * The XML sitemap, in the same shape as the one dataflow.zone serves: a single
@@ -7,8 +7,9 @@ import { getLegalPages, getPosts } from "../lib/content";
  * sitemap-index.xml / sitemap-0.xml pair @astrojs/sitemap emits.
  *
  * Static pages are listed by hand — there are few enough that an explicit list
- * is clearer than route introspection, and it keeps /404 out. Blog posts and
- * legal pages come from the content collections so a new file can't be orphaned.
+ * is clearer than route introspection, and it keeps /404 out. Blog posts, legal
+ * pages and the service landing pages come from the content collections so a new
+ * file can't be orphaned.
  */
 const STATIC_ROUTES: Array<{ path: string; changefreq: string; priority: string }> = [
   { path: "/", changefreq: "daily", priority: "1.0" },
@@ -38,6 +39,14 @@ export const GET: APIRoute = async ({ site }) => {
   const origin = (site?.toString() ?? "https://ledgerai.backoffice.digital").replace(/\/$/, "");
   const posts = await getPosts();
   const legal = await getLegalPages();
+  const solutions = await getSolutions();
+
+  // High priority: these are the pages the SEO briefs are written to rank.
+  const solutionRoutes = solutions.map((entry) => ({
+    path: entry.data.url,
+    changefreq: "monthly",
+    priority: "0.9",
+  }));
 
   // Newest first, matching how the blog index reads.
   const blogRoutes = posts
@@ -56,7 +65,7 @@ export const GET: APIRoute = async ({ site }) => {
     lastmod: entry.data.updated,
   }));
 
-  const xmlRows = [...STATIC_ROUTES, ...blogRoutes, ...legalRoutes]
+  const xmlRows = [...STATIC_ROUTES, ...solutionRoutes, ...blogRoutes, ...legalRoutes]
     .map((route) => urlRow(origin, route))
     .join("");
 

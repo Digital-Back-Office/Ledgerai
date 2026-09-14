@@ -1,9 +1,15 @@
 ---
 import Icon from "./Icon.astro";
-import { getSite } from "../lib/content";
+import { getSite, getSolutions } from "../lib/content";
+import type { IconName } from "./icons-data";
 
 const brand = await getSite("brand");
 const nav = await getSite("navigation");
+
+// The dropdown's entries are the landing pages themselves, so a new file in
+// src/content/solutions/ appears in the header without editing navigation.md.
+const solutions = await getSolutions();
+const integrations = await getSite("integrations");
 ---
 
 <nav
@@ -20,7 +26,109 @@ const nav = await getSite("navigation");
       />
     </a>
 
-    <div class="hidden md:flex items-center gap-8 text-sm text-slate-500 font-medium">
+    {/* lg rather than md: five items plus the login and demo buttons no longer
+         fit at 768px once the two dropdowns are in. */}
+    <div class="hidden lg:flex items-center gap-6 text-sm text-slate-500 font-medium">
+      {/* A <details> rather than a JS-driven menu: it opens on click without
+           any script, is keyboard-operable, and every link is in the HTML for
+           crawlers whether or not the panel is open. The script below adds
+           hover as an enhancement on top of that. */}
+      {
+        nav.menuLabel && solutions.length > 0 && (
+          <details class="relative group" data-nav-menu>
+            <summary class="flex items-center gap-1.5 cursor-pointer list-none [&::-webkit-details-marker]:hidden hover:text-slate-900 transition-colors">
+              {nav.menuLabel}
+              <Icon
+                name="ChevronDown"
+                size={14}
+                class="transition-transform duration-200 group-open:rotate-180"
+              />
+            </summary>
+
+            <div class="absolute left-1/2 -translate-x-1/2 top-full pt-4 w-[21rem]">
+              <div class="bg-white border border-slate-100 rounded-2xl shadow-xl shadow-slate-900/10 p-2">
+                {solutions.map((page) => (
+                  <a
+                    href={page.data.url}
+                    class="flex items-start gap-3 rounded-xl px-3 py-3 hover:bg-slate-50 transition-colors group/item"
+                  >
+                    <span class="w-9 h-9 rounded-lg bg-[#13b5ea]/10 flex items-center justify-center shrink-0">
+                      <Icon
+                        name={page.data.icon as IconName}
+                        size={16}
+                        class="text-[#13b5ea]"
+                      />
+                    </span>
+                    <span class="min-w-0">
+                      <span class="block font-semibold text-slate-800 text-sm group-hover/item:text-[#13b5ea] transition-colors">
+                        {page.data.shortTitle}
+                      </span>
+                      <span class="block text-slate-400 text-xs leading-relaxed mt-0.5">
+                        {page.data.tagline}
+                      </span>
+                    </span>
+                  </a>
+                ))}
+              </div>
+            </div>
+          </details>
+        )
+      }
+
+      {
+        integrations.menuLabel && integrations.integrations.length > 0 && (
+          <details class="relative group" data-nav-menu>
+            <summary class="flex items-center gap-1.5 cursor-pointer list-none [&::-webkit-details-marker]:hidden hover:text-slate-900 transition-colors">
+              {integrations.menuLabel}
+              <Icon
+                name="ChevronDown"
+                size={14}
+                class="transition-transform duration-200 group-open:rotate-180"
+              />
+            </summary>
+
+            <div class="absolute left-1/2 -translate-x-1/2 top-full pt-4 w-[22rem]">
+              <div class="bg-white border border-slate-100 rounded-2xl shadow-xl shadow-slate-900/10 p-2">
+                {integrations.integrations.map((item) => {
+                  const Row = item.href ? "a" : "div";
+                  return (
+                    <Row
+                      href={item.href}
+                      target={item.external ? "_blank" : undefined}
+                      rel={item.external ? "noopener noreferrer" : undefined}
+                      class:list={[
+                        "flex items-center gap-3 rounded-xl px-3 py-3 transition-colors group/item",
+                        item.href && "hover:bg-slate-50",
+                      ]}
+                    >
+                      {/* Fixed box so a square icon mark and a wide wordmark
+                           still line up down the left edge, both capped by
+                           height rather than by this box. */}
+                      <span class="w-20 h-9 flex items-center justify-center shrink-0">
+                        <img
+                          src={item.logo}
+                          alt={`${item.name} logo`}
+                          loading="lazy"
+                          class="max-h-7 max-w-full w-auto h-auto"
+                        />
+                      </span>
+                      <span class="min-w-0">
+                        <span class="block font-semibold text-slate-800 text-sm group-hover/item:text-[#13b5ea] transition-colors">
+                          {item.name}
+                        </span>
+                        <span class="block text-slate-400 text-xs leading-relaxed mt-0.5">
+                          {item.tagline}
+                        </span>
+                      </span>
+                    </Row>
+                  );
+                })}
+              </div>
+            </div>
+          </details>
+        )
+      }
+
       {
         nav.links.map((link) => (
           <a href={link.href} class="hover:text-slate-900 transition-colors">
@@ -61,6 +169,50 @@ const nav = await getSite("navigation");
 </nav>
 
 <script>
+  // Each dropdown is a <details>, so click and keyboard already work with no
+  // JS at all. This layers on hover-to-open for mice, and the dismissals
+  // <details> doesn't give you: clicking away, and Escape.
+  const menus = [...document.querySelectorAll<HTMLDetailsElement>("[data-nav-menu]")];
+
+  const closeAll = (except?: HTMLDetailsElement) => {
+    for (const menu of menus) if (menu !== except) menu.open = false;
+  };
+
+  for (const menu of menus) {
+    // pointerType guards against touch, where a "hover" fires on the tap that
+    // is also about to toggle the menu — the two would cancel each other out.
+    menu.addEventListener("pointerenter", (event) => {
+      if (event.pointerType !== "mouse") return;
+      menu.open = true;
+      closeAll(menu);
+    });
+
+    menu.addEventListener("pointerleave", (event) => {
+      if (event.pointerType !== "mouse") return;
+      menu.open = false;
+    });
+
+    // Opening one by click or keyboard closes the other.
+    menu.addEventListener("toggle", () => {
+      if (menu.open) closeAll(menu);
+    });
+  }
+
+  if (menus.length) {
+    document.addEventListener("click", (event) => {
+      const inside = menus.some((menu) => menu.contains(event.target as Node));
+      if (!inside) closeAll();
+    });
+
+    document.addEventListener("keydown", (event) => {
+      if (event.key !== "Escape") return;
+      const open = menus.find((menu) => menu.open);
+      if (!open) return;
+      open.open = false;
+      open.querySelector("summary")?.focus();
+    });
+  }
+
   // The nav CTA is a real link to /#book-demo, so it works without JS and from
   // any page. This only adds the analytics event the React onClick used to send.
   document.querySelectorAll<HTMLElement>("[data-event='book_demo_clicked']").forEach((el) => {

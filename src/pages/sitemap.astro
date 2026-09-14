@@ -13,7 +13,14 @@ import Nav from "../components/Nav.astro";
 import Footer from "../components/Footer.astro";
 import CookieConsent from "../components/CookieConsent.astro";
 import Icon from "../components/Icon.astro";
-import { formatDate, getLegalPages, getPosts, getSection, getSite } from "../lib/content";
+import {
+  formatDate,
+  getLegalPages,
+  getPosts,
+  getSection,
+  getSite,
+  getSolutions,
+} from "../lib/content";
 import { breadcrumbs } from "../lib/schema";
 
 const brand = await getSite("brand");
@@ -21,6 +28,7 @@ const navigation = await getSite("navigation");
 const section = await getSection("sitemap");
 const posts = await getPosts();
 const legal = await getLegalPages();
+const solutions = await getSolutions();
 
 const site = (brand.url ?? "").replace(/\/$/, "");
 
@@ -159,6 +167,38 @@ const linkClass =
               </span>
             </a>
           </li>
+        </ul>
+      </section>
+
+      {/* The per-service landing pages */}
+      <section class={cardClass} aria-labelledby="sitemap-solutions">
+        <h2
+          id="sitemap-solutions"
+          class="flex items-center gap-2 text-lg font-bold text-slate-900 mb-4"
+        >
+          <Icon name="Landmark" size={16} class="text-[#13b5ea]" />
+          Solutions
+        </h2>
+        <ul class="text-sm">
+          {
+            solutions.map((page) => (
+              <li>
+                <a href={page.data.url} class={linkClass}>
+                  <span class="font-semibold text-slate-800 group-hover:text-[#13b5ea]">
+                    {page.data.shortTitle}
+                  </span>
+                  <span class="flex items-center gap-2 shrink-0 text-slate-400 text-xs">
+                    {page.data.hero.badge}
+                    <Icon
+                      name="ArrowRight"
+                      size={14}
+                      class="group-hover:translate-x-0.5 transition-transform"
+                    />
+                  </span>
+                </a>
+              </li>
+            ))
+          }
         </ul>
       </section>
 

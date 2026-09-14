@@ -201,6 +201,123 @@ const legal = defineCollection({
   }),
 });
 
+/**
+ * SEO landing pages for a single service or topic (bank statement processing,
+ * invoice processing, AI bookkeeping).
+ *
+ * Each file is a whole page: its own URL, meta, breadcrumb trail and every
+ * section it renders, all driven by `src/pages/[...slug].astro`. Sections are
+ * optional so a page can drop the ones its brief didn't call for, and the
+ * template skips whatever is absent rather than rendering an empty shell.
+ */
+const solutions = defineCollection({
+  loader: md("solutions"),
+  schema: z.object({
+    order: z.number(),
+    /** Site-relative URL, no trailing slash — this is what the route builds. */
+    url: z.string(),
+    /** Label used wherever the page is cross-linked (nav, footer, sitemap, related). */
+    shortTitle: z.string(),
+    /** One line under `shortTitle` in the header dropdown. */
+    tagline: z.string(),
+    /** Key into the generated icon set, used by the header dropdown. */
+    icon: z.string(),
+    seo: z.object({
+      title: z.string(),
+      description: z.string(),
+      /** Authoring notes from the content brief; not rendered. */
+      primaryKeyword: z.string().optional(),
+      secondaryKeywords: z.array(z.string()).default([]),
+    }),
+    /** Breadcrumb trail between Home and this page. */
+    trail: z.array(z.object({ name: z.string(), item: z.string().optional() })).default([]),
+
+    hero: z.object({
+      badge: z.string(),
+      h1: z.string(),
+      intro: z.string(),
+      ctas: z.array(cta).default([]),
+      trustPoints: z.array(z.string()).default([]),
+      image: z.object({ src: z.string(), alt: z.string() }).optional(),
+    }),
+
+    /** "Why the manual way hurts" — the problem framing, where a brief has one. */
+    challenges: z
+      .object({
+        ...sectionHeader,
+        items: z.array(z.object({ title: z.string(), icon: z.string() })).default([]),
+        image: z.object({ src: z.string(), alt: z.string() }).optional(),
+      })
+      .optional(),
+
+    /** Prose block(s) explaining the product, plus optional stat-style callouts. */
+    what: z
+      .object({
+        ...sectionHeader,
+        body: z.array(z.string()).default([]),
+        highlights: z
+          .array(z.object({ title: z.string(), description: z.string(), icon: z.string() }))
+          .default([]),
+      })
+      .optional(),
+
+    audience: z
+      .object({
+        ...sectionHeader,
+        items: z.array(z.object({ text: z.string(), icon: z.string() })).default([]),
+      })
+      .optional(),
+
+    /** Numbered walkthrough. `title` is the step's short label. */
+    process: z
+      .object({
+        ...sectionHeader,
+        items: z.array(z.object({ title: z.string(), description: z.string(), icon: z.string() }))
+          .default([]),
+      })
+      .optional(),
+
+    benefits: z
+      .object({
+        ...sectionHeader,
+        items: z.array(z.object({ text: z.string(), icon: z.string() })).default([]),
+      })
+      .optional(),
+
+    integrations: z
+      .object({
+        ...sectionHeader,
+        body: z.string().optional(),
+        groups: z
+          .array(z.object({ title: z.string(), icon: z.string(), items: z.array(z.string()) }))
+          .default([]),
+      })
+      .optional(),
+
+    /** Contextual internal links, with descriptive anchor text. */
+    related: z
+      .object({
+        ...sectionHeader,
+        items: z
+          .array(z.object({ label: z.string(), href: z.string(), description: z.string() }))
+          .default([]),
+      })
+      .optional(),
+
+    /** Rendered as an accordion and emitted as FAQPage structured data. */
+    faqs: z.array(z.object({ question: z.string(), answer: z.string() })).default([]),
+
+    /** Closing band above the demo form. */
+    closing: z
+      .object({
+        ...sectionHeader,
+        body: z.string().optional(),
+        ctas: z.array(cta).default([]),
+      })
+      .optional(),
+  }),
+});
+
 const sections = defineCollection({
   loader: md("sections"),
   schema: z.object({
@@ -329,10 +446,33 @@ const site = defineCollection({
 
     /** navigation + footer */
     links: z.array(z.object({ label: z.string(), href: z.string() })).default([]),
+    /**
+     * Header dropdown holding the `solutions` landing pages. Only the label is
+     * authored here — the entries come from the collection, so adding a landing
+     * page puts it in the menu without touching this file.
+     */
+    menuLabel: z.string().optional(),
+    /**
+     * integrations: the accounting software Ledger AI syncs with, shown in the
+     * header's Integrations dropdown. `logo` is a path under public/ — swap the
+     * placeholder files there for the official brand assets.
+     */
+    integrations: z
+      .array(
+        z.object({
+          name: z.string(),
+          logo: z.string(),
+          tagline: z.string(),
+          /** Omit to render the row as plain text rather than a link. */
+          href: z.string().optional(),
+          external: z.boolean().default(false),
+        })
+      )
+      .default([]),
     login: z.object({ label: z.string(), href: z.string() }).optional(),
     cta: cta.optional(),
     copyright: z.string().optional(),
   }),
 });
 
-export const collections = { features, steps, faqs, blog, legal, sections, site };
+export const collections = { features, steps, faqs, blog, legal, sections, site, solutions };

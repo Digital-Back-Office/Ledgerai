@@ -1,7 +1,9 @@
 import { getCollection, getEntry, type CollectionEntry } from "astro:content";
 
 /** Collections that are one-file-per-item and render in `order`. */
-export async function getOrdered<C extends "features" | "steps" | "faqs" | "blog" | "legal">(
+export async function getOrdered<
+  C extends "features" | "steps" | "faqs" | "blog" | "legal" | "solutions",
+>(
   collection: C
 ): Promise<CollectionEntry<C>[]> {
   const entries = await getCollection(collection);
@@ -17,8 +19,8 @@ export async function getSection(id: string) {
   return entry.data;
 }
 
-/** Global chrome: brand, navigation, footer. */
-export async function getSite(id: "brand" | "navigation" | "footer") {
+/** Global chrome: brand, navigation, footer, integrations. */
+export async function getSite(id: "brand" | "navigation" | "footer" | "integrations") {
   const entry = await getEntry("site", id);
   if (!entry) throw new Error(`Missing content file: src/content/site/${id}.md`);
   return entry.data;
@@ -32,6 +34,16 @@ export async function getPosts() {
 /** Privacy / terms / cookies / GDPR, in the order they appear in the footer. */
 export async function getLegalPages() {
   return getOrdered("legal");
+}
+
+/**
+ * The per-service SEO landing pages, in the order they're cross-linked.
+ *
+ * Each entry carries its own `url`, so the route, the sitemaps and the footer
+ * all read the path from the same place and none of them can drift.
+ */
+export async function getSolutions() {
+  return getOrdered("solutions");
 }
 
 /** "2026-06-25" -> "25 June 2026", matching the old hand-written dates. */

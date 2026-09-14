@@ -1,0 +1,542 @@
+---
+/**
+ * Service landing pages — /bank-statement-processing and friends.
+ *
+ * One template, driven entirely by `src/content/solutions/*.md`. Each of those
+ * files carries its own `url`, so the briefs' URLs (which sit at different
+ * depths: one at the root, one two levels down, one three) all come out of a
+ * single rest route rather than a folder per page. Only the paths returned by
+ * `getStaticPaths` are ever built, so this never shadows the hand-written
+ * routes alongside it.
+ *
+ * Every section is optional. A page renders the sections its brief specified
+ * and silently skips the rest, which is why the AI bookkeeping page can lead
+ * with a "challenges" block that the other two don't have.
+ */
+import type { GetStaticPaths } from "astro";
+import type { CollectionEntry } from "astro:content";
+import BaseLayout from "../layouts/BaseLayout.astro";
+import TopBar from "../components/TopBar.astro";
+import Nav from "../components/Nav.astro";
+import Footer from "../components/Footer.astro";
+import BookDemoSection from "../components/BookDemoSection.astro";
+import CookieConsent from "../components/CookieConsent.astro";
+import Icon from "../components/Icon.astro";
+import type { IconName } from "../components/icons-data";
+import { getSite, getSolutions } from "../lib/content";
+import { breadcrumbs, solutionPage } from "../lib/schema";
+
+export const getStaticPaths: GetStaticPaths = async () => {
+  const solutions = await getSolutions();
+  return solutions.map((entry) => ({
+    // Astro wants the path without its leading slash for a rest parameter.
+    params: { slug: entry.data.url.replace(/^\//, "") },
+    props: { entry },
+  }));
+};
+
+const brand = await getSite("brand");
+// `GetStaticPaths` widens props to `any`, which would leave every section below
+// untyped; naming the entry type restores the collection's schema.
+const { entry } = Astro.props as { entry: CollectionEntry<"solutions"> };
+const page = entry.data;
+const { hero, challenges, what, audience, process, benefits, integrations, related, faqs, closing } =
+  page;
+
+const jsonLd = [
+  solutionPage(brand, {
+    path: page.url,
+    name: page.shortTitle,
+    headline: hero.h1,
+    description: page.seo.description,
+    features: benefits?.items.map((item) => item.text),
+    faqs,
+  }),
+  breadcrumbs(brand, [{ name: "Home", item: "/" }, ...page.trail]),
+];
+
+/** Shared shells, so the sections read as one page rather than a stack of parts. */
+const sectionEyebrow = "text-[11px] font-bold uppercase tracking-[0.15em] text-[#13b5ea] mb-3";
+const sectionHeading = "text-[2.2rem] font-extrabold text-slate-900 tracking-tight";
+const card =
+  "bg-white border border-slate-100 rounded-2xl p-6 shadow-sm hover:shadow-md hover:border-slate-200 transition-all";
+
+const ctaClass = (style: string) =>
+  style === "primary"
+    ? "inline-flex items-center justify-center gap-2 bg-[#13b5ea] text-white font-semibold px-7 py-3.5 rounded-xl hover:bg-[#0e9fd2] transition-colors shadow-lg shadow-[#13b5ea]/30"
+    : "inline-flex items-center justify-center gap-2 bg-white text-slate-700 font-semibold px-7 py-3.5 rounded-xl border border-slate-200 hover:border-[#13b5ea] hover:text-[#13b5ea] transition-colors";
+---
+
+<BaseLayout
+  title={page.seo.title}
+  description={page.seo.description}
+  canonical={page.url}
+  ogTitle={page.seo.title}
+  ogDescription={page.seo.description}
+  jsonLd={jsonLd}
+>
+  <TopBar />
+  <Nav />
+
+  {/* Breadcrumb, matching the legal and sitemap pages. */}
+  <div class="bg-white border-b border-slate-100">
+    <div class="max-w-6xl mx-auto px-6 py-6">
+      <nav
+        aria-label="Breadcrumb"
+        class="flex items-center gap-2 text-xs font-medium text-slate-500 flex-wrap"
+      >
+        <a href="/" class="hover:text-[#13b5ea] flex items-center gap-1 transition-colors">
+          <Icon name="Home" size={12} /> Home
+        </a>
+        {
+          page.trail.map((crumb, i) => (
+            <>
+              <Icon name="ChevronRight" size={10} class="text-slate-400" />
+              {i === page.trail.length - 1 ? (
+                <span class="text-slate-800" aria-current="page">
+                  {crumb.name}
+                </span>
+              ) : crumb.item ? (
+                <a href={crumb.item} class="hover:text-[#13b5ea] transition-colors">
+                  {crumb.name}
+                </a>
+              ) : (
+                <span>{crumb.name}</span>
+              )}
+            </>
+          ))
+        }
+      </nav>
+    </div>
+  </div>
+
+  <main>
+    {/* ── Hero ─────────────────────────────────────────────────────────── */}
+    <section class="relative bg-white">
+      <div
+        class={`max-w-6xl mx-auto px-6 pt-16 pb-20 ${hero.image ? "grid lg:grid-cols-2 gap-14 items-center" : "max-w-4xl text-center"}`}
+      >
+        <div>
+          <div
+            class="anim anim-up inline-flex items-center gap-2 bg-[#13b5ea]/10 text-[#13b5ea] text-xs font-bold px-4 py-2 rounded-full mb-7 uppercase tracking-widest"
+            style="--anim-delay: 0.1s"
+          >
+            <Icon name="Sparkles" size={12} />
+            {hero.badge}
+          </div>
+
+          <h1
+            class="anim anim-up text-4xl sm:text-5xl font-bold text-gray-900 leading-[1.1] tracking-tight mb-6"
+            style="--anim-delay: 0.2s"
+          >
+            {hero.h1}
+          </h1>
+
+          <p
+            class={`anim anim-up text-lg text-gray-600 leading-relaxed mb-9 ${hero.image ? "" : "max-w-2xl mx-auto"}`}
+            style="--anim-delay: 0.3s"
+          >
+            {hero.intro}
+          </p>
+
+          <div
+            class={`anim anim-up flex flex-col sm:flex-row gap-3 ${hero.image ? "" : "justify-center"}`}
+            style="--anim-delay: 0.4s"
+          >
+            {
+              hero.ctas.map((cta) => (
+                <a
+                  href={cta.href}
+                  class={ctaClass(cta.style)}
+                  data-event="cta_click"
+                  data-event-label={cta.event}
+                >
+                  {cta.label}
+                  {cta.style === "primary" && <Icon name="ArrowRight" size={18} />}
+                </a>
+              ))
+            }
+          </div>
+
+          {
+            hero.trustPoints.length > 0 && (
+              <div
+                class={`anim anim-fade flex flex-wrap items-center gap-x-6 gap-y-2 mt-9 text-sm text-gray-500 ${hero.image ? "" : "justify-center"}`}
+                style="--anim-delay: 0.6s"
+              >
+                {hero.trustPoints.map((point) => (
+                  <span class="flex items-center gap-1.5">
+                    <Icon name="Check" size={14} class="text-[#13b5ea]" />
+                    {point}
+                  </span>
+                ))}
+              </div>
+            )
+          }
+        </div>
+
+        {
+          hero.image && (
+            <div class="anim anim-right" style="--anim-delay: 0.35s">
+              <img
+                src={hero.image.src}
+                alt={hero.image.alt}
+                width="1204"
+                height="678"
+                fetchpriority="high"
+                decoding="async"
+                class="w-full h-auto rounded-2xl border border-slate-100 shadow-xl shadow-slate-900/5"
+              />
+            </div>
+          )
+        }
+      </div>
+    </section>
+
+    {/* ── Challenges ───────────────────────────────────────────────────── */}
+    {
+      challenges && (
+        <section class="bg-slate-50 border-y border-slate-100 py-24">
+          <div class="max-w-6xl mx-auto px-6 grid lg:grid-cols-2 gap-14 items-center">
+            <div class="anim anim-up">
+              <p class={sectionEyebrow}>{challenges.eyebrow}</p>
+              <h2 class={`${sectionHeading} mb-4`}>{challenges.heading}</h2>
+              {challenges.subheading && (
+                <p class="text-slate-500 text-base leading-relaxed mb-8">
+                  {challenges.subheading}
+                </p>
+              )}
+              <ul class="space-y-3">
+                {challenges.items.map((item, i) => (
+                  <li
+                    class="anim anim-up flex items-start gap-3 bg-white border border-slate-100 rounded-xl px-5 py-4 shadow-sm"
+                    style={`--anim-delay: ${(i * 0.08).toFixed(2)}s`}
+                  >
+                    <span class="w-8 h-8 rounded-lg bg-[#13b5ea]/10 flex items-center justify-center shrink-0">
+                      <Icon name={item.icon as IconName} size={15} class="text-[#13b5ea]" />
+                    </span>
+                    <span class="text-slate-700 text-sm sm:text-base font-medium leading-relaxed">
+                      {item.title}
+                    </span>
+                  </li>
+                ))}
+              </ul>
+            </div>
+
+            {challenges.image && (
+              <div class="anim anim-right" style="--anim-delay: 0.2s">
+                <img
+                  src={challenges.image.src}
+                  alt={challenges.image.alt}
+                  width="1204"
+                  height="802"
+                  loading="lazy"
+                  decoding="async"
+                  class="w-full h-auto rounded-2xl border border-slate-100 shadow-lg shadow-slate-900/5"
+                />
+              </div>
+            )}
+          </div>
+        </section>
+      )
+    }
+
+    {/* ── What it does ─────────────────────────────────────────────────── */}
+    {
+      what && (
+        <section id="what-it-does" class="py-24 max-w-6xl mx-auto px-6">
+          <div class="anim anim-up max-w-3xl mb-12">
+            <p class={sectionEyebrow}>{what.eyebrow}</p>
+            <h2 class={`${sectionHeading} mb-5`}>{what.heading}</h2>
+            {what.body.map((paragraph) => (
+              <p class="text-slate-500 text-base sm:text-lg leading-relaxed mt-4">{paragraph}</p>
+            ))}
+          </div>
+
+          {what.highlights.length > 0 && (
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+              {what.highlights.map((item, i) => (
+                <div
+                  class={`anim anim-up group ${card}`}
+                  style={`--anim-delay: ${(i * 0.1).toFixed(2)}s`}
+                >
+                  <div class="w-11 h-11 rounded-xl bg-[#13b5ea]/10 flex items-center justify-center mb-5 group-hover:bg-[#13b5ea] transition-colors">
+                    <Icon
+                      name={item.icon as IconName}
+                      size={20}
+                      class="text-[#13b5ea] group-hover:text-white transition-colors"
+                    />
+                  </div>
+                  <h3 class="font-bold text-slate-900 text-base mb-2">{item.title}</h3>
+                  <p class="text-slate-400 text-sm leading-relaxed">{item.description}</p>
+                </div>
+              ))}
+            </div>
+          )}
+        </section>
+      )
+    }
+
+    {/* ── How it works ─────────────────────────────────────────────────── */}
+    {
+      process && (
+        <section id="how-it-works" class="bg-slate-50 border-y border-slate-100 py-24">
+          <div class="max-w-6xl mx-auto px-6">
+            <div class="anim anim-up text-center mb-14">
+              <p class={sectionEyebrow}>{process.eyebrow}</p>
+              <h2 class={sectionHeading}>{process.heading}</h2>
+              {process.subheading && (
+                <p class="text-slate-400 mt-3 text-base max-w-lg mx-auto">{process.subheading}</p>
+              )}
+            </div>
+
+            <ol class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {process.items.map((step, i) => (
+                <li
+                  class={`anim anim-up group relative ${card}`}
+                  style={`--anim-delay: ${(i * 0.1).toFixed(2)}s`}
+                >
+                  <div class="flex items-start justify-between mb-5">
+                    <div class="w-11 h-11 rounded-xl bg-[#13b5ea]/10 flex items-center justify-center group-hover:bg-[#13b5ea] transition-colors">
+                      <Icon
+                        name={step.icon as IconName}
+                        size={20}
+                        class="text-[#13b5ea] group-hover:text-white transition-colors"
+                      />
+                    </div>
+                    <span class="text-4xl font-extrabold text-[#13b5ea] select-none font-mono">
+                      {String(i + 1).padStart(2, "0")}
+                    </span>
+                  </div>
+                  <h3 class="font-bold text-slate-900 text-base mb-2">{step.title}</h3>
+                  <p class="text-slate-400 text-sm leading-relaxed">{step.description}</p>
+                </li>
+              ))}
+            </ol>
+          </div>
+        </section>
+      )
+    }
+
+    {/* ── Benefits ─────────────────────────────────────────────────────── */}
+    {
+      benefits && (
+        <section id="benefits" class="py-24 max-w-6xl mx-auto px-6">
+          <div class="anim anim-up text-center mb-14">
+            <p class={sectionEyebrow}>{benefits.eyebrow}</p>
+            <h2 class={sectionHeading}>{benefits.heading}</h2>
+          </div>
+
+          <ul class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+            {benefits.items.map((item, i) => (
+              <li
+                class={`anim anim-up flex items-start gap-4 ${card}`}
+                style={`--anim-delay: ${(i * 0.08).toFixed(2)}s`}
+              >
+                <span class="w-10 h-10 rounded-xl bg-[#13b5ea]/10 flex items-center justify-center shrink-0">
+                  <Icon name={item.icon as IconName} size={18} class="text-[#13b5ea]" />
+                </span>
+                <span class="text-slate-700 text-sm sm:text-base font-medium leading-relaxed pt-1.5">
+                  {item.text}
+                </span>
+              </li>
+            ))}
+          </ul>
+        </section>
+      )
+    }
+
+    {/* ── Who it's for ─────────────────────────────────────────────────── */}
+    {
+      audience && (
+        <section id="who-its-for" class="bg-slate-50 border-y border-slate-100 py-24">
+          <div class="max-w-6xl mx-auto px-6">
+            <div class="anim anim-up text-center mb-14">
+              <p class={sectionEyebrow}>{audience.eyebrow}</p>
+              <h2 class={sectionHeading}>{audience.heading}</h2>
+            </div>
+
+            <ul
+              class={`grid grid-cols-1 gap-5 ${audience.items.length % 3 === 0 ? "md:grid-cols-3" : "md:grid-cols-2"}`}
+            >
+              {audience.items.map((item, i) => (
+                <li
+                  class={`anim anim-up flex items-start gap-4 ${card}`}
+                  style={`--anim-delay: ${(i * 0.08).toFixed(2)}s`}
+                >
+                  <span class="w-10 h-10 rounded-xl bg-[#13b5ea]/10 flex items-center justify-center shrink-0">
+                    <Icon name={item.icon as IconName} size={18} class="text-[#13b5ea]" />
+                  </span>
+                  <span class="text-slate-700 text-sm sm:text-base font-medium leading-relaxed pt-1.5">
+                    {item.text}
+                  </span>
+                </li>
+              ))}
+            </ul>
+          </div>
+        </section>
+      )
+    }
+
+    {/* ── Integrations ─────────────────────────────────────────────────── */}
+    {
+      integrations && (
+        <section id="integrations" class="py-24 max-w-6xl mx-auto px-6">
+          <div class="anim anim-up text-center mb-14 max-w-2xl mx-auto">
+            <p class={sectionEyebrow}>{integrations.eyebrow}</p>
+            <h2 class={sectionHeading}>{integrations.heading}</h2>
+            {integrations.body && (
+              <p class="text-slate-400 mt-4 text-base leading-relaxed">{integrations.body}</p>
+            )}
+          </div>
+
+          <div
+            class={`grid grid-cols-1 gap-6 ${integrations.groups.length > 1 ? "md:grid-cols-2" : "max-w-xl mx-auto"}`}
+          >
+            {integrations.groups.map((group, i) => (
+              <div class={`anim anim-up ${card}`} style={`--anim-delay: ${(i * 0.1).toFixed(2)}s`}>
+                <h3 class="flex items-center gap-2 font-bold text-slate-900 text-base mb-5">
+                  <Icon name={group.icon as IconName} size={16} class="text-[#13b5ea]" />
+                  {group.title}
+                </h3>
+                <ul class="flex flex-wrap gap-2">
+                  {group.items.map((name) => (
+                    <li class="text-xs font-semibold text-slate-600 bg-slate-50 border border-slate-100 rounded-lg px-3 py-2">
+                      {name}
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            ))}
+          </div>
+        </section>
+      )
+    }
+
+    {/* ── Related pages ────────────────────────────────────────────────── */}
+    {
+      related && (
+        <section class="bg-slate-50 border-y border-slate-100 py-24">
+          <div class="max-w-6xl mx-auto px-6">
+            <div class="anim anim-up text-center mb-14">
+              <p class={sectionEyebrow}>{related.eyebrow}</p>
+              <h2 class={sectionHeading}>{related.heading}</h2>
+            </div>
+
+            <div
+              class={`grid grid-cols-1 gap-6 ${related.items.length > 2 ? "md:grid-cols-3" : "md:grid-cols-2"}`}
+            >
+              {related.items.map((item, i) => (
+                <a
+                  href={item.href}
+                  class={`anim anim-up group flex flex-col ${card}`}
+                  style={`--anim-delay: ${(i * 0.1).toFixed(2)}s`}
+                >
+                  <h3 class="font-bold text-slate-900 text-base mb-2 group-hover:text-[#13b5ea] transition-colors first-letter:uppercase">
+                    {item.label}
+                  </h3>
+                  <p class="text-slate-400 text-sm leading-relaxed mb-4">{item.description}</p>
+                  <span class="mt-auto inline-flex items-center gap-1.5 text-sm font-semibold text-[#13b5ea]">
+                    Read more
+                    <Icon
+                      name="ArrowRight"
+                      size={15}
+                      class="group-hover:translate-x-0.5 transition-transform"
+                    />
+                  </span>
+                </a>
+              ))}
+            </div>
+          </div>
+        </section>
+      )
+    }
+
+    {/* ── FAQs. <details> so every answer is in the HTML, quotable without JS. */}
+    {
+      faqs.length > 0 && (
+        <section id="faq" class="py-24 max-w-6xl mx-auto px-6">
+          <div class="anim anim-up text-center mb-14">
+            <p class={sectionEyebrow}>FAQs</p>
+            <h2 class={sectionHeading}>Questions about {page.shortTitle}</h2>
+          </div>
+
+          <div class="space-y-4 max-w-3xl mx-auto">
+            {faqs.map((faq, i) => (
+              <details
+                name="solution-faq"
+                class="anim anim-up group bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden transition-all hover:border-slate-300"
+                style={`--anim-delay: ${(i * 0.06).toFixed(2)}s`}
+              >
+                <summary class="w-full px-6 py-4.5 flex items-center justify-between text-left font-bold text-slate-800 text-base sm:text-lg hover:text-[#13b5ea] transition-colors cursor-pointer list-none [&::-webkit-details-marker]:hidden">
+                  <span>{faq.question}</span>
+                  <span class="text-slate-400 shrink-0 ml-4 transition-transform duration-200 group-open:rotate-180">
+                    <Icon name="ChevronDown" size={18} />
+                  </span>
+                </summary>
+                <div class="px-6 pb-5 pt-1 text-slate-500 text-sm sm:text-base leading-relaxed border-t border-slate-100/50">
+                  {faq.answer}
+                </div>
+              </details>
+            ))}
+          </div>
+        </section>
+      )
+    }
+
+    {/* ── Closing band ─────────────────────────────────────────────────── */}
+    {
+      closing && (
+        <section class="bg-slate-900 py-20">
+          <div class="max-w-3xl mx-auto px-6 text-center">
+            <p class="anim anim-up text-[11px] font-bold uppercase tracking-[0.15em] text-[#13b5ea] mb-3">
+              {closing.eyebrow}
+            </p>
+            <h2 class="anim anim-up text-[2rem] sm:text-[2.4rem] font-extrabold text-white tracking-tight mb-4">
+              {closing.heading}
+            </h2>
+            {closing.body && (
+              <p class="anim anim-up text-slate-300 text-base sm:text-lg leading-relaxed mb-9">
+                {closing.body}
+              </p>
+            )}
+            <div class="anim anim-up flex flex-col sm:flex-row gap-3 justify-center">
+              {closing.ctas.map((cta) => (
+                <a
+                  href={cta.href}
+                  class={
+                    cta.style === "primary"
+                      ? ctaClass("primary")
+                      : "inline-flex items-center justify-center gap-2 bg-transparent text-white font-semibold px-7 py-3.5 rounded-xl border border-white/25 hover:border-[#13b5ea] hover:text-[#13b5ea] transition-colors"
+                  }
+                  data-event="cta_click"
+                  data-event-label={cta.event}
+                >
+                  {cta.label}
+                  {cta.style === "primary" && <Icon name="ArrowRight" size={18} />}
+                </a>
+              ))}
+            </div>
+          </div>
+        </section>
+      )
+    }
+
+    <BookDemoSection />
+  </main>
+
+  <Footer />
+  <CookieConsent />
+</BaseLayout>
+
+<script>
+  // Same analytics event the nav and hero CTAs send, for the in-page ones.
+  document.querySelectorAll<HTMLElement>("[data-event='cta_click']").forEach((el) => {
+    el.addEventListener("click", () => {
+      window.gtag?.("event", "cta_click", {
+        event_category: "engagement",
+        event_label: el.dataset.eventLabel ?? "solution",
+      });
+    });
+  });
+</script>

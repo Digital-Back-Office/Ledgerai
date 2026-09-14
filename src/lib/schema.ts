@@ -58,12 +58,21 @@ export function webApplication(brand: Brand) {
   };
 }
 
-/** Drives AI answer engines and Google's FAQ rich result. */
-export function faqPage(brand: Brand, faqs: { question: string; answer: string }[]) {
+/**
+ * Drives AI answer engines and Google's FAQ rich result.
+ *
+ * `path` scopes the `@id` to the page the accordion is actually on — every
+ * landing page carries its own FAQs, and they'd collide on one id otherwise.
+ */
+export function faqPage(
+  brand: Brand,
+  faqs: { question: string; answer: string }[],
+  path = "/"
+) {
   const site = (brand.url ?? "").replace(/\/$/, "");
   return {
     "@type": "FAQPage",
-    "@id": `${site}/#faq`,
+    "@id": `${site}${path === "/" ? "/" : path}#faq`,
     mainEntity: faqs.map((faq) => ({
       "@type": "Question",
       name: faq.question,
@@ -153,4 +162,60 @@ export function breadcrumbs(brand: Brand, trail: { name: string; item?: string }
       ...(crumb.item ? { item: absolute(crumb.item, site) } : {}),
     })),
   };
+}
+
+/**
+ * The graph for one service landing page: what the page is, the software it
+ * describes, and its FAQs — all built from the same markdown the page renders,
+ * which is what Google asks for when it says structured data must match the
+ * visible content.
+ */
+export function solutionPage(
+  brand: Brand,
+  page: {
+    path: string;
+    name: string;
+    headline: string;
+    description: string;
+    /** The benefit lines shown on the page, reused as `featureList`. */
+    features?: string[];
+    faqs?: { question: string; answer: string }[];
+  }
+) {
+  const site = (brand.url ?? "").replace(/\/$/, "");
+  const url = site + page.path;
+
+  const graph: Record<string, unknown>[] = [
+    organization(brand),
+    website(brand),
+    {
+      "@type": "WebPage",
+      "@id": `${url}#webpage`,
+      url,
+      name: page.name,
+      headline: page.headline,
+      description: page.description,
+      inLanguage: "en-GB",
+      isPartOf: { "@id": siteId(site) },
+      publisher: { "@id": orgId(site) },
+      about: { "@id": `${url}#application` },
+    },
+    {
+      "@type": "SoftwareApplication",
+      "@id": `${url}#application`,
+      name: brand.name,
+      url,
+      applicationCategory: "FinanceApplication",
+      applicationSubCategory: page.name,
+      operatingSystem: "All",
+      browserRequirements: "Requires HTML5 compatible browser",
+      description: page.description,
+      ...(page.features?.length ? { featureList: page.features } : {}),
+      publisher: { "@id": orgId(site) },
+    },
+  ];
+
+  if (page.faqs?.length) graph.push(faqPage(brand, page.faqs, page.path));
+
+  return { "@context": "https://schema.org", "@graph": graph };
 }
