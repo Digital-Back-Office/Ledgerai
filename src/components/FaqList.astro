@@ -1,0 +1,35 @@
+---
+/**
+ * Question rows, separated by hairlines. Uses <details> so every answer is in
+ * the HTML, readable without JS and directly quotable by answer engines.
+ * Rendered inside the sheet that FaqBlock provides.
+ */
+interface Props {
+  items: { question: string; answer: string }[];
+  /** Shared `name` makes the group exclusive: opening one closes the others. */
+  name: string;
+}
+
+const { items, name } = Astro.props;
+---
+
+{
+  items.map((faq) => (
+    <details name={name} class="group border-t border-rule first:border-t-0">
+      <summary class="flex items-start justify-between gap-6 py-5 cursor-pointer list-none [&::-webkit-details-marker]:hidden text-[1.0625rem] sm:text-lg font-medium text-ink">
+        <span class="group-hover:underline decoration-brand decoration-2 underline-offset-4">
+          {faq.question}
+        </span>
+        <span
+          aria-hidden="true"
+          class="relative size-7 shrink-0 rounded-[4px] bg-paper transition-colors duration-300 group-open:bg-brand"
+        >
+          {/* A plus whose upright folds flat into a minus when the row opens. */}
+          <span class="absolute inset-0 m-auto w-3 h-0.5 bg-ink" />
+          <span class="absolute inset-0 m-auto w-0.5 h-3 bg-ink transition-transform duration-300 group-open:rotate-90" />
+        </span>
+      </summary>
+      <p class="pb-6 pr-12 max-w-[64ch] text-mute leading-relaxed">{faq.answer}</p>
+    </details>
+  ))
+}

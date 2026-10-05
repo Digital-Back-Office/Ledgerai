@@ -63,7 +63,10 @@ const form = z.object({
     .default([]),
 });
 
-/** The five rotating product features, with the mock data each panel shows. */
+/** The mock product panels a feature — or a landing page's hero — can show. */
+const visual = z.enum(["email", "statements", "categorise", "balance", "alerts"]);
+
+/** The five product features, with the mock data each panel shows. */
 const features = defineCollection({
   loader: md("features"),
   schema: z.object({
@@ -73,7 +76,7 @@ const features = defineCollection({
     /** Key into the generated icon set. */
     icon: z.string(),
     /** Which visual panel renders for this feature. */
-    visual: z.enum(["email", "statements", "categorise", "balance", "alerts"]),
+    visual,
 
     /** visual: email */
     emails: z
@@ -239,6 +242,11 @@ const solutions = defineCollection({
       ctas: z.array(cta).default([]),
       trustPoints: z.array(z.string()).default([]),
       image: z.object({ src: z.string(), alt: z.string() }).optional(),
+      /**
+       * A product panel to show beside the copy when the page has no `image`:
+       * the matching entry in the `features` collection supplies the data.
+       */
+      visual: visual.optional(),
     }),
 
     /** "Why the manual way hurts" — the problem framing, where a brief has one. */
@@ -389,8 +397,82 @@ const sections = defineCollection({
       })
       .optional(),
 
+    /**
+     * hero: the wording in the product illustration. Its names and figures are
+     * not here — they come from the sample data in the `features` collection.
+     */
+    figure: z
+      .object({
+        /** File-type tag on the incoming email. */
+        attachment: z.string().optional(),
+        linesLabel: z.string(),
+        /** `{count}` is the number of statement lines not listed. */
+        moreLabel: z.string().optional(),
+        balanceLabel: z.string(),
+        balanceStatus: z.string().optional(),
+        exportLabel: z.string().optional(),
+        exportFormats: z.array(z.string()).default([]),
+        caption: z.string().optional(),
+      })
+      .optional(),
+
     /** showcase: the illustration beside the copy. */
     image: z.object({ alt: z.string() }).optional(),
+
+    /**
+     * integrations page: the blocks under its header. The platforms themselves
+     * are listed in `site/integrations.md`; these are the words around them.
+     */
+    apps: z
+      .object({
+        ...sectionHeader,
+        /** Caption above each platform's `sends` line. */
+        sendsLabel: z.string().optional(),
+        /** Link to the vendor's own site. `{name}` is the platform's name. */
+        linkLabel: z.string().optional(),
+      })
+      .optional(),
+    flow: z
+      .object({
+        ...sectionHeader,
+        /** Heading over the platforms in the diagram. */
+        outputLabel: z.string().optional(),
+      })
+      .optional(),
+    notes: z
+      .object({
+        ...sectionHeader,
+        items: z
+          .array(
+            z.object({
+              title: z.string(),
+              description: z.string(),
+              href: z.string().optional(),
+              linkLabel: z.string().optional(),
+            })
+          )
+          .default([]),
+      })
+      .optional(),
+    /** integrations page: heading for its FAQs. */
+    faqHeading: z.string().optional(),
+    /** Entries of the `faqs` collection to show, by file name without `.md`. */
+    faqIds: z.array(z.string()).default([]),
+    /**
+     * showcase: the inputs -> Ledger AI -> outputs diagram, drawn in HTML so
+     * its labels are real text. Without it the section falls back to the PNG.
+     */
+    pipeline: z
+      .object({
+        inputLabel: z.string().optional(),
+        outputLabel: z.string().optional(),
+        /** `type` is the short file-type tag drawn beside the label. */
+        inputs: z.array(z.object({ label: z.string(), type: z.string().optional() })),
+        core: z.string(),
+        coreNote: z.string().optional(),
+        outputs: z.array(z.string()),
+      })
+      .optional(),
 
     /** try-free: uploader copy and limits. */
     uploader: z
@@ -496,8 +578,8 @@ const site = defineCollection({
      */
     menuLabel: z.string().optional(),
     /**
-     * integrations: the accounting software Ledger AI syncs with, shown in the
-     * header's Integrations dropdown. `logo` is a path under public/ — swap the
+     * integrations: the accounting software Ledger AI syncs with, shown on the
+     * /integrations page. `logo` is a path under public/ — swap the
      * placeholder files there for the official brand assets.
      */
     integrations: z
@@ -506,7 +588,9 @@ const site = defineCollection({
           name: z.string(),
           logo: z.string(),
           tagline: z.string(),
-          /** Omit to render the row as plain text rather than a link. */
+          /** What Ledger AI hands over to this platform, as a short noun phrase. */
+          sends: z.string().optional(),
+          /** The vendor's own site. Omit to leave the link out. */
           href: z.string().optional(),
           external: z.boolean().default(false),
         })

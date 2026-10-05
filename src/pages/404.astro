@@ -9,28 +9,27 @@ import { getSection } from "../lib/content";
 const section = await getSection("not-found");
 ---
 
-<BaseLayout
-  title={section.pageTitle!}
-  description={section.pageDescription}
-  noindex
-  bodyClass="bg-slate-50"
->
-  <div class="min-h-screen flex flex-col justify-between">
-    <div>
-      <TopBar />
-      <Nav />
-      <main class="max-w-md mx-auto text-center py-20 px-6">
-        <h1 class="text-2xl font-bold text-slate-900 mb-4">{section.heading}</h1>
-        <p class="text-slate-600 mb-8">{section.subheading}</p>
-        <a
-          href={section.ctas[0]?.href}
-          class="inline-flex items-center gap-2 bg-[#13b5ea] text-white px-6 py-3 rounded-xl font-semibold hover:bg-[#0e9fd2] transition-colors"
-        >
+<BaseLayout title={section.pageTitle!} description={section.pageDescription} noindex>
+  <div class="min-h-dvh flex flex-col bg-paper grid-paper">
+    <TopBar />
+    <Nav />
+    <main id="main" class="wrap grow flex flex-col justify-center py-20">
+      <p
+        aria-hidden="true"
+        class="font-display font-bold tracking-tighter leading-none text-ink text-[clamp(6rem,22vw,15rem)]"
+      >
+        4<span class="text-brand">0</span>4
+      </p>
+      <h1 class="h-section mt-6">{section.heading}</h1>
+      <p class="lede mt-4 max-w-[48ch]">{section.subheading}</p>
+      <div class="flex flex-wrap gap-3 mt-9">
+        <a href={section.ctas[0]?.href} class="btn btn-primary">
           <Icon name="ArrowLeft" size={16} />
           {section.ctas[0]?.label}
         </a>
-      </main>
-    </div>
+        <a href="/" class="btn btn-line">Home</a>
+      </div>
+    </main>
     <Footer />
   </div>
 </BaseLayout>

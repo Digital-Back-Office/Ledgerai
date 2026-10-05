@@ -4,6 +4,7 @@ import TopBar from "../../components/TopBar.astro";
 import Nav from "../../components/Nav.astro";
 import Footer from "../../components/Footer.astro";
 import Icon from "../../components/Icon.astro";
+import PageHead from "../../components/PageHead.astro";
 import { formatDate, getPosts, getSection, getSite } from "../../lib/content";
 import { blogIndex, breadcrumbs } from "../../lib/schema";
 
@@ -47,190 +48,131 @@ const jsonLd = [
   ogTitle={section.pageTitle}
   ogDescription="Explore expert financial guidance, compliance advice, and bookkeeping strategies for UK businesses."
   jsonLd={jsonLd}
-  bodyClass="bg-slate-50"
 >
   <TopBar />
   <Nav />
 
-  <main class="max-w-6xl mx-auto px-6 py-8">
-    {/* Breadcrumbs */}
-    <nav aria-label="Breadcrumb" class="flex items-center gap-2 text-xs font-medium text-slate-500 mb-10">
-      <a href="/" class="hover:text-[#13b5ea] flex items-center gap-1 transition-colors">
-        <Icon name="Home" size={12} /> Home
-      </a>
-      <Icon name="ChevronRight" size={10} class="text-slate-400" />
-      <span class="text-slate-800" aria-current="page">Blogs</span>
-    </nav>
+  <main id="main">
+    <PageHead trail={[{ name: "Blogs" }]} label={section.badge} lede={section.subheading}>
+      <Fragment slot="title">
+        {section.headline?.before}{" "}<span class="mark">{section.headline?.accent}</span>{" "}
+        {section.headline?.after}
+      </Fragment>
+    </PageHead>
 
-    {/* Hero */}
-    <div class="text-center max-w-3xl mx-auto mb-16">
+    <div class="wrap pt-8 pb-20 lg:pt-10 lg:pb-28">
+      {/* Search & filter */}
       <div
-        class="anim anim-up inline-flex items-center gap-2 bg-[#13b5ea]/10 text-[#13b5ea] text-xs font-bold px-4 py-2 rounded-full mb-6 uppercase tracking-widest"
+        data-blog-filters
+        class="flex flex-col md:flex-row md:items-end justify-between gap-5 border-b border-ink"
       >
-        <Icon name="Sparkles" size={12} />
-        {section.badge}
+        <div class="flex items-center gap-6 overflow-x-auto scrollbar-none -mb-px">
+          {
+            categories.map((category, i) => (
+              <button
+                type="button"
+                data-category={category}
+                aria-pressed={i === 0 ? "true" : "false"}
+                class="py-3 border-b-2 border-transparent text-[0.9375rem] font-medium text-mute whitespace-nowrap cursor-pointer transition-colors hover:text-ink aria-pressed:text-ink aria-pressed:border-brand"
+              >
+                {category}
+              </button>
+            ))
+          }
+        </div>
+
+        <div class="relative w-full md:w-72 mb-3">
+          <span class="absolute left-3.5 top-1/2 -translate-y-1/2 text-mute pointer-events-none">
+            <Icon name="Search" size={16} />
+          </span>
+          <label for="blog-search" class="sr-only">{section.searchPlaceholder}</label>
+          <input
+            id="blog-search"
+            type="search"
+            data-blog-search
+            placeholder={section.searchPlaceholder}
+            class="field pl-10 min-h-11"
+          />
+        </div>
       </div>
 
-      <h1
-        class="anim anim-up text-4xl sm:text-5xl font-bold text-slate-900 tracking-tight mb-5 leading-tight"
-        style="--anim-delay: 0.1s"
-      >
-        {section.headline?.before}
-        <span class="text-[#13b5ea]">{section.headline?.accent}</span>
-        {section.headline?.after}
-      </h1>
-
-      <p
-        class="anim anim-up text-base sm:text-lg text-slate-600 leading-relaxed"
-        style="--anim-delay: 0.2s"
-      >
-        {section.subheading}
-      </p>
-    </div>
-
-    {/* Search & filter */}
-    <div
-      data-blog-filters
-      class="flex flex-col md:flex-row items-center justify-between gap-6 mb-12 bg-white p-4 rounded-2xl border border-slate-100 shadow-sm"
-    >
-      <div class="flex items-center gap-2 overflow-x-auto w-full md:w-auto pb-2 md:pb-0 scrollbar-none">
+      {/* Every post is rendered server-side; filtering only hides rows. */}
+      <div data-blog-grid class="border-b border-rule">
         {
-          categories.map((category, i) => (
-            <button
-              type="button"
-              data-category={category}
-              aria-pressed={i === 0 ? "true" : "false"}
-              class="text-xs font-semibold px-4 py-2 rounded-xl transition-all whitespace-nowrap cursor-pointer bg-slate-50 text-slate-600 hover:bg-slate-100 hover:text-slate-900 aria-pressed:bg-[#13b5ea] aria-pressed:text-white aria-pressed:shadow-sm aria-pressed:shadow-[#13b5ea]/25"
+          posts.map((post, i) => (
+            <article
+              data-post
+              data-category={post.data.category}
+              data-search={haystack(post)}
+              class="anim anim-up group grid gap-x-10 gap-y-5 border-t border-rule first:border-t-0 py-8 lg:py-10 md:grid-cols-12 md:items-center"
+              style={`--anim-delay: ${(i * 0.05).toFixed(2)}s`}
             >
-              {category}
-            </button>
+              <a
+                href={`/blogs/${post.id}`}
+                tabindex="-1"
+                aria-hidden="true"
+                class="block md:col-span-4 aspect-[3/2] overflow-hidden rounded-md bg-paper"
+              >
+                <img
+                  src={post.data.coverImage}
+                  alt=""
+                  width="640"
+                  height="427"
+                  loading="lazy"
+                  decoding="async"
+                  class="w-full h-full object-cover transition-transform duration-700 ease-out group-hover:scale-[1.03]"
+                />
+              </a>
+
+              <div class="md:col-span-8">
+                <p class="flex flex-wrap items-center gap-x-3 gap-y-1 text-[0.8125rem] text-mute mb-3">
+                  <span class="max-sm:w-full font-medium text-ink">{post.data.category}</span>
+                  <span aria-hidden="true" class="max-sm:hidden text-rule">/</span>
+                  <time class="fig" datetime={post.data.date}>{formatDate(post.data.date)}</time>
+                  <span aria-hidden="true" class="text-rule">/</span>
+                  <span class="fig">{post.data.readingTime}</span>
+                </p>
+
+                <h2 class="font-display font-semibold text-2xl lg:text-[1.75rem] leading-[1.15] tracking-tight text-ink max-w-[30ch]">
+                  <a
+                    href={`/blogs/${post.id}`}
+                    class="group-hover:underline decoration-brand decoration-2 underline-offset-4"
+                  >
+                    {post.data.title}
+                  </a>
+                </h2>
+
+                <p class="text-mute leading-relaxed mt-3 max-w-[64ch] line-clamp-2">
+                  {post.data.excerpt}
+                </p>
+              </div>
+            </article>
           ))
         }
       </div>
 
-      <div class="relative w-full md:w-80">
-        <span class="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400">
-          <Icon name="Search" size={16} />
-        </span>
-        <label for="blog-search" class="sr-only">{section.searchPlaceholder}</label>
-        <input
-          id="blog-search"
-          type="search"
-          data-blog-search
-          placeholder={section.searchPlaceholder}
-          class="w-full bg-slate-50 text-slate-800 text-sm pl-11 pr-4 py-2.5 rounded-xl border border-slate-100 focus:outline-none focus:border-[#13b5ea] focus:bg-white transition-all placeholder-slate-400"
-        />
+      <div data-blog-empty hidden class="border-b border-rule py-16">
+        <p class="h-row mb-3">{section.emptyState?.message}</p>
+        <button type="button" data-blog-reset class="link cursor-pointer">
+          {section.emptyState?.action}
+        </button>
       </div>
     </div>
 
-    {/* Grid: every post is rendered server-side; filtering only hides cards. */}
-    <div data-blog-grid class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 mb-20">
-      {
-        posts.map((post, i) => (
-          <article
-            data-post
-            data-category={post.data.category}
-            data-search={haystack(post)}
-            class="anim anim-up group flex flex-col bg-white rounded-2xl border border-slate-100 shadow-sm hover:shadow-xl hover:shadow-slate-100 hover:-translate-y-1 transition-all overflow-hidden"
-            style={`--anim-delay: ${(i * 0.05).toFixed(2)}s`}
-          >
-            <a
-              href={`/blogs/${post.id}`}
-              class="block aspect-video overflow-hidden bg-slate-100 relative"
-            >
-              <img
-                src={post.data.coverImage}
-                alt={post.data.title}
-                width="640"
-                height="360"
-                loading="lazy"
-                decoding="async"
-                class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
-              />
-              <div class="absolute top-4 left-4">
-                <span class="bg-slate-900/80 backdrop-blur-sm text-white text-[10px] font-bold px-3 py-1 rounded-full uppercase tracking-wider">
-                  {post.data.category}
-                </span>
-              </div>
-            </a>
-
-            <div class="flex-1 p-6 flex flex-col justify-between">
-              <div>
-                <div class="flex items-center gap-4 text-slate-400 text-[11px] font-medium mb-3">
-                  <span class="flex items-center gap-1">
-                    <Icon name="Calendar" size={12} />
-                    <time datetime={post.data.date}>{formatDate(post.data.date)}</time>
-                  </span>
-                  <span class="flex items-center gap-1">
-                    <Icon name="Clock" size={12} />
-                    {post.data.readingTime}
-                  </span>
-                </div>
-
-                <h2 class="text-slate-900 font-bold text-lg leading-snug mb-3 group-hover:text-[#13b5ea] transition-colors line-clamp-2">
-                  <a href={`/blogs/${post.id}`}>{post.data.title}</a>
-                </h2>
-
-                <p class="text-slate-500 text-sm leading-relaxed mb-6 line-clamp-3">
-                  {post.data.excerpt}
-                </p>
-              </div>
-
-              <div>
-                <a
-                  href={`/blogs/${post.id}`}
-                  class="inline-flex items-center gap-1.5 text-xs font-bold text-[#13b5ea] group-hover:text-[#0e9fd2] transition-colors"
-                >
-                  Read More
-                  <Icon name="ArrowRight" size={14} class="group-hover:translate-x-0.5 transition-transform" />
-                </a>
-              </div>
-            </div>
-          </article>
-        ))
-      }
-    </div>
-
-    <div
-      data-blog-empty
-      hidden
-      class="text-center py-20 bg-white rounded-2xl border border-slate-100 shadow-sm mb-20"
-    >
-      <p class="text-slate-500 text-base mb-2">{section.emptyState?.message}</p>
-      <button
-        type="button"
-        data-blog-reset
-        class="text-[#13b5ea] font-semibold text-sm hover:underline cursor-pointer"
-      >
-        {section.emptyState?.action}
-      </button>
-    </div>
-
     {/* CTA */}
-    <section
-      class="bg-gradient-to-br from-slate-900 via-slate-800 to-slate-950 text-white rounded-3xl p-8 sm:p-12 relative overflow-hidden shadow-xl mb-12"
-    >
-      <div class="absolute right-0 top-0 w-80 h-80 bg-[#13b5ea]/10 rounded-full blur-3xl pointer-events-none"></div>
-      <div class="absolute left-1/3 bottom-0 w-60 h-60 bg-blue-500/5 rounded-full blur-3xl pointer-events-none"></div>
-
-      <div class="relative max-w-2xl mx-auto text-center">
-        <span class="text-[#13b5ea] text-xs font-bold uppercase tracking-wider block mb-4">
-          {cta.eyebrow}
-        </span>
-        <h2 class="text-3xl font-bold mb-4 tracking-tight leading-tight">{cta.heading}</h2>
-        <p class="text-slate-300 text-sm sm:text-base leading-relaxed mb-8">{cta.subheading}</p>
-        <div class="flex flex-col sm:flex-row items-center justify-center gap-4">
-          <a
-            href={cta.ctas[0]?.href}
-            class="w-full sm:w-auto bg-[#13b5ea] hover:bg-[#0e9fd2] text-white font-semibold px-8 py-3.5 rounded-xl transition-all shadow-lg shadow-[#13b5ea]/20 flex items-center justify-center gap-2"
-          >
+    <section class="bg-brand text-ink">
+      <div class="wrap py-16 lg:py-20 grid gap-x-12 gap-y-8 lg:grid-cols-12 lg:items-end">
+        <div class="lg:col-span-8">
+          <p class="text-sm font-medium mb-4">{cta.eyebrow}</p>
+          <h2 class="h-section max-w-[20ch]">{cta.heading}</h2>
+          <p class="mt-4 text-lg leading-relaxed text-ink/80 max-w-[58ch]">{cta.subheading}</p>
+        </div>
+        <div class="lg:col-span-4 flex flex-col sm:flex-row gap-3 lg:justify-self-end">
+          <a href={cta.ctas[0]?.href} class="btn btn-ink">
             {cta.ctas[0]?.label}
-            <Icon name="ArrowRight" size={16} />
+            <Icon name="ArrowRight" size={16} class="arrow" />
           </a>
-          <a
-            href={cta.ctas[1]?.href}
-            class="w-full sm:w-auto bg-slate-800 hover:bg-slate-700 text-slate-200 font-semibold px-8 py-3.5 rounded-xl transition-all border border-slate-700 flex items-center justify-center"
-          >
+          <a href={cta.ctas[1]?.href} class="btn btn-line border-ink/40">
             {cta.ctas[1]?.label}
           </a>
         </div>

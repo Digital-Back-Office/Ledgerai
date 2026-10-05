@@ -10,14 +10,14 @@ const { form } = await getSection("book-demo");
   form && (
     <div>
       <div data-booking-success hidden>
-        <div class="text-center py-8">
-          <div class="w-16 h-16 bg-[#13b5ea]/10 rounded-full flex items-center justify-center mx-auto mb-4">
-            <Icon name="CheckCircle2" size={28} class="text-[#13b5ea]" />
-          </div>
-          <h3 class="text-slate-900 font-bold text-xl mb-2">{form.successTitle}</h3>
-          <p class="text-slate-500 text-sm mb-1">{form.successMessage}</p>
-          <p class="text-slate-400 text-sm">
-            We'll send a confirmation to <span data-booking-email />
+        <div class="py-6">
+          <span class="grid place-items-center size-11 bg-brand rounded-md mb-5">
+            <Icon name="Check" size={22} strokeWidth={2.5} class="text-ink" />
+          </span>
+          <h3 class="h-row text-2xl mb-2">{form.successTitle}</h3>
+          <p class="text-mute mb-1">{form.successMessage}</p>
+          <p class="text-mute text-sm">
+            We'll send a confirmation to <span class="text-ink font-medium" data-booking-email />
           </p>
         </div>
       </div>
@@ -32,36 +32,43 @@ const { form } = await getSection("book-demo");
         <input type="hidden" name="access_key" value={brand.formAccessKey} />
         <input type="hidden" name="source" value={form.source} />
 
+        {/* Visible labels rather than placeholder-only fields: the label stays
+             readable once the visitor starts typing. */}
         {form.fields.map((field) => (
-          <>
-            <label for={`booking-${field.name}`} class="sr-only">
+          <div>
+            <label
+              for={`booking-${field.name}`}
+              class="block text-sm font-medium text-ink mb-1.5"
+            >
               {field.placeholder}
             </label>
             <input
               id={`booking-${field.name}`}
               type={field.type}
               name={field.name}
-              placeholder={field.placeholder}
               required={field.required}
-              class="w-full bg-slate-50 border border-slate-200 text-slate-900 text-sm rounded-xl px-4 py-3 placeholder-slate-400 focus:outline-none focus:border-[#13b5ea] focus:bg-white transition-all"
+              autocomplete={
+                field.type === "email" ? "email" : field.type === "tel" ? "tel" : undefined
+              }
+              class="field"
             />
-          </>
+          </div>
         ))}
 
-        <div data-booking-status class="text-sm p-3 rounded-lg" hidden />
+        <div data-booking-status class="text-sm p-3 rounded-lg" role="status" hidden />
 
-        <button
-          type="submit"
-          class="w-full bg-[#13b5ea] text-white font-semibold py-3.5 rounded-xl hover:bg-[#0e9fd2] transition-colors text-sm flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
-        >
-          <span data-label>{form.submitLabel}</span>
+        <button type="submit" class="btn btn-primary w-full">
+          <span data-label class="inline-flex items-center gap-2.5">
+            {form.submitLabel}
+            <Icon name="ArrowRight" size={16} class="arrow" />
+          </span>
           <span data-loading class="inline-flex items-center gap-2" hidden>
-            <Icon name="Loader" size={15} class="animate-spin" />
+            <Icon name="Loader" size={16} class="animate-spin" />
             {form.loadingLabel}
           </span>
         </button>
 
-        <p class="text-xs text-slate-400 text-center">{form.note}</p>
+        <p class="text-[0.8125rem] text-mute">{form.note}</p>
       </form>
     </div>
   )

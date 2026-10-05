@@ -78,7 +78,7 @@ const graphs = jsonLd ? (Array.isArray(jsonLd) ? jsonLd : [jsonLd]) : [];
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link
       rel="stylesheet"
-      href="https://fonts.googleapis.com/css2?family=Sora:wght@300;400;500;600;700;800&family=IBM+Plex+Mono:wght@400;500;600&display=swap"
+      href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400..800&family=Geist:wght@400..700&family=Geist+Mono:wght@400..600&display=swap"
     />
 
     <!-- Open Graph -->
@@ -148,7 +148,8 @@ const graphs = jsonLd ? (Array.isArray(jsonLd) ? jsonLd : [jsonLd]) : [];
     <!-- End Google Ads Tag -->
   </head>
 
-  <body class={`min-h-screen font-sans ${bodyClass}`}>
+  <body class={`min-h-screen font-sans text-ink ${bodyClass}`}>
+    <a href="#main" class="skip-link">Skip to content</a>
     <!-- Google Tag Manager (noscript) -->
     <noscript
       ><iframe

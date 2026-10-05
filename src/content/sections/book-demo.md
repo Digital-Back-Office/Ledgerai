@@ -8,11 +8,11 @@ testimonial:
 form:
   title: "Reserve your slot"
   subtitle: "No sales pitch. Just a live walkthrough tailored to accounting firms."
-  submitLabel: "Book Your Demo"
+  submitLabel: "Book your demo"
   loadingLabel: "Booking..."
   source: "Book a demo section"
   note: "We'll send you a calendar invite within 24 hours"
-  successTitle: "Demo Confirmed!"
+  successTitle: "Demo booked"
   successMessage: "Thank you for booking a demo with us."
   errorMessage: "Error submitting form"
   connectionErrorMessage: "Error connecting to server"

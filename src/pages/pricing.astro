@@ -90,13 +90,9 @@ const jsonLd = [
   ]),
 ];
 
-const sectionEyebrow = "text-[11px] font-bold uppercase tracking-[0.15em] text-[#13b5ea] mb-3";
-const sectionHeading = "text-[2.2rem] font-extrabold text-slate-900 tracking-tight";
-
-const ctaClass = (style: string) =>
-  style === "primary"
-    ? "inline-flex w-full items-center justify-center gap-2 bg-[#13b5ea] text-white font-semibold px-6 py-3.5 rounded-xl hover:bg-[#0e9fd2] transition-colors shadow-lg shadow-[#13b5ea]/30"
-    : "inline-flex w-full items-center justify-center gap-2 bg-white text-slate-700 font-semibold px-6 py-3.5 rounded-xl border border-slate-200 hover:border-[#13b5ea] hover:text-[#13b5ea] transition-colors";
+import FaqBlock from "../components/FaqBlock.astro";
+import PageHead from "../components/PageHead.astro";
+import SectionHead from "../components/SectionHead.astro";
 ---
 
 <BaseLayout
@@ -108,293 +104,285 @@ const ctaClass = (style: string) =>
   <TopBar />
   <Nav />
 
-  <div class="bg-white border-b border-slate-100">
-    <div class="max-w-6xl mx-auto px-6 py-6">
-      <nav
-        aria-label="Breadcrumb"
-        class="flex items-center gap-2 text-xs font-medium text-slate-500 flex-wrap"
-      >
-        <a href="/" class="hover:text-[#13b5ea] flex items-center gap-1 transition-colors">
-          <Icon name="Home" size={12} /> Home
-        </a>
-        <Icon name="ChevronRight" size={10} class="text-slate-400" />
-        <span class="text-slate-800" aria-current="page">Pricing</span>
-      </nav>
-    </div>
-  </div>
-
-  <main data-billing="monthly" id="pricing-root">
-    {/* ── Header + toggle ─────────────────────────────────────────────── */}
-    <section class="bg-white">
-      <div class="max-w-4xl mx-auto px-6 pt-16 pb-12 text-center">
-        <div
-          class="anim anim-up inline-flex items-center gap-2 bg-[#13b5ea]/10 text-[#13b5ea] text-xs font-bold px-4 py-2 rounded-full mb-7 uppercase tracking-widest"
-          style="--anim-delay: 0.1s"
-        >
-          <Icon name="Sparkles" size={12} />
-          {section.badge}
-        </div>
-
-        <h1
-          class="anim anim-up text-4xl sm:text-5xl font-bold text-gray-900 leading-[1.1] tracking-tight mb-6"
-          style="--anim-delay: 0.2s"
-        >
-          {section.headline?.before}<span class="text-[#13b5ea]">{section.headline?.accent}</span
+  <main id="main">
+    <div data-billing="monthly" id="pricing-root">
+      {/* ── Header + toggle ─────────────────────────────────────────────── */}
+      <PageHead trail={[{ name: "Pricing" }]} label={section.badge} lede={section.subheading}>
+        <Fragment slot="title">
+          {section.headline?.before}<span class="mark">{section.headline?.accent}</span
           >{section.headline?.after}
-        </h1>
+        </Fragment>
 
-        <p
-          class="anim anim-up text-lg text-gray-600 leading-relaxed max-w-2xl mx-auto mb-10"
-          style="--anim-delay: 0.3s"
-        >
-          {section.subheading}
-        </p>
-
-        {
-          billing && (
-            <div
-              class="anim anim-up inline-flex items-center gap-1 bg-slate-100 rounded-full p-1"
-              style="--anim-delay: 0.4s"
-              role="group"
-              aria-label="Billing period"
-            >
-              <button
-                type="button"
-                data-billing-option="monthly"
-                aria-pressed="true"
-                class="billing-btn px-5 py-2 rounded-full text-sm font-semibold transition-colors"
+        <div slot="aside">
+          {
+            billing && (
+              <div
+                class="inline-flex bg-white border border-ink rounded-md p-1"
+                role="group"
+                aria-label="Billing period"
               >
-                {billing.monthlyLabel}
-              </button>
-              <button
-                type="button"
-                data-billing-option="yearly"
-                aria-pressed="false"
-                class="billing-btn flex items-center gap-2 px-5 py-2 rounded-full text-sm font-semibold transition-colors"
-              >
-                {billing.yearlyLabel}
-                <span class="text-[10px] font-bold uppercase tracking-wider bg-emerald-100 text-emerald-700 px-2 py-0.5 rounded-full">
-                  {billing.yearlyNote}
-                </span>
-              </button>
-            </div>
-          )
-        }
-      </div>
-    </section>
-
-    {/* ── Plan cards ──────────────────────────────────────────────────── */}
-    <section class="max-w-6xl mx-auto px-6 pb-20">
-      <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 items-stretch">
-        {
-          priced.map((plan, i) => (
-            <article
-              class:list={[
-                "anim anim-up relative flex flex-col rounded-2xl p-7 sm:p-8 bg-white transition-all",
-                plan.featured
-                  ? "border-2 border-[#13b5ea] shadow-xl shadow-[#13b5ea]/15 lg:-translate-y-2"
-                  : "border border-slate-200 shadow-sm hover:shadow-md",
-              ]}
-              style={`--anim-delay: ${(0.1 + i * 0.1).toFixed(2)}s`}
-            >
-              {plan.badge && (
-                <span class="absolute -top-3.5 left-1/2 -translate-x-1/2 bg-[#13b5ea] text-white text-[11px] font-bold uppercase tracking-widest px-4 py-1.5 rounded-full shadow-md whitespace-nowrap">
-                  {plan.badge}
-                </span>
-              )}
-
-              <h2 class="text-xl font-bold text-slate-900">{plan.name}</h2>
-              <p class="text-slate-500 text-sm leading-relaxed mt-2 min-h-[2.75rem]">
-                {plan.tagline}
-              </p>
-
-              <div class="mt-6 mb-1">
-                <p data-price="monthly" class="flex items-baseline gap-1.5">
-                  <span class="text-4xl font-extrabold text-slate-900 tracking-tight">
-                    £{gbp(plan.monthlyPrice)}
-                  </span>
-                  <span class="text-slate-400 text-sm font-medium">/ month</span>
-                </p>
-                <p data-price="yearly" class="hidden items-baseline gap-1.5">
-                  <span class="text-4xl font-extrabold text-slate-900 tracking-tight">
-                    £{gbp(plan.yearlyPrice)}
-                  </span>
-                  <span class="text-slate-400 text-sm font-medium">/ year</span>
-                </p>
-              </div>
-              <p data-price="monthly" class="text-xs text-slate-400 h-5">
-                or £{gbp(plan.yearlyPrice)} billed yearly
-              </p>
-              <p data-price="yearly" class="hidden text-xs text-emerald-600 font-semibold h-5">
-                ≈ £{gbp(plan.yearlyPerMonth)}/month · save £{gbp(plan.saving)}
-              </p>
-
-              <div class="mt-6">
-                <a
-                  href={plan.cta.href}
-                  target={plan.cta.external ? "_blank" : undefined}
-                  rel={plan.cta.external ? "noopener noreferrer" : undefined}
-                  class={ctaClass(plan.cta.style)}
-                  data-event="cta_click"
-                  data-event-label={plan.cta.event}
+                <button
+                  type="button"
+                  data-billing-option="monthly"
+                  aria-pressed="true"
+                  class="billing-btn"
                 >
-                  {plan.cta.label}
-                  <Icon name="ArrowRight" size={17} />
-                </a>
+                  {billing.monthlyLabel}
+                </button>
+                <button
+                  type="button"
+                  data-billing-option="yearly"
+                  aria-pressed="false"
+                  class="billing-btn"
+                >
+                  {billing.yearlyLabel}
+                  <span class="billing-note">{billing.yearlyNote}</span>
+                </button>
               </div>
+            )
+          }
+        </div>
+      </PageHead>
 
-              <dl class="mt-7 pt-6 border-t border-slate-100 space-y-3 text-sm">
-                {plan.allowances.map((item) => (
+      {/* ── Plans: one ruled sheet with three columns, not three towers ──── */}
+      <section class="wrap pt-10 pb-20 lg:pt-14 lg:pb-28">
+        <div class="anim anim-up grid grid-cols-1 lg:grid-cols-3 border border-ink rounded-md overflow-hidden">
+          {
+            priced.map((plan) => (
+              <article
+                class:list={[
+                  "row-span-3 grid grid-rows-subgrid gap-y-0 p-6 sm:p-8 border-t first:border-t-0 lg:border-t-0 lg:border-l lg:first:border-l-0 border-ink",
+                  plan.featured ? "on-dark bg-ink text-white" : "bg-white",
+                ]}
+              >
+                {/* The card is a three-row subgrid of the sheet: this block, the
+                     allowances, then the features. Sharing the rows across the
+                     three plans keeps each list starting level with its
+                     neighbours, whatever the lengths above it. */}
+                <div>
                   <div class="flex items-start justify-between gap-4">
-                    <dt class="text-slate-500">{item.label}</dt>
-                    <dd class="text-right">
-                      <span class="font-semibold text-slate-800">{item.value}</span>
-                      {item.note && (
-                        <span class="block text-[11px] text-slate-400 font-mono">{item.note}</span>
-                      )}
-                    </dd>
+                    <h2
+                      class:list={["font-display font-semibold text-2xl tracking-tight", plan.featured ? "text-white" : "text-ink"]}
+                    >
+                      {plan.name}
+                    </h2>
+                    {plan.badge && (
+                      <span class="bg-brand text-ink text-xs font-semibold px-2 py-1 rounded-[3px] whitespace-nowrap">
+                        {plan.badge}
+                      </span>
+                    )}
                   </div>
-                ))}
-              </dl>
+                  <p
+                    class:list={[
+                      "text-[0.9375rem] leading-relaxed mt-2 lg:min-h-[3rem]",
+                      plan.featured ? "text-white/70" : "text-mute",
+                    ]}
+                  >
+                    {plan.tagline}
+                  </p>
 
-              <ul class="mt-6 pt-6 border-t border-slate-100 space-y-3 text-sm">
-                {plan.features.map((feature) => (
-                  <li class="flex items-start gap-2.5 text-slate-700">
-                    <Icon name="Check" size={16} class="text-[#13b5ea] shrink-0 mt-0.5" />
-                    {feature}
-                  </li>
-                ))}
-              </ul>
-
-              {plan.extras.length > 0 && (
-                <div class="mt-6 rounded-xl bg-[#13b5ea]/5 border border-[#13b5ea]/15 p-5">
-                  {plan.extrasHeading && (
-                    <p class="text-[11px] font-bold uppercase tracking-[0.12em] text-[#13b5ea] mb-3">
-                      {plan.extrasHeading}
+                  <div class="mt-7">
+                    <p data-price="monthly">
+                      <span class="font-display font-bold text-5xl tracking-tight tabular-nums">
+                        £{gbp(plan.monthlyPrice)}
+                      </span>
+                      <span class:list={["text-sm ml-1", plan.featured ? "text-white/60" : "text-mute"]}>
+                        / month
+                      </span>
                     </p>
-                  )}
-                  <ul class="space-y-2.5 text-sm">
+                    <p data-price="yearly">
+                      <span class="font-display font-bold text-5xl tracking-tight tabular-nums">
+                        £{gbp(plan.yearlyPrice)}
+                      </span>
+                      <span class:list={["text-sm ml-1", plan.featured ? "text-white/60" : "text-mute"]}>
+                        / year
+                      </span>
+                    </p>
+                  </div>
+                  <p
+                    data-price="monthly"
+                    class:list={["fig text-xs mt-2 h-5", plan.featured ? "text-white/60" : "text-mute"]}
+                  >
+                    or £{gbp(plan.yearlyPrice)} billed yearly
+                  </p>
+                  <p
+                    data-price="yearly"
+                    class:list={["fig text-xs mt-2 h-5", plan.featured ? "text-brand" : "text-ink"]}
+                  >
+                    ≈ £{gbp(plan.yearlyPerMonth)}/month · save £{gbp(plan.saving)}
+                  </p>
+
+                  <a
+                    href={plan.cta.href}
+                    target={plan.cta.external ? "_blank" : undefined}
+                    rel={plan.cta.external ? "noopener noreferrer" : undefined}
+                    class:list={["btn w-full mt-7", plan.featured ? "btn-primary" : "btn-line"]}
+                    data-event="cta_click"
+                    data-event-label={plan.cta.event}
+                  >
+                    {plan.cta.label}
+                    <Icon name="ArrowRight" size={16} class="arrow" />
+                  </a>
+                </div>
+
+                <dl class="mt-8 text-sm">
+                  {plan.allowances.map((item) => (
+                    <div
+                      class:list={[
+                        "flex items-start justify-between gap-4 border-t py-3",
+                        plan.featured ? "border-white/15" : "border-rule",
+                      ]}
+                    >
+                      <dt class={plan.featured ? "text-white/70" : "text-mute"}>{item.label}</dt>
+                      <dd class="text-right">
+                        <span class="font-medium tabular-nums">{item.value}</span>
+                        {item.note && (
+                          <span
+                            class:list={["fig block text-xs", plan.featured ? "text-white/55" : "text-mute"]}
+                          >
+                            {item.note}
+                          </span>
+                        )}
+                      </dd>
+                    </div>
+                  ))}
+                </dl>
+
+                <ul
+                  class:list={[
+                    "border-t pt-5 mt-2 space-y-3 text-sm",
+                    plan.featured ? "border-white/15" : "border-rule",
+                  ]}
+                >
+                  {plan.features.map((feature) => (
+                    <li class="flex items-start gap-2.5">
+                      <Icon
+                        name="Check"
+                        size={15}
+                        strokeWidth={2.5}
+                        class={`shrink-0 mt-0.5 ${plan.featured ? "text-brand" : "text-brand-dark"}`}
+                      />
+                      {feature}
+                    </li>
+                  ))}
+                </ul>
+              </article>
+            ))
+          }
+
+          {/* Extras sit in a row of their own beneath the three columns, so a
+               plan with a longer list does not leave the others ending in
+               empty space. On a phone the row follows the last plan. */}
+          {
+            priced
+              .filter((plan) => plan.extras.length > 0)
+              .map((plan) => (
+                <div class="grid grid-cols-1 gap-x-12 gap-y-6 lg:col-span-3 lg:grid-cols-12 border-t border-ink bg-paper p-6 sm:p-8">
+                  <div class="lg:col-span-4">
+                    <p class="label">{plan.name}</p>
+                    {plan.extrasHeading && <p class="h-row mt-3">{plan.extrasHeading}</p>}
+                  </div>
+                  <ul class="lg:col-span-8 grid grid-cols-1 sm:grid-cols-2 gap-x-10 gap-y-3 text-[0.9375rem] text-ink">
                     {plan.extras.map((extra) => (
-                      <li class="flex items-start gap-2.5 text-slate-700">
-                        <Icon name="Sparkles" size={15} class="text-[#13b5ea] shrink-0 mt-0.5" />
+                      <li class="flex items-start gap-2.5">
+                        <span aria-hidden="true" class="size-1.5 bg-brand mt-2 shrink-0" />
                         {extra}
                       </li>
                     ))}
                   </ul>
                 </div>
-              )}
-            </article>
-          ))
+              ))
+          }
+        </div>
+
+        {
+          section.trustPoints.length > 0 && (
+            <ul class="flex flex-wrap gap-x-6 gap-y-2 mt-6 text-sm text-mute">
+              {section.trustPoints.map((point) => (
+                <li class="flex items-center gap-2">
+                  <span aria-hidden="true" class="size-1.5 bg-brand" />
+                  {point}
+                </li>
+              ))}
+            </ul>
+          )
         }
-      </div>
+      </section>
 
+      {/* ── Comparison table ────────────────────────────────────────────── */}
       {
-        section.trustPoints.length > 0 && (
-          <div class="anim anim-fade flex flex-wrap items-center justify-center gap-x-6 gap-y-2 mt-12 text-sm text-gray-500">
-            {section.trustPoints.map((point) => (
-              <span class="flex items-center gap-1.5">
-                <Icon name="Check" size={14} class="text-[#13b5ea]" />
-                {point}
-              </span>
-            ))}
-          </div>
-        )
-      }
-    </section>
+        comparison && (
+          <section id="compare" class="bg-paper border-t border-rule">
+            <div class="wrap pt-20 pb-24 lg:pt-28 lg:pb-32">
+              <SectionHead label={comparison.eyebrow} heading={comparison.heading} />
 
-    {/* ── Comparison table ────────────────────────────────────────────── */}
-    {
-      comparison && (
-        <section id="compare" class="bg-slate-50 border-y border-slate-100 py-24">
-          <div class="max-w-5xl mx-auto px-6">
-            <div class="anim anim-up text-center mb-12">
-              <p class={sectionEyebrow}>{comparison.eyebrow}</p>
-              <h2 class={sectionHeading}>{comparison.heading}</h2>
-            </div>
-
-            <div class="anim anim-up overflow-x-auto rounded-2xl border border-slate-200 bg-white shadow-sm">
-              <table class="w-full min-w-[640px] text-sm">
-                <thead>
-                  <tr class="border-b border-slate-200">
-                    <th scope="col" class="text-left font-semibold text-slate-500 px-5 py-4 w-[34%]">
-                      <span class="sr-only">Feature</span>
-                    </th>
-                    {priced.map((plan) => (
-                      <th
-                        scope="col"
-                        class:list={[
-                          "px-5 py-4 text-center font-bold text-base",
-                          plan.featured ? "text-[#13b5ea] bg-[#13b5ea]/5" : "text-slate-900",
-                        ]}
-                      >
-                        {plan.name}
+              <div class="anim anim-up overflow-x-auto">
+                <table class="w-full min-w-[680px] text-[0.9375rem] border-b border-ink">
+                  <thead>
+                    <tr class="border-t-2 border-b border-ink">
+                      <th scope="col" class="text-left px-4 py-4 w-[34%]">
+                        <span class="sr-only">Feature</span>
                       </th>
-                    ))}
-                  </tr>
-                </thead>
-                <tbody>
-                  {comparison.rows.map((row) => (
-                    <tr class="border-b border-slate-100 last:border-0">
-                      <th scope="row" class="text-left font-medium text-slate-700 px-5 py-3.5">
-                        {row.label}
-                      </th>
-                      {row.values.map((value, i) => (
-                        <td
+                      {priced.map((plan) => (
+                        <th
+                          scope="col"
                           class:list={[
-                            "px-5 py-3.5 text-center text-slate-600",
-                            priced[i]?.featured && "bg-[#13b5ea]/5",
+                            "px-4 py-4 text-left font-display font-semibold text-lg tracking-tight text-ink",
+                            plan.featured && "bg-white",
                           ]}
                         >
-                          {value === true ? (
-                            <Icon name="Check" size={17} class="text-[#13b5ea] inline-block" title="Included" />
-                          ) : value === false ? (
-                            <span class="text-slate-300" aria-label="Not included">—</span>
-                          ) : (
-                            value
-                          )}
-                        </td>
+                          {plan.name}
+                        </th>
                       ))}
                     </tr>
-                  ))}
-                </tbody>
-              </table>
+                  </thead>
+                  <tbody>
+                    {comparison.rows.map((row) => (
+                      <tr class="border-b border-rule last:border-0">
+                        <th scope="row" class="text-left font-normal text-mute px-4 py-3.5">
+                          {row.label}
+                        </th>
+                        {row.values.map((value, i) => (
+                          <td
+                            class:list={[
+                              "px-4 py-3.5 text-ink tabular-nums",
+                              priced[i]?.featured && "bg-white font-medium",
+                            ]}
+                          >
+                            {value === true ? (
+                              <Icon
+                                name="Check"
+                                size={17}
+                                strokeWidth={2.5}
+                                class="text-brand-dark inline-block"
+                                title="Included"
+                              />
+                            ) : value === false ? (
+                              <span class="text-mute/50" aria-label="Not included">
+                                —
+                              </span>
+                            ) : (
+                              value
+                            )}
+                          </td>
+                        ))}
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
             </div>
-          </div>
-        </section>
-      )
-    }
+          </section>
+        )
+      }
 
-    {/* ── FAQs ────────────────────────────────────────────────────────── */}
-    {
-      faqs.length > 0 && (
-        <section id="faq" class="py-24 max-w-6xl mx-auto px-6">
-          <div class="anim anim-up text-center mb-14">
-            <p class={sectionEyebrow}>FAQs</p>
-            <h2 class={sectionHeading}>Pricing questions</h2>
-          </div>
-
-          <div class="space-y-4 max-w-3xl mx-auto">
-            {faqs.map((faq, i) => (
-              <details
-                name="pricing-faq"
-                class="anim anim-up group bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden transition-all hover:border-slate-300"
-                style={`--anim-delay: ${(i * 0.06).toFixed(2)}s`}
-              >
-                <summary class="w-full px-6 py-4.5 flex items-center justify-between text-left font-bold text-slate-800 text-base sm:text-lg hover:text-[#13b5ea] transition-colors cursor-pointer list-none [&::-webkit-details-marker]:hidden">
-                  <span>{faq.question}</span>
-                  <span class="text-slate-400 shrink-0 ml-4 transition-transform duration-200 group-open:rotate-180">
-                    <Icon name="ChevronDown" size={18} />
-                  </span>
-                </summary>
-                <div class="px-6 pb-5 pt-1 text-slate-500 text-sm sm:text-base leading-relaxed border-t border-slate-100/50">
-                  {faq.answer}
-                </div>
-              </details>
-            ))}
-          </div>
-        </section>
-      )
-    }
+      {/* ── FAQs ────────────────────────────────────────────────────────── */}
+      {
+        faqs.length > 0 && (
+          <FaqBlock heading="Pricing questions" items={faqs} name="pricing-faq" tinted={false} />
+        )
+      }
+    </div>
 
     <BookDemoSection />
   </main>
@@ -405,21 +393,44 @@ const ctaClass = (style: string) =>
 
 <style>
   .billing-btn {
-    color: rgb(100 116 139);
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    min-height: 2.5rem;
+    padding: 0.375rem 1rem;
+    border-radius: 4px;
+    font-size: 0.9375rem;
+    font-weight: 500;
+    color: var(--color-mute);
+    cursor: pointer;
+    transition:
+      background-color 0.2s ease,
+      color 0.2s ease;
+  }
+  .billing-btn:hover {
+    color: var(--color-ink);
   }
   .billing-btn[aria-pressed="true"] {
-    background: white;
-    color: rgb(15 23 42);
-    box-shadow: 0 1px 3px rgb(15 23 42 / 0.1);
+    background: var(--color-ink);
+    color: #fff;
   }
+  .billing-note {
+    font-family: var(--font-mono);
+    font-size: 0.75rem;
+    color: var(--color-ink);
+    background: var(--color-brand);
+    padding: 0.125rem 0.375rem;
+    border-radius: 3px;
+  }
+
   /* Monthly is the default in the HTML; this flips the pair once yearly is picked. */
+  [data-price="yearly"] {
+    display: none;
+  }
   [data-billing="yearly"] [data-price="monthly"] {
     display: none;
   }
-  [data-billing="yearly"] p[data-price="yearly"] {
-    display: flex;
-  }
-  [data-billing="yearly"] p[data-price="yearly"].text-xs {
+  [data-billing="yearly"] [data-price="yearly"] {
     display: block;
   }
 </style>

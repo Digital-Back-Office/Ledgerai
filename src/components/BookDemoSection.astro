@@ -6,45 +6,31 @@ const section = await getSection("book-demo");
 const { eyebrow, heading, subheading, testimonial, form } = section;
 ---
 
-<section id="book-demo" class="py-24 bg-slate-50 border-t border-slate-100">
-  <div class="max-w-5xl mx-auto px-6">
-    <div class="anim anim-up grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
-      {/* Left copy */}
-      <div class="pt-2">
-        <p class="text-[11px] font-bold uppercase tracking-[0.15em] text-[#13b5ea] mb-4">
-          {eyebrow}
-        </p>
-        <h2 class="text-[2.2rem] font-extrabold text-slate-900 tracking-tight mb-4">
-          {heading}
-        </h2>
-        <p class="text-slate-500 text-base leading-relaxed mb-4">{subheading}</p>
+{/* The one ink band on the page: the closing statement before the footer. */}
+<section id="book-demo" class="on-dark grid-paper bg-ink text-white">
+  <div class="wrap pt-20 pb-24 lg:pt-28 lg:pb-32">
+    <div class="anim anim-up grid gap-x-12 gap-y-12 lg:grid-cols-12 lg:items-start">
+      {/* Copy */}
+      <div class="lg:col-span-6">
+        <p class="label label-dark mb-5">{eyebrow}</p>
+        <h2 class="h-section text-white max-w-[18ch]">{heading}</h2>
+        <p class="lede mt-5 text-white/70 max-w-[50ch]">{subheading}</p>
 
         {
           testimonial && (
-            <figure class="bg-white border border-slate-200 rounded-2xl p-6 shadow-sm">
-              <div
-                class="anim anim-scale w-full"
-                style="--anim-delay: 0.2s"
-                aria-label={`${testimonial.stars} out of 5 stars`}
-              >
-                <div class="flex gap-0.5 mb-3" aria-hidden="true">
-                  {Array.from({ length: testimonial.stars }).map(() => (
-                    <span class="text-[#13b5ea] text-sm">★</span>
-                  ))}
-                </div>
-                <blockquote class="text-slate-600 text-sm leading-relaxed italic">
-                  "{testimonial.quote}"
-                </blockquote>
-              </div>
+            <figure class="mt-12 border-l-2 border-brand pl-6 max-w-[46ch]">
+              <blockquote class="font-display text-xl sm:text-2xl leading-snug tracking-tight text-white">
+                “{testimonial.quote}”
+              </blockquote>
             </figure>
           )
         }
       </div>
 
-      {/* Right form */}
-      <div class="bg-white border border-slate-200 rounded-2xl p-7 shadow-sm">
-        <h3 class="font-bold text-slate-900 text-lg mb-1">{form?.title}</h3>
-        <p class="text-slate-400 text-sm mb-6">{form?.subtitle}</p>
+      {/* Form */}
+      <div class="lg:col-span-5 lg:col-start-8 bg-white text-ink rounded-md p-6 sm:p-8">
+        <h3 class="h-row">{form?.title}</h3>
+        <p class="text-mute text-[0.9375rem] mt-1.5 mb-6">{form?.subtitle}</p>
         <BookingForm />
       </div>
     </div>

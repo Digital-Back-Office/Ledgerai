@@ -55,16 +55,50 @@ const jsonLd = [
   breadcrumbs(brand, [{ name: "Home", item: "/" }, ...page.trail]),
 ];
 
-/** Shared shells, so the sections read as one page rather than a stack of parts. */
-const sectionEyebrow = "text-[11px] font-bold uppercase tracking-[0.15em] text-[#13b5ea] mb-3";
-const sectionHeading = "text-[2.2rem] font-extrabold text-slate-900 tracking-tight";
-const card =
-  "bg-white border border-slate-100 rounded-2xl p-6 shadow-sm hover:shadow-md hover:border-slate-200 transition-all";
+import Breadcrumb from "../components/Breadcrumb.astro";
+import FaqBlock from "../components/FaqBlock.astro";
+import FeatureFigure from "../components/FeatureFigure.astro";
+import SectionHead from "../components/SectionHead.astro";
+import Steps from "../components/Steps.astro";
+import { getOrdered } from "../lib/content";
+import { cellGrid, cellSpan } from "../lib/layout";
 
-const ctaClass = (style: string) =>
-  style === "primary"
-    ? "inline-flex items-center justify-center gap-2 bg-[#13b5ea] text-white font-semibold px-7 py-3.5 rounded-xl hover:bg-[#0e9fd2] transition-colors shadow-lg shadow-[#13b5ea]/30"
-    : "inline-flex items-center justify-center gap-2 bg-white text-slate-700 font-semibold px-7 py-3.5 rounded-xl border border-slate-200 hover:border-[#13b5ea] hover:text-[#13b5ea] transition-colors";
+const ctaClass = (style: string) => (style === "primary" ? "btn btn-primary" : "btn btn-line");
+
+// The hero shows one of the product panels when the page has no photo of its own.
+const heroFeature = hero.visual
+  ? (await getOrdered("features")).find((feature) => feature.data.visual === hero.visual)?.data
+  : undefined;
+const hasFigure = Boolean(hero.image || heroFeature);
+// Beside a figure the H1 has half the width, so it is set smaller, and
+// smaller again when the headline is a long one.
+const h1Size = hero.h1.length > 70 ? "lg:text-[2.75rem]" : "lg:text-[3.25rem]";
+
+/**
+ * Light sections alternate white and paper so no two neighbours share a
+ * background, whichever optional sections a page happens to have. The hero is
+ * paper, so each run starts on white; the ink "how it works" band, where there
+ * is one, splits the page into two runs.
+ */
+const present: Record<string, boolean> = {
+  challenges: Boolean(challenges),
+  what: Boolean(what),
+  benefits: Boolean(benefits),
+  audience: Boolean(audience),
+  integrations: Boolean(integrations),
+  related: Boolean(related),
+  faq: faqs.length > 0,
+};
+const beforeSteps = ["challenges", "what"].filter((key) => present[key]);
+const afterSteps = ["benefits", "audience", "integrations", "related", "faq"].filter(
+  (key) => present[key]
+);
+const runs = process ? [beforeSteps, afterSteps] : [[...beforeSteps, ...afterSteps]];
+const tinted = new Set(runs.flatMap((run) => run.filter((_, i) => i % 2 === 1)));
+const bg = (key: string) =>
+  `border-t border-rule ${tinted.has(key) ? "bg-paper grid-paper" : "bg-white"}`;
+
+const band = "wrap pt-20 pb-24 lg:pt-28 lg:pb-32";
 ---
 
 <BaseLayout
@@ -78,153 +112,129 @@ const ctaClass = (style: string) =>
   <TopBar />
   <Nav />
 
-  {/* Breadcrumb, matching the legal and sitemap pages. */}
-  <div class="bg-white border-b border-slate-100">
-    <div class="max-w-6xl mx-auto px-6 py-6">
-      <nav
-        aria-label="Breadcrumb"
-        class="flex items-center gap-2 text-xs font-medium text-slate-500 flex-wrap"
-      >
-        <a href="/" class="hover:text-[#13b5ea] flex items-center gap-1 transition-colors">
-          <Icon name="Home" size={12} /> Home
-        </a>
-        {
-          page.trail.map((crumb, i) => (
-            <>
-              <Icon name="ChevronRight" size={10} class="text-slate-400" />
-              {i === page.trail.length - 1 ? (
-                <span class="text-slate-800" aria-current="page">
-                  {crumb.name}
-                </span>
-              ) : crumb.item ? (
-                <a href={crumb.item} class="hover:text-[#13b5ea] transition-colors">
-                  {crumb.name}
-                </a>
-              ) : (
-                <span>{crumb.name}</span>
-              )}
-            </>
-          ))
-        }
-      </nav>
-    </div>
-  </div>
-
-  <main>
+  <main id="main">
     {/* ── Hero ─────────────────────────────────────────────────────────── */}
-    <section class="relative bg-white">
-      <div
-        class={`max-w-6xl mx-auto px-6 pt-16 pb-20 ${hero.image ? "grid lg:grid-cols-2 gap-14 items-center" : "max-w-4xl text-center"}`}
-      >
-        <div>
-          <div
-            class="anim anim-up inline-flex items-center gap-2 bg-[#13b5ea]/10 text-[#13b5ea] text-xs font-bold px-4 py-2 rounded-full mb-7 uppercase tracking-widest"
-            style="--anim-delay: 0.1s"
-          >
-            <Icon name="Sparkles" size={12} />
-            {hero.badge}
-          </div>
+    <section class="bg-paper grid-paper overflow-x-clip border-b border-rule">
+      <div class="wrap pt-8 pb-16 lg:pb-24">
+        <Breadcrumb trail={page.trail} class="mb-10 lg:mb-14" />
 
-          <h1
-            class="anim anim-up text-4xl sm:text-5xl font-bold text-gray-900 leading-[1.1] tracking-tight mb-6"
-            style="--anim-delay: 0.2s"
-          >
-            {hero.h1}
-          </h1>
+        <div
+          class={hasFigure
+            ? "grid grid-cols-1 gap-x-12 gap-y-14 lg:grid-cols-12 lg:items-center"
+            : ""}
+        >
+          <div class={hasFigure ? "lg:col-span-6" : "max-w-4xl"}>
+            <p class="anim anim-up label mb-6">{hero.badge}</p>
 
-          <p
-            class={`anim anim-up text-lg text-gray-600 leading-relaxed mb-9 ${hero.image ? "" : "max-w-2xl mx-auto"}`}
-            style="--anim-delay: 0.3s"
-          >
-            {hero.intro}
-          </p>
+            <h1
+              class:list={["anim anim-up display-sm", hasFigure && h1Size]}
+              style="--anim-delay: 0.08s"
+            >
+              {hero.h1}
+            </h1>
 
-          <div
-            class={`anim anim-up flex flex-col sm:flex-row gap-3 ${hero.image ? "" : "justify-center"}`}
-            style="--anim-delay: 0.4s"
-          >
+            <p class="anim anim-up lede mt-6 max-w-[58ch]" style="--anim-delay: 0.16s">
+              {hero.intro}
+            </p>
+
+            <div
+              class="anim anim-up flex flex-col sm:flex-row gap-3 mt-9"
+              style="--anim-delay: 0.24s"
+            >
+              {
+                hero.ctas.map((cta) => (
+                  <a
+                    href={cta.href}
+                    class={ctaClass(cta.style)}
+                    data-event="cta_click"
+                    data-event-label={cta.event}
+                  >
+                    {cta.label}
+                    {cta.style === "primary" && <Icon name="ArrowRight" size={16} class="arrow" />}
+                  </a>
+                ))
+              }
+            </div>
+
             {
-              hero.ctas.map((cta) => (
-                <a
-                  href={cta.href}
-                  class={ctaClass(cta.style)}
-                  data-event="cta_click"
-                  data-event-label={cta.event}
+              hero.trustPoints.length > 0 && (
+                <ul
+                  class="anim anim-fade flex flex-wrap gap-x-5 gap-y-2 mt-7 text-sm text-mute"
+                  style="--anim-delay: 0.4s"
                 >
-                  {cta.label}
-                  {cta.style === "primary" && <Icon name="ArrowRight" size={18} />}
-                </a>
-              ))
+                  {hero.trustPoints.map((point) => (
+                    <li class="flex items-center gap-2">
+                      <span aria-hidden="true" class="size-1.5 bg-brand" />
+                      {point}
+                    </li>
+                  ))}
+                </ul>
+              )
             }
           </div>
 
           {
-            hero.trustPoints.length > 0 && (
-              <div
-                class={`anim anim-fade flex flex-wrap items-center gap-x-6 gap-y-2 mt-9 text-sm text-gray-500 ${hero.image ? "" : "justify-center"}`}
-                style="--anim-delay: 0.6s"
+            hero.image ? (
+              <figure
+                class="anim anim-up relative lg:col-span-6 py-8 sm:py-10"
+                style="--anim-delay: 0.28s"
               >
-                {hero.trustPoints.map((point) => (
-                  <span class="flex items-center gap-1.5">
-                    <Icon name="Check" size={14} class="text-[#13b5ea]" />
-                    {point}
-                  </span>
-                ))}
-              </div>
-            )
+                <div
+                  aria-hidden="true"
+                  class="absolute inset-y-0 left-8 sm:left-16 -right-[50vw] bg-brand rounded-l-md"
+                />
+                <img
+                  src={hero.image.src}
+                  alt={hero.image.alt}
+                  width="1204"
+                  height="678"
+                  fetchpriority="high"
+                  decoding="async"
+                  class="sheet relative w-full h-auto shadow-[0_30px_60px_-30px_rgb(11_18_32/0.55)]"
+                />
+              </figure>
+            ) : heroFeature ? (
+              <FeatureFigure
+                feature={heroFeature}
+                note={page.tagline}
+                class="anim anim-up lg:col-span-6"
+              />
+            ) : null
           }
         </div>
-
-        {
-          hero.image && (
-            <div class="anim anim-right" style="--anim-delay: 0.35s">
-              <img
-                src={hero.image.src}
-                alt={hero.image.alt}
-                width="1204"
-                height="678"
-                fetchpriority="high"
-                decoding="async"
-                class="w-full h-auto rounded-2xl border border-slate-100 shadow-xl shadow-slate-900/5"
-              />
-            </div>
-          )
-        }
       </div>
     </section>
 
     {/* ── Challenges ───────────────────────────────────────────────────── */}
     {
-      challenges && (
-        <section class="bg-slate-50 border-y border-slate-100 py-24">
-          <div class="max-w-6xl mx-auto px-6 grid lg:grid-cols-2 gap-14 items-center">
-            <div class="anim anim-up">
-              <p class={sectionEyebrow}>{challenges.eyebrow}</p>
-              <h2 class={`${sectionHeading} mb-4`}>{challenges.heading}</h2>
-              {challenges.subheading && (
-                <p class="text-slate-500 text-base leading-relaxed mb-8">
-                  {challenges.subheading}
-                </p>
-              )}
-              <ul class="space-y-3">
-                {challenges.items.map((item, i) => (
-                  <li
-                    class="anim anim-up flex items-start gap-3 bg-white border border-slate-100 rounded-xl px-5 py-4 shadow-sm"
-                    style={`--anim-delay: ${(i * 0.08).toFixed(2)}s`}
-                  >
-                    <span class="w-8 h-8 rounded-lg bg-[#13b5ea]/10 flex items-center justify-center shrink-0">
-                      <Icon name={item.icon as IconName} size={15} class="text-[#13b5ea]" />
-                    </span>
-                    <span class="text-slate-700 text-sm sm:text-base font-medium leading-relaxed">
-                      {item.title}
-                    </span>
-                  </li>
-                ))}
-              </ul>
-            </div>
+      challenges &&
+        (challenges.image ? (
+          <section class={bg("challenges")}>
+            <div class={`${band} grid grid-cols-1 gap-x-12 gap-y-12 lg:grid-cols-12 lg:items-center`}>
+              <div class="lg:col-span-6">
+                <div class="anim anim-up">
+                  <p class="label mb-5">{challenges.eyebrow}</p>
+                  <h2 class="h-section">{challenges.heading}</h2>
+                  {challenges.subheading && (
+                    <p class="lede mt-4 max-w-[52ch]">{challenges.subheading}</p>
+                  )}
+                </div>
+                <ul class="anim anim-up cells mt-9">
+                  {challenges.items.map((item) => (
+                    <li class="flex items-start gap-4 p-5">
+                      <Icon
+                        name={item.icon as IconName}
+                        size={20}
+                        strokeWidth={1.5}
+                        class="mt-0.5 text-ink"
+                      />
+                      <span class="font-medium leading-snug text-ink">{item.title}</span>
+                    </li>
+                  ))}
+                </ul>
+              </div>
 
-            {challenges.image && (
-              <div class="anim anim-right" style="--anim-delay: 0.2s">
+              <div class="anim anim-up lg:col-span-6" style="--anim-delay: 0.15s">
                 <img
                   src={challenges.image.src}
                   alt={challenges.image.alt}
@@ -232,8 +242,65 @@ const ctaClass = (style: string) =>
                   height="802"
                   loading="lazy"
                   decoding="async"
-                  class="w-full h-auto rounded-2xl border border-slate-100 shadow-lg shadow-slate-900/5"
+                  class="sheet w-full h-auto"
                 />
+              </div>
+            </div>
+          </section>
+        ) : (
+          <section class={bg("challenges")}>
+            <div class={band}>
+              <SectionHead
+                label={challenges.eyebrow}
+                heading={challenges.heading!}
+                sub={challenges.subheading}
+              />
+              <ul class={`anim anim-up cells ${cellGrid(challenges.items.length)}`}>
+                {challenges.items.map((item, i) => (
+                  <li class={`flex flex-col gap-6 p-6 sm:p-7 ${cellSpan(i, challenges.items.length)}`}>
+                    <Icon name={item.icon as IconName} size={22} strokeWidth={1.5} class="text-ink" />
+                    <span class="text-[1.0625rem] font-medium leading-snug text-ink">
+                      {item.title}
+                    </span>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          </section>
+        ))
+    }
+
+    {/* ── What it does ─────────────────────────────────────────────────── */}
+    {
+      what && (
+        <section id="what-it-does" class={bg("what")}>
+          <div class={band}>
+            <div class="anim anim-up grid grid-cols-1 gap-x-12 gap-y-6 lg:grid-cols-12">
+              <div class="lg:col-span-5">
+                <p class="label mb-5">{what.eyebrow}</p>
+                <h2 class="h-section">{what.heading}</h2>
+              </div>
+              <div class="lg:col-span-7 lg:pt-11 space-y-5">
+                {what.body.map((paragraph) => (
+                  <p class="lede max-w-[62ch]">{paragraph}</p>
+                ))}
+              </div>
+            </div>
+
+            {what.highlights.length > 0 && (
+              <div class={`anim anim-up cells mt-12 lg:mt-16 ${cellGrid(what.highlights.length)}`}>
+                {what.highlights.map((item, i) => (
+                  <div class={`p-6 sm:p-7 ${cellSpan(i, what.highlights.length)}`}>
+                    <Icon
+                      name={item.icon as IconName}
+                      size={22}
+                      strokeWidth={1.5}
+                      class="text-ink mb-6"
+                    />
+                    <h3 class="h-row mb-2">{item.title}</h3>
+                    <p class="text-mute leading-relaxed">{item.description}</p>
+                  </div>
+                ))}
               </div>
             )}
           </div>
@@ -241,107 +308,45 @@ const ctaClass = (style: string) =>
       )
     }
 
-    {/* ── What it does ─────────────────────────────────────────────────── */}
-    {
-      what && (
-        <section id="what-it-does" class="py-24 max-w-6xl mx-auto px-6">
-          <div class="anim anim-up max-w-3xl mb-12">
-            <p class={sectionEyebrow}>{what.eyebrow}</p>
-            <h2 class={`${sectionHeading} mb-5`}>{what.heading}</h2>
-            {what.body.map((paragraph) => (
-              <p class="text-slate-500 text-base sm:text-lg leading-relaxed mt-4">{paragraph}</p>
-            ))}
-          </div>
-
-          {what.highlights.length > 0 && (
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-              {what.highlights.map((item, i) => (
-                <div
-                  class={`anim anim-up group ${card}`}
-                  style={`--anim-delay: ${(i * 0.1).toFixed(2)}s`}
-                >
-                  <div class="w-11 h-11 rounded-xl bg-[#13b5ea]/10 flex items-center justify-center mb-5 group-hover:bg-[#13b5ea] transition-colors">
-                    <Icon
-                      name={item.icon as IconName}
-                      size={20}
-                      class="text-[#13b5ea] group-hover:text-white transition-colors"
-                    />
-                  </div>
-                  <h3 class="font-bold text-slate-900 text-base mb-2">{item.title}</h3>
-                  <p class="text-slate-400 text-sm leading-relaxed">{item.description}</p>
-                </div>
-              ))}
-            </div>
-          )}
-        </section>
-      )
-    }
-
     {/* ── How it works ─────────────────────────────────────────────────── */}
     {
       process && (
-        <section id="how-it-works" class="bg-slate-50 border-y border-slate-100 py-24">
-          <div class="max-w-6xl mx-auto px-6">
-            <div class="anim anim-up text-center mb-14">
-              <p class={sectionEyebrow}>{process.eyebrow}</p>
-              <h2 class={sectionHeading}>{process.heading}</h2>
-              {process.subheading && (
-                <p class="text-slate-400 mt-3 text-base max-w-lg mx-auto">{process.subheading}</p>
-              )}
-            </div>
-
-            <ol class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {process.items.map((step, i) => (
-                <li
-                  class={`anim anim-up group relative ${card}`}
-                  style={`--anim-delay: ${(i * 0.1).toFixed(2)}s`}
-                >
-                  <div class="flex items-start justify-between mb-5">
-                    <div class="w-11 h-11 rounded-xl bg-[#13b5ea]/10 flex items-center justify-center group-hover:bg-[#13b5ea] transition-colors">
-                      <Icon
-                        name={step.icon as IconName}
-                        size={20}
-                        class="text-[#13b5ea] group-hover:text-white transition-colors"
-                      />
-                    </div>
-                    <span class="text-4xl font-extrabold text-[#13b5ea] select-none font-mono">
-                      {String(i + 1).padStart(2, "0")}
-                    </span>
-                  </div>
-                  <h3 class="font-bold text-slate-900 text-base mb-2">{step.title}</h3>
-                  <p class="text-slate-400 text-sm leading-relaxed">{step.description}</p>
-                </li>
-              ))}
-            </ol>
-          </div>
-        </section>
+        <Steps
+          id="how-it-works"
+          label={process.eyebrow}
+          heading={process.heading!}
+          sub={process.subheading}
+          items={process.items}
+        />
       )
     }
 
     {/* ── Benefits ─────────────────────────────────────────────────────── */}
     {
       benefits && (
-        <section id="benefits" class="py-24 max-w-6xl mx-auto px-6">
-          <div class="anim anim-up text-center mb-14">
-            <p class={sectionEyebrow}>{benefits.eyebrow}</p>
-            <h2 class={sectionHeading}>{benefits.heading}</h2>
-          </div>
+        <section id="benefits" class={bg("benefits")}>
+          <div class={band}>
+            <SectionHead label={benefits.eyebrow} heading={benefits.heading!} />
 
-          <ul class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
-            {benefits.items.map((item, i) => (
-              <li
-                class={`anim anim-up flex items-start gap-4 ${card}`}
-                style={`--anim-delay: ${(i * 0.08).toFixed(2)}s`}
-              >
-                <span class="w-10 h-10 rounded-xl bg-[#13b5ea]/10 flex items-center justify-center shrink-0">
-                  <Icon name={item.icon as IconName} size={18} class="text-[#13b5ea]" />
-                </span>
-                <span class="text-slate-700 text-sm sm:text-base font-medium leading-relaxed pt-1.5">
-                  {item.text}
-                </span>
-              </li>
-            ))}
-          </ul>
+            <ul class={`anim anim-up cells ${cellGrid(benefits.items.length)}`}>
+              {benefits.items.map((item, i) => (
+                <li class={`flex flex-col gap-8 p-6 sm:p-7 ${cellSpan(i, benefits.items.length)}`}>
+                  <div class="flex items-center justify-between">
+                    <span class="fig text-xs text-brand-dark">
+                      {String(i + 1).padStart(2, "0")}
+                    </span>
+                    <Icon
+                      name={item.icon as IconName}
+                      size={20}
+                      strokeWidth={1.5}
+                      class="text-mute"
+                    />
+                  </div>
+                  <span class="h-row">{item.text}</span>
+                </li>
+              ))}
+            </ul>
+          </div>
         </section>
       )
     }
@@ -349,27 +354,26 @@ const ctaClass = (style: string) =>
     {/* ── Who it's for ─────────────────────────────────────────────────── */}
     {
       audience && (
-        <section id="who-its-for" class="bg-slate-50 border-y border-slate-100 py-24">
-          <div class="max-w-6xl mx-auto px-6">
-            <div class="anim anim-up text-center mb-14">
-              <p class={sectionEyebrow}>{audience.eyebrow}</p>
-              <h2 class={sectionHeading}>{audience.heading}</h2>
-            </div>
+        <section id="who-its-for" class={bg("audience")}>
+          <div class={`${band} grid grid-cols-1 gap-x-12 gap-y-10 lg:grid-cols-12`}>
+            <header class="anim anim-up lg:col-span-5 lg:sticky lg:top-36 lg:self-start">
+              <p class="label mb-5">{audience.eyebrow}</p>
+              <h2 class="h-section">{audience.heading}</h2>
+            </header>
 
-            <ul
-              class={`grid grid-cols-1 gap-5 ${audience.items.length % 3 === 0 ? "md:grid-cols-3" : "md:grid-cols-2"}`}
-            >
+            <ul class="anim anim-up cells lg:col-span-7" style="--anim-delay: 0.1s">
               {audience.items.map((item, i) => (
-                <li
-                  class={`anim anim-up flex items-start gap-4 ${card}`}
-                  style={`--anim-delay: ${(i * 0.08).toFixed(2)}s`}
-                >
-                  <span class="w-10 h-10 rounded-xl bg-[#13b5ea]/10 flex items-center justify-center shrink-0">
-                    <Icon name={item.icon as IconName} size={18} class="text-[#13b5ea]" />
+                <li class="flex items-start gap-5 p-5 sm:p-6">
+                  <span class="fig text-[0.8125rem] text-brand-dark w-6 shrink-0 pt-0.5">
+                    {String(i + 1).padStart(2, "0")}
                   </span>
-                  <span class="text-slate-700 text-sm sm:text-base font-medium leading-relaxed pt-1.5">
-                    {item.text}
-                  </span>
+                  <span class="flex-1 text-[1.0625rem] leading-snug text-ink">{item.text}</span>
+                  <Icon
+                    name={item.icon as IconName}
+                    size={18}
+                    strokeWidth={1.5}
+                    class="mt-0.5 text-mute"
+                  />
                 </li>
               ))}
             </ul>
@@ -381,33 +385,29 @@ const ctaClass = (style: string) =>
     {/* ── Integrations ─────────────────────────────────────────────────── */}
     {
       integrations && (
-        <section id="integrations" class="py-24 max-w-6xl mx-auto px-6">
-          <div class="anim anim-up text-center mb-14 max-w-2xl mx-auto">
-            <p class={sectionEyebrow}>{integrations.eyebrow}</p>
-            <h2 class={sectionHeading}>{integrations.heading}</h2>
-            {integrations.body && (
-              <p class="text-slate-400 mt-4 text-base leading-relaxed">{integrations.body}</p>
-            )}
-          </div>
+        <section id="integrations" class={bg("integrations")}>
+          <div class={band}>
+            <SectionHead
+              label={integrations.eyebrow}
+              heading={integrations.heading!}
+              sub={integrations.body}
+            />
 
-          <div
-            class={`grid grid-cols-1 gap-6 ${integrations.groups.length > 1 ? "md:grid-cols-2" : "max-w-xl mx-auto"}`}
-          >
-            {integrations.groups.map((group, i) => (
-              <div class={`anim anim-up ${card}`} style={`--anim-delay: ${(i * 0.1).toFixed(2)}s`}>
-                <h3 class="flex items-center gap-2 font-bold text-slate-900 text-base mb-5">
-                  <Icon name={group.icon as IconName} size={16} class="text-[#13b5ea]" />
-                  {group.title}
-                </h3>
-                <ul class="flex flex-wrap gap-2">
-                  {group.items.map((name) => (
-                    <li class="text-xs font-semibold text-slate-600 bg-slate-50 border border-slate-100 rounded-lg px-3 py-2">
-                      {name}
-                    </li>
-                  ))}
-                </ul>
-              </div>
-            ))}
+            <dl class={`anim anim-up cells ${cellGrid(integrations.groups.length)}`}>
+              {integrations.groups.map((group) => (
+                <div class="p-6 sm:p-7">
+                  <dt class="flex items-center gap-2.5 h-row mb-5">
+                    <Icon name={group.icon as IconName} size={19} strokeWidth={1.5} />
+                    {group.title}
+                  </dt>
+                  <dd class="flex flex-wrap gap-1.5">
+                    {group.items.map((name) => (
+                      <span class="tag bg-paper">{name}</span>
+                    ))}
+                  </dd>
+                </div>
+              ))}
+            </dl>
           </div>
         </section>
       )
@@ -416,33 +416,25 @@ const ctaClass = (style: string) =>
     {/* ── Related pages ────────────────────────────────────────────────── */}
     {
       related && (
-        <section class="bg-slate-50 border-y border-slate-100 py-24">
-          <div class="max-w-6xl mx-auto px-6">
-            <div class="anim anim-up text-center mb-14">
-              <p class={sectionEyebrow}>{related.eyebrow}</p>
-              <h2 class={sectionHeading}>{related.heading}</h2>
-            </div>
+        <section class={bg("related")}>
+          <div class={band}>
+            <SectionHead label={related.eyebrow} heading={related.heading!} />
 
-            <div
-              class={`grid grid-cols-1 gap-6 ${related.items.length > 2 ? "md:grid-cols-3" : "md:grid-cols-2"}`}
-            >
+            <div class={`anim anim-up cells ${cellGrid(related.items.length)}`}>
               {related.items.map((item, i) => (
                 <a
                   href={item.href}
-                  class={`anim anim-up group flex flex-col ${card}`}
-                  style={`--anim-delay: ${(i * 0.1).toFixed(2)}s`}
+                  class={`group flex flex-col p-6 sm:p-7 transition-colors hover:bg-paper ${cellSpan(i, related.items.length)}`}
                 >
-                  <h3 class="font-bold text-slate-900 text-base mb-2 group-hover:text-[#13b5ea] transition-colors first-letter:uppercase">
+                  <h3 class="h-row first-letter:uppercase group-hover:underline decoration-brand decoration-2 underline-offset-4">
                     {item.label}
                   </h3>
-                  <p class="text-slate-400 text-sm leading-relaxed mb-4">{item.description}</p>
-                  <span class="mt-auto inline-flex items-center gap-1.5 text-sm font-semibold text-[#13b5ea]">
+                  <p class="text-mute leading-relaxed mt-2.5 mb-8">{item.description}</p>
+                  <span class="mt-auto flex items-center justify-between text-sm font-medium text-ink">
                     Read more
-                    <Icon
-                      name="ArrowRight"
-                      size={15}
-                      class="group-hover:translate-x-0.5 transition-transform"
-                    />
+                    <span class="grid place-items-center size-9 rounded-md bg-ink text-white transition-colors group-hover:bg-brand group-hover:text-ink">
+                      <Icon name="ArrowRight" size={16} />
+                    </span>
                   </span>
                 </a>
               ))}
@@ -452,68 +444,43 @@ const ctaClass = (style: string) =>
       )
     }
 
-    {/* ── FAQs. <details> so every answer is in the HTML, quotable without JS. */}
+    {/* ── FAQs ─────────────────────────────────────────────────────────── */}
     {
       faqs.length > 0 && (
-        <section id="faq" class="py-24 max-w-6xl mx-auto px-6">
-          <div class="anim anim-up text-center mb-14">
-            <p class={sectionEyebrow}>FAQs</p>
-            <h2 class={sectionHeading}>Questions about {page.shortTitle}</h2>
-          </div>
-
-          <div class="space-y-4 max-w-3xl mx-auto">
-            {faqs.map((faq, i) => (
-              <details
-                name="solution-faq"
-                class="anim anim-up group bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden transition-all hover:border-slate-300"
-                style={`--anim-delay: ${(i * 0.06).toFixed(2)}s`}
-              >
-                <summary class="w-full px-6 py-4.5 flex items-center justify-between text-left font-bold text-slate-800 text-base sm:text-lg hover:text-[#13b5ea] transition-colors cursor-pointer list-none [&::-webkit-details-marker]:hidden">
-                  <span>{faq.question}</span>
-                  <span class="text-slate-400 shrink-0 ml-4 transition-transform duration-200 group-open:rotate-180">
-                    <Icon name="ChevronDown" size={18} />
-                  </span>
-                </summary>
-                <div class="px-6 pb-5 pt-1 text-slate-500 text-sm sm:text-base leading-relaxed border-t border-slate-100/50">
-                  {faq.answer}
-                </div>
-              </details>
-            ))}
-          </div>
-        </section>
+        <FaqBlock
+          heading={`Questions about ${page.shortTitle}`}
+          items={faqs}
+          name="solution-faq"
+          tinted={tinted.has("faq")}
+        />
       )
     }
 
-    {/* ── Closing band ─────────────────────────────────────────────────── */}
+    {/* ── Closing band: solid brand, ink type ──────────────────────────── */}
     {
       closing && (
-        <section class="bg-slate-900 py-20">
-          <div class="max-w-3xl mx-auto px-6 text-center">
-            <p class="anim anim-up text-[11px] font-bold uppercase tracking-[0.15em] text-[#13b5ea] mb-3">
-              {closing.eyebrow}
-            </p>
-            <h2 class="anim anim-up text-[2rem] sm:text-[2.4rem] font-extrabold text-white tracking-tight mb-4">
-              {closing.heading}
-            </h2>
-            {closing.body && (
-              <p class="anim anim-up text-slate-300 text-base sm:text-lg leading-relaxed mb-9">
-                {closing.body}
+        <section class="bg-brand text-ink">
+          <div class="wrap py-16 lg:py-20 grid grid-cols-1 gap-x-12 gap-y-8 lg:grid-cols-12 lg:items-end">
+            <div class="anim anim-up lg:col-span-8">
+              <p class="flex items-center gap-2.5 text-sm font-medium mb-5">
+                <span aria-hidden="true" class="w-5 h-0.5 bg-ink" />
+                {closing.eyebrow}
               </p>
-            )}
-            <div class="anim anim-up flex flex-col sm:flex-row gap-3 justify-center">
+              <h2 class="h-section max-w-[20ch]">{closing.heading}</h2>
+              {closing.body && (
+                <p class="mt-4 text-lg leading-relaxed text-ink/80 max-w-[56ch]">{closing.body}</p>
+              )}
+            </div>
+            <div class="anim anim-up lg:col-span-4 flex flex-col sm:flex-row lg:flex-col xl:flex-row gap-3 lg:justify-self-end">
               {closing.ctas.map((cta) => (
                 <a
                   href={cta.href}
-                  class={
-                    cta.style === "primary"
-                      ? ctaClass("primary")
-                      : "inline-flex items-center justify-center gap-2 bg-transparent text-white font-semibold px-7 py-3.5 rounded-xl border border-white/25 hover:border-[#13b5ea] hover:text-[#13b5ea] transition-colors"
-                  }
+                  class={cta.style === "primary" ? "btn btn-ink" : "btn btn-line border-ink/40"}
                   data-event="cta_click"
                   data-event-label={cta.event}
                 >
                   {cta.label}
-                  {cta.style === "primary" && <Icon name="ArrowRight" size={18} />}
+                  {cta.style === "primary" && <Icon name="ArrowRight" size={16} class="arrow" />}
                 </a>
               ))}
             </div>

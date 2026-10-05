@@ -6,6 +6,8 @@ import TopBar from "../../components/TopBar.astro";
 import Nav from "../../components/Nav.astro";
 import Footer from "../../components/Footer.astro";
 import Icon from "../../components/Icon.astro";
+import PageHead from "../../components/PageHead.astro";
+import Toc from "../../components/Toc.astro";
 import { formatDate, getPosts, getSection, getSite } from "../../lib/content";
 import { blogPosting, breadcrumbs } from "../../lib/schema";
 
@@ -19,15 +21,21 @@ const cta = await getSection("blog-post-cta");
 const { entry } = Astro.props;
 const post = entry.data;
 
-// Markdown is compiled to HTML here, at build time — the React app parsed it in
-// the browser on every visit, so crawlers saw an empty article element.
-const { Content } = await render(entry);
+// Markdown is compiled to HTML here, at build time, so crawlers receive the
+// full article rather than an empty element. `headings` feeds the contents
+// list: Astro gives every markdown heading an id to link to.
+const { Content, headings } = await render(entry);
+const toc = headings.filter((heading) => heading.depth === 2);
 
 const posts = await getPosts();
 const index = posts.findIndex((p) => p.id === entry.id);
 const prevPost = index > 0 ? posts[index - 1] : null;
 const nextPost = index < posts.length - 1 ? posts[index + 1] : null;
 const relatedPosts = posts.filter((p) => post.related.includes(p.id));
+const neighbours = [
+  prevPost && { post: prevPost, next: false },
+  nextPost && { post: nextPost, next: true },
+].filter((n): n is { post: (typeof posts)[number]; next: boolean } => Boolean(n));
 
 const jsonLd = [
   blogPosting(brand, post, entry.id),
@@ -52,157 +60,196 @@ const jsonLd = [
   <TopBar />
   <Nav />
 
-  <div class="bg-slate-50 border-b border-slate-100">
-    <div class="max-w-4xl mx-auto px-6 py-6">
-      <nav aria-label="Breadcrumb" class="flex items-center gap-2 text-xs font-medium text-slate-500">
-        <a href="/" class="hover:text-[#13b5ea] flex items-center gap-1 transition-colors">
-          <Icon name="Home" size={12} /> Home
-        </a>
-        <Icon name="ChevronRight" size={10} class="text-slate-400" />
-        <a href="/blogs" class="hover:text-[#13b5ea] transition-colors">Blogs</a>
-        <Icon name="ChevronRight" size={10} class="text-slate-400" />
-        <span class="text-slate-800 line-clamp-1" aria-current="page">{post.title}</span>
-      </nav>
-    </div>
-  </div>
+  <main id="main">
+    <article>
+      <PageHead
+        trail={[{ name: "Blogs", item: "/blogs" }, { name: post.title }]}
+        label={post.category}
+      >
+        <Fragment slot="title">{post.title}</Fragment>
 
-  <main>
-    <article class="max-w-4xl mx-auto px-6 pt-12 pb-20">
-      <header class="mb-10 text-left">
-        <span
-          class="bg-[#13b5ea]/10 text-[#13b5ea] text-xs font-bold px-4 py-1.5 rounded-full uppercase tracking-wider inline-block mb-5"
+        <p
+          slot="meta"
+          class="anim anim-up flex flex-wrap items-center gap-x-3 gap-y-1 mt-7 text-sm text-mute"
+          style="--anim-delay: 0.16s"
         >
-          {post.category}
-        </span>
-        <h1
-          class="text-3xl sm:text-4xl lg:text-5xl font-extrabold text-slate-900 leading-tight tracking-tight mb-6"
-        >
-          {post.title}
-        </h1>
+          <span class="max-sm:w-full font-medium text-ink">{post.author}</span>
+          <span aria-hidden="true" class="max-sm:hidden text-rule">/</span>
+          <time class="fig" datetime={post.date}>{formatDate(post.date)}</time>
+          <span aria-hidden="true" class="text-rule">/</span>
+          <span class="fig">{post.readingTime}</span>
+        </p>
 
+        {/* The cover hangs off the bottom of the header band. */}
         <div
-          class="flex flex-wrap items-center gap-y-3 gap-x-6 text-slate-500 text-sm border-y border-slate-100 py-4"
+          slot="bleed"
+          class="anim anim-up aspect-[16/9] sm:aspect-[21/9] rounded-md overflow-hidden bg-white border border-rule shadow-[0_30px_60px_-30px_rgb(11_18_32/0.45)]"
+          style="--anim-delay: 0.24s"
         >
-          <div class="flex items-center gap-2">
-            <span class="w-8 h-8 rounded-full bg-slate-200 flex items-center justify-center text-slate-600">
-              <Icon name="User" size={14} />
-            </span>
-            <span class="font-semibold text-slate-700">{post.author}</span>
-          </div>
-          <div class="flex items-center gap-1.5">
-            <Icon name="Calendar" size={14} />
-            <time datetime={post.date}>{formatDate(post.date)}</time>
-          </div>
-          <div class="flex items-center gap-1.5">
-            <Icon name="Clock" size={14} />
-            <span>{post.readingTime} reading time</span>
+          <img
+            src={post.coverImage}
+            alt={post.title}
+            width="1200"
+            height="514"
+            decoding="async"
+            class="w-full h-full object-cover"
+          />
+        </div>
+      </PageHead>
+
+      {/* The top padding clears the part of the cover that overhangs the band. */}
+      <div class="wrap pt-32 pb-20 lg:pt-44 lg:pb-28">
+        <div class="grid grid-cols-1 gap-x-12 lg:grid-cols-12">
+          {/* Contents: a sticky rail on wide screens. */}
+          <aside
+            class="hidden lg:block lg:col-span-3 lg:sticky lg:top-32 lg:self-start lg:max-h-[calc(100dvh-9rem)] lg:overflow-y-auto lg:pr-2"
+          >
+            {
+              toc.length > 1 && (
+                <nav aria-label="In this article">
+                  <p class="label mb-4">In this article</p>
+                  <Toc headings={toc} />
+                </nav>
+              )
+            }
+            <a
+              href="/blogs"
+              class="group inline-flex items-center gap-2 mt-8 text-sm font-medium text-ink"
+            >
+              <Icon
+                name="ArrowLeft"
+                size={14}
+                class="transition-transform duration-300 group-hover:-translate-x-1"
+              />
+              <span class="group-hover:underline decoration-brand decoration-2 underline-offset-4">
+                All articles
+              </span>
+            </a>
+          </aside>
+
+          <div class="min-w-0 lg:col-span-8 lg:col-start-5">
+            {/* Contents: a collapsed box above the text on small screens. */}
+            {
+              toc.length > 1 && (
+                <details class="group lg:hidden mb-10 rounded-md border border-rule bg-paper">
+                  <summary class="flex items-center justify-between gap-4 px-4 py-3.5 cursor-pointer list-none [&::-webkit-details-marker]:hidden font-medium text-ink">
+                    In this article
+                    <Icon
+                      name="ChevronDown"
+                      size={16}
+                      class="transition-transform duration-200 group-open:rotate-180"
+                    />
+                  </summary>
+                  <nav aria-label="In this article" class="px-4 pb-4">
+                    <Toc headings={toc} />
+                  </nav>
+                </details>
+              )
+            }
+
+            <div class="prose-content select-text [&>*:first-child]:mt-0">
+              <Content />
+            </div>
           </div>
         </div>
-      </header>
 
-      {/* Featured image */}
-      <div
-        class="aspect-[21/9] rounded-3xl overflow-hidden mb-12 shadow-sm border border-slate-100 bg-slate-100"
-      >
-        <img
-          src={post.coverImage}
-          alt={post.title}
-          width="1200"
-          height="514"
-          decoding="async"
-          class="w-full h-full object-cover"
-        />
-      </div>
-
-      {/* Article body */}
-      <div class="prose-content max-w-none select-text">
-        <Content />
-      </div>
-
-      {/* Pagination */}
-      <nav
-        aria-label="More articles"
-        class="border-t border-slate-100 pt-10 mt-16 flex flex-col sm:flex-row items-center justify-between gap-6"
-      >
+        {/* Pagination: a first or last post has one neighbour, which then
+             takes the full width rather than leaving half the row empty. */}
         {
-          prevPost ? (
-            <a
-              href={`/blogs/${prevPost.id}`}
-              rel="prev"
-              class="w-full sm:w-1/2 p-5 rounded-2xl border border-slate-100 hover:border-[#13b5ea] hover:shadow-lg hover:shadow-slate-100 transition-all flex flex-col items-start gap-1 group"
+          neighbours.length > 0 && (
+            <nav
+              aria-label="More articles"
+              class:list={[
+                "grid grid-cols-1 border-y border-ink mt-16 lg:mt-24",
+                neighbours.length === 2 && "sm:grid-cols-2",
+              ]}
             >
-              <span class="text-[10px] font-bold uppercase tracking-wider text-slate-400 flex items-center gap-1">
-                <Icon name="ArrowLeft" size={10} /> Previous Article
-              </span>
-              <span class="text-slate-800 font-bold text-sm sm:text-base leading-snug group-hover:text-[#13b5ea] transition-colors line-clamp-1">
-                {prevPost.data.title}
-              </span>
-            </a>
-          ) : (
-            <div class="hidden sm:block sm:w-1/2" />
+              {neighbours.map(({ post: other, next }, i) => (
+                <a
+                  href={`/blogs/${other.id}`}
+                  rel={next ? "next" : "prev"}
+                  class:list={[
+                    "group py-6 border-ink",
+                    next && "sm:text-right",
+                    i === 1 && "border-t sm:border-t-0 sm:border-l sm:pl-8",
+                    i === 0 && neighbours.length === 2 && "sm:pr-8",
+                  ]}
+                >
+                  <span
+                    class:list={[
+                      "flex items-center gap-2 text-sm text-mute mb-2",
+                      next && "sm:justify-end",
+                    ]}
+                  >
+                    {!next && (
+                      <Icon
+                        name="ArrowLeft"
+                        size={14}
+                        class="transition-transform duration-300 group-hover:-translate-x-1"
+                      />
+                    )}
+                    {next ? "Next article" : "Previous article"}
+                    {next && (
+                      <Icon
+                        name="ArrowRight"
+                        size={14}
+                        class="transition-transform duration-300 group-hover:translate-x-1"
+                      />
+                    )}
+                  </span>
+                  <span class="h-row text-2xl line-clamp-2 group-hover:underline decoration-brand decoration-2 underline-offset-4">
+                    {other.data.title}
+                  </span>
+                </a>
+              ))}
+            </nav>
           )
         }
-
-        {
-          nextPost ? (
-            <a
-              href={`/blogs/${nextPost.id}`}
-              rel="next"
-              class="w-full sm:w-1/2 p-5 rounded-2xl border border-slate-100 hover:border-[#13b5ea] hover:shadow-lg hover:shadow-slate-100 transition-all flex flex-col items-end gap-1 group text-right"
-            >
-              <span class="text-[10px] font-bold uppercase tracking-wider text-slate-400 flex items-center gap-1">
-                Next Article <Icon name="ArrowRight" size={10} />
-              </span>
-              <span class="text-slate-800 font-bold text-sm sm:text-base leading-snug group-hover:text-[#13b5ea] transition-colors line-clamp-1">
-                {nextPost.data.title}
-              </span>
-            </a>
-          ) : (
-            <div class="hidden sm:block sm:w-1/2" />
-          )
-        }
-      </nav>
+      </div>
     </article>
 
     {/* Related */}
     {
       relatedPosts.length > 0 && (
-        <section class="bg-slate-50 border-t border-slate-100 py-16">
-          <div class="max-w-4xl mx-auto px-6">
-            <h2 class="text-2xl font-bold text-slate-900 mb-8 tracking-tight">Related Articles</h2>
+        <section class="bg-paper grid-paper border-t border-rule">
+          <div class="wrap pt-16 pb-20 lg:pt-20 lg:pb-24">
+            <h2 class="h-section mb-10">Related articles</h2>
 
-            <div class="grid grid-cols-1 sm:grid-cols-2 gap-8">
+            <div class="grid grid-cols-1 gap-5 md:grid-cols-2">
               {relatedPosts.map((related) => (
-                <article class="group flex flex-col bg-white rounded-2xl border border-slate-100 shadow-sm hover:shadow-md transition-all overflow-hidden">
+                <article class="sheet group flex flex-col overflow-hidden">
                   <a
                     href={`/blogs/${related.id}`}
-                    class="block aspect-[16/10] overflow-hidden bg-slate-100"
+                    tabindex="-1"
+                    aria-hidden="true"
+                    class="block aspect-[16/9] overflow-hidden bg-paper"
                   >
                     <img
                       src={related.data.coverImage}
-                      alt={related.data.title}
+                      alt=""
                       width="640"
-                      height="400"
+                      height="360"
                       loading="lazy"
                       decoding="async"
-                      class="w-full h-full object-cover group-hover:scale-103 transition-transform duration-300"
+                      class="w-full h-full object-cover transition-transform duration-700 ease-out group-hover:scale-[1.03]"
                     />
                   </a>
-                  <div class="p-5 flex-1 flex flex-col justify-between">
-                    <div>
-                      <span class="text-[10px] font-bold text-[#13b5ea] uppercase tracking-wider block mb-2">
-                        {related.data.category}
+                  <div class="flex flex-col grow p-6 sm:p-7">
+                    <p class="flex items-center gap-3 text-[0.8125rem] text-mute mb-3">
+                      <span class="font-medium text-ink">{related.data.category}</span>
+                      <span aria-hidden="true" class="text-rule">
+                        /
                       </span>
-                      <h3 class="text-slate-900 font-bold text-base leading-snug mb-3 group-hover:text-[#13b5ea] transition-colors line-clamp-2">
-                        <a href={`/blogs/${related.id}`}>{related.data.title}</a>
-                      </h3>
-                    </div>
-                    <a
-                      href={`/blogs/${related.id}`}
-                      class="inline-flex items-center gap-1 text-xs font-bold text-[#13b5ea] hover:text-[#0e9fd2] mt-2"
-                    >
-                      Read Article <Icon name="ArrowRight" size={12} />
-                    </a>
+                      <span class="fig">{related.data.readingTime}</span>
+                    </p>
+                    <h3 class="h-row text-2xl">
+                      <a
+                        href={`/blogs/${related.id}`}
+                        class="group-hover:underline decoration-brand decoration-2 underline-offset-4"
+                      >
+                        {related.data.title}
+                      </a>
+                    </h3>
                   </div>
                 </article>
               ))}
@@ -213,19 +260,18 @@ const jsonLd = [
     }
 
     {/* Booking CTA */}
-    <section class="bg-white border-t border-slate-100 py-16 text-center">
-      <div class="max-w-2xl mx-auto px-6">
-        <h2 class="text-2xl sm:text-3xl font-bold text-slate-900 mb-4 tracking-tight">
-          {cta.heading}
-        </h2>
-        <p class="text-slate-600 mb-8 text-sm sm:text-base leading-relaxed">{cta.subheading}</p>
-        <a
-          href={cta.ctas[0]?.href}
-          class="inline-flex items-center justify-center gap-2 bg-[#13b5ea] text-white font-semibold px-8 py-3.5 rounded-xl hover:bg-[#0e9fd2] transition-colors text-base shadow-lg shadow-[#13b5ea]/20"
-        >
-          {cta.ctas[0]?.label}
-          <Icon name="ArrowRight" size={18} />
-        </a>
+    <section class="bg-brand text-ink">
+      <div class="wrap py-16 lg:py-20 grid grid-cols-1 gap-x-12 gap-y-8 lg:grid-cols-12 lg:items-end">
+        <div class="lg:col-span-8">
+          <h2 class="h-section max-w-[20ch]">{cta.heading}</h2>
+          <p class="mt-4 text-lg leading-relaxed text-ink/80 max-w-[58ch]">{cta.subheading}</p>
+        </div>
+        <div class="lg:col-span-4 lg:justify-self-end">
+          <a href={cta.ctas[0]?.href} class="btn btn-ink">
+            {cta.ctas[0]?.label}
+            <Icon name="ArrowRight" size={16} class="arrow" />
+          </a>
+        </div>
       </div>
     </section>
   </main>

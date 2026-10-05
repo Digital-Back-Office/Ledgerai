@@ -1,0 +1,72 @@
+---
+/**
+ * "On this page" list for long articles and policies. Links jump to the
+ * heading ids Astro generates for markdown, and the script marks whichever
+ * section is currently being read.
+ */
+interface Props {
+  headings: { slug: string; text: string }[];
+  class?: string;
+}
+
+const { headings, class: className = "" } = Astro.props;
+---
+
+<ol data-toc class:list={["border-l border-rule text-sm", className]}>
+  {
+    headings.map((heading) => (
+      <li>
+        <a
+          href={`#${heading.slug}`}
+          class="block -ml-px border-l-2 border-transparent py-1.5 pl-4 leading-snug text-mute transition-colors hover:text-ink aria-[current=true]:border-brand aria-[current=true]:text-ink aria-[current=true]:font-medium"
+        >
+          {heading.text}
+        </a>
+      </li>
+    ))
+  }
+</ol>
+
+<script>
+  for (const toc of document.querySelectorAll<HTMLElement>("[data-toc]")) {
+    const links = new Map<string, HTMLAnchorElement>();
+    toc.querySelectorAll<HTMLAnchorElement>("a[href^='#']").forEach((link) => {
+      links.set(decodeURIComponent(link.hash.slice(1)), link);
+    });
+
+    const targets = [...links.keys()]
+      .map((id) => document.getElementById(id))
+      .filter((el): el is HTMLElement => el !== null);
+    if (!targets.length) continue;
+
+    // The section being read is the last heading to have passed the top third
+    // of the viewport. Before the first one arrives, nothing is marked.
+    const update = () => {
+      const line = window.innerHeight * 0.3;
+      let current: HTMLElement | undefined;
+      for (const el of targets) {
+        if (el.getBoundingClientRect().top > line) break;
+        current = el;
+      }
+      for (const [id, link] of links) {
+        if (current && id === current.id) link.setAttribute("aria-current", "true");
+        else link.removeAttribute("aria-current");
+      }
+    };
+
+    let queued = false;
+    window.addEventListener(
+      "scroll",
+      () => {
+        if (queued) return;
+        queued = true;
+        requestAnimationFrame(() => {
+          update();
+          queued = false;
+        });
+      },
+      { passive: true }
+    );
+    update();
+  }
+</script>

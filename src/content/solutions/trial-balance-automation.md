@@ -17,6 +17,7 @@ trail:
     item: "/trial-balance-automation"
 
 hero:
+  visual: "balance"
   badge: "Your Bookkeeping, On Autopilot."
   h1: "Trial balance automation for UK accounting practices"
   intro: "Ledger AI consolidates categorised transactions, journals and reconciliations into an accurate, review-ready trial balance for every client — flagging discrepancies before your reviewer has to find them manually."

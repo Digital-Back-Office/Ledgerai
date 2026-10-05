@@ -18,6 +18,7 @@ trail:
     item: "/uk-accounting-firms"
 
 hero:
+  visual: "email"
   badge: "Your Bookkeeping, On Autopilot."
   h1: "AI bookkeeping software built for modern UK accounting firms"
   intro: "From scattered statements to organised books — automatically. Ledger AI automates the repetitive parts of bookkeeping so your team can focus on review, judgement and client work."

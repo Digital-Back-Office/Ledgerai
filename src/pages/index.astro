@@ -3,6 +3,7 @@ import BaseLayout from "../layouts/BaseLayout.astro";
 import TopBar from "../components/TopBar.astro";
 import Nav from "../components/Nav.astro";
 import HeroSection from "../components/HeroSection.astro";
+import BankStrip from "../components/BankStrip.astro";
 import ShowcaseSection from "../components/ShowcaseSection.astro";
 import TryItFree from "../components/TryItFree.astro";
 import FeaturesSection from "../components/FeaturesSection.astro";
@@ -45,8 +46,9 @@ const jsonLd = {
 >
   <TopBar />
   <Nav />
-  <main>
+  <main id="main">
     <HeroSection />
+    <BankStrip />
     <ShowcaseSection />
     <TryItFree />
     <FeaturesSection />

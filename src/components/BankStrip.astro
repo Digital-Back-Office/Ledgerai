@@ -1,0 +1,37 @@
+---
+/**
+ * The banks the converter reads, as a moving strip under the hero. The names
+ * come from the same list the "try it free" panel shows.
+ */
+import { getSection } from "../lib/content";
+
+const { supportedBanks, panelTitle } = await getSection("try-free");
+---
+
+{
+  supportedBanks.length > 0 && (
+    <div class="bg-ink text-white border-y border-white/10">
+      <div class="wrap flex items-center gap-6 h-16">
+        <p class="hidden sm:flex items-center gap-2.5 shrink-0 text-sm text-white/60">
+          <span aria-hidden="true" class="size-1.5 bg-brand" />
+          {panelTitle}
+        </p>
+
+        <div class="relative flex-1 overflow-hidden [mask-image:linear-gradient(to_right,transparent,#000_8%,#000_92%,transparent)]">
+          <div class="marquee">
+            {[0, 1].map((copy) => (
+              <ul class="flex items-center shrink-0" aria-hidden={copy === 1 ? "true" : undefined}>
+                {supportedBanks.map((bank) => (
+                  <li class="flex items-center gap-8 pr-8 font-display font-semibold text-lg tracking-tight whitespace-nowrap">
+                    {bank}
+                    <span aria-hidden="true" class="size-1 bg-white/30" />
+                  </li>
+                ))}
+              </ul>
+            ))}
+          </div>
+        </div>
+      </div>
+    </div>
+  )
+}

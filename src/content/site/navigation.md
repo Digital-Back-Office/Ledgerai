@@ -1,6 +1,8 @@
 ---
 menuLabel: "For Business"
 links:
+  - label: "Integrations"
+    href: "/integrations"
   - label: "Features"
     href: "/#features"
   - label: "How it works"
@@ -13,7 +15,7 @@ login:
   label: "Login"
   href: "https://la.backoffice.digital/"
 cta:
-  label: "Book a Demo"
+  label: "Book a demo"
   href: "/#book-demo"
   event: "nav"
   style: "primary"

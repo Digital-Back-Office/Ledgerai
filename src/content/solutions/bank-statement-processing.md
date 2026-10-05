@@ -17,6 +17,7 @@ trail:
     item: "/bank-statement-processing"
 
 hero:
+  visual: "statements"
   badge: "Bank Statement Processing"
   h1: "Automated Bank Statement Processing for UK Accounting Firms"
   intro: "Stop re-keying bank statements line by line. Ledger AI reads PDF, CSV and even scanned bank statements from any UK bank, extracts every transaction, categorises it against the client's chart of accounts, and reconciles it against the ledger — automatically."
