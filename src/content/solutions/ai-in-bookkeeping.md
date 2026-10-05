@@ -127,11 +127,11 @@ related:
     - label: "automated bank statement processing"
       href: "/bank-statement-processing"
       description: "Extract, categorise and reconcile every transaction line from any UK bank statement."
-    - label: "automated invoice processing software"
-      href: "/accounting-software-for-startups/automated-invoice-processing-software"
-      description: "Capture supplier, VAT and line-item data from every invoice and post it to the ledger."
+    - label: "AI bookkeeping software for UK accounting firms"
+      href: "/uk-accounting-firms"
+      description: "One workflow from statement to trial balance, built for UK practices."
     - label: "trial balance preparation"
-      href: "/#features"
+      href: "/trial-balance-automation"
       description: "Roll reconciled transactions forward into a trial balance and reporting pack."
 
 faqs:

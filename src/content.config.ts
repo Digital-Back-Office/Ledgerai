@@ -318,6 +318,40 @@ const solutions = defineCollection({
   }),
 });
 
+/**
+ * Subscription tiers on /pricing, one file per plan. The body is unused — every
+ * figure is frontmatter so the cards, the comparison table and the Offer
+ * structured data all read the same numbers.
+ */
+const plans = defineCollection({
+  loader: md("plans"),
+  schema: z.object({
+    order: z.number(),
+    name: z.string(),
+    tagline: z.string(),
+    /** GBP. The yearly saving shown on the card is derived from these two. */
+    monthlyPrice: z.number(),
+    yearlyPrice: z.number(),
+    /** Draws the card with the brand border and this ribbon. */
+    badge: z.string().optional(),
+    featured: z.boolean().default(false),
+    /** The headline allowances, shown as a list under the price. */
+    allowances: z.array(z.object({ label: z.string(), value: z.string(), note: z.string().optional() })),
+    features: z.array(z.string()).default([]),
+    /** Premium-only extras, listed under their own heading. */
+    extrasHeading: z.string().optional(),
+    extras: z.array(z.string()).default([]),
+    cta: cta,
+  }),
+});
+
+/** Rows of the plan-by-plan comparison table on /pricing. */
+const comparisonRow = z.object({
+  label: z.string(),
+  /** One cell per plan, in plan order. `true`/`false` render as a tick or dash. */
+  values: z.array(z.union([z.string(), z.boolean()])),
+});
+
 const sections = defineCollection({
   loader: md("sections"),
   schema: z.object({
@@ -419,6 +453,15 @@ const sections = defineCollection({
 
     /** cookie consent: the policy links inside the body copy. */
     links: z.array(z.object({ label: z.string(), href: z.string() })).default([]),
+
+    /** pricing: billing toggle, comparison table and the page's own FAQs. */
+    billing: z
+      .object({ monthlyLabel: z.string(), yearlyLabel: z.string(), yearlyNote: z.string() })
+      .optional(),
+    comparison: z
+      .object({ ...sectionHeader, rows: z.array(comparisonRow) })
+      .optional(),
+    faqs: z.array(z.object({ question: z.string(), answer: z.string() })).default([]),
   }),
 });
 
@@ -475,4 +518,4 @@ const site = defineCollection({
   }),
 });
 
-export const collections = { features, steps, faqs, blog, legal, sections, site, solutions };
+export const collections = { features, steps, faqs, blog, legal, sections, site, solutions, plans };

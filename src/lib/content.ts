@@ -2,7 +2,7 @@ import { getCollection, getEntry, type CollectionEntry } from "astro:content";
 
 /** Collections that are one-file-per-item and render in `order`. */
 export async function getOrdered<
-  C extends "features" | "steps" | "faqs" | "blog" | "legal" | "solutions",
+  C extends "features" | "steps" | "faqs" | "blog" | "legal" | "solutions" | "plans",
 >(
   collection: C
 ): Promise<CollectionEntry<C>[]> {

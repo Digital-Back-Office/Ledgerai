@@ -120,9 +120,9 @@ related:
   eyebrow: "Related"
   heading: "Explore the rest of the workflow"
   items:
-    - label: "automated invoice processing"
-      href: "/accounting-software-for-startups/automated-invoice-processing-software"
-      description: "Extract supplier, VAT and line-item data from every purchase and sales invoice."
+    - label: "AI bookkeeping software for UK accounting firms"
+      href: "/uk-accounting-firms"
+      description: "One workflow from statement to trial balance, built for UK practices."
     - label: "AI bookkeeping software for UK firms"
       href: "/ai-in-bookkeeping/start-up-business-accountant"
       description: "See how statement, invoice and trial balance automation fit together in one practice workflow."

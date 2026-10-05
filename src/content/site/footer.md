@@ -1,6 +1,8 @@
 ---
 copyright: "© 2025 Ledger AI. All rights reserved."
 links:
+  - label: "Pricing"
+    href: "/pricing"
   - label: "Blogs"
     href: "/blogs"
   - label: "Privacy"

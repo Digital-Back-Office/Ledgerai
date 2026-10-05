@@ -38,6 +38,7 @@ const homeLinks = [
   ...navigation.links
     .filter((link) => link.href.startsWith("/#"))
     .map((link) => ({ label: link.label, href: link.href, note: undefined })),
+  { label: "Pricing", href: "/pricing", note: "Plans and allowances" },
   { label: "Book a Demo", href: "/#book-demo", note: "Talk to the team" },
 ];
 

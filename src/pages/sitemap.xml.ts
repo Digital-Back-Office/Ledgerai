@@ -13,6 +13,7 @@ import { getLegalPages, getPosts, getSolutions } from "../lib/content";
  */
 const STATIC_ROUTES: Array<{ path: string; changefreq: string; priority: string }> = [
   { path: "/", changefreq: "daily", priority: "1.0" },
+  { path: "/pricing", changefreq: "monthly", priority: "0.9" },
   { path: "/blogs", changefreq: "weekly", priority: "0.8" },
   { path: "/sitemap", changefreq: "monthly", priority: "0.4" },
 ];
