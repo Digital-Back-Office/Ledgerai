@@ -25,10 +25,23 @@
     box-sizing: border-box;
   }
 
+  :root {
+    /* The announcement strip, which scrolls away with the page, and the nav
+       under it, which stays pinned. Anchored headings and sticky side rails
+       only have to clear the nav. */
+    --bar-h: 3.5rem;
+    --header-h: 4rem;
+  }
+  @media (min-width: 640px) {
+    :root {
+      --bar-h: 4rem;
+    }
+  }
+
   html {
     scroll-behavior: smooth;
-    /* The sticky top bar + nav are 40px + 64px tall; keep anchored sections clear. */
-    scroll-padding-top: 8.5rem;
+    /* Anchored sections land clear of the pinned nav, with some air. */
+    scroll-padding-top: calc(var(--header-h) + 2rem);
     -webkit-text-size-adjust: 100%;
   }
 
@@ -769,4 +782,15 @@
 
 .prose-content tbody tr:last-child td {
   border-bottom: 0;
+}
+
+/* A table with five or more columns would otherwise squeeze every cell down to
+   a word per line before it starts to scroll. A floor on the column width makes
+   it scroll sooner and stay readable. */
+.prose-content table:has(th:nth-child(5)) :is(th, td) {
+  min-width: 12rem;
+}
+
+.prose-content table:has(th:nth-child(5)) :is(th, td):first-child {
+  min-width: 8rem;
 }

@@ -4,7 +4,7 @@ import { fill, getOrdered, getSection, getSite } from "../lib/content";
 
 const brand = await getSite("brand");
 const hero = await getSection("hero");
-const { headline, form, ctas, trustPoints, badge, subheading } = hero;
+const { headline, form, ctas, trustPoints, badge } = hero;
 const secondaryCta = ctas[0];
 
 // The illustration is built from the same sample data the features section
@@ -47,7 +47,7 @@ const at = (seconds: number, from = "translateY(6px)") =>
 // The fact row. The percentage is lifted from the headline, and the bank and
 // export counts are the lengths of the lists published elsewhere on the site,
 // so none of them can drift from the copy. The four sources are the ones the
-// subheading names.
+// page description names.
 const { supportedBanks } = await getSection("try-free");
 const { integrations } = await getSite("integrations");
 const facts = [
@@ -65,14 +65,14 @@ const factGrid = facts.length === 4 ? "grid-cols-2 md:grid-cols-4 lg:grid-cols-2
 ---
 
 <section class="grid-paper bg-paper overflow-x-clip">
-  <div class="wrap pt-14 pb-16 sm:pt-20 lg:pt-10 lg:pb-20">
+  <div class="wrap pt-14 pb-16 sm:pt-20 lg:pt-8 lg:pb-20">
     {/* Wide screens: copy and facts stack in the left half, top-aligned so the
          form is above the fold; the figure takes the right half across both
          rows and is exactly as tall as the two together. Narrow screens: copy,
          figure, facts, in that order. */}
-    <div class="grid grid-cols-1 gap-x-12 gap-y-14 lg:grid-cols-12 lg:gap-y-8">
-      <div class="lg:col-span-6 lg:row-start-1">
-        <p class="anim anim-up label mb-6 lg:mb-5">{badge}</p>
+    <div class="grid grid-cols-1 gap-y-14 lg:grid-cols-2 lg:gap-x-16 lg:gap-y-8 xl:gap-x-24">
+      <div class="lg:col-start-1 lg:row-start-1">
+        <p class="anim anim-up label mb-6">{badge}</p>
 
         <h1
           class="anim anim-up display text-[clamp(2.6rem,5.3vw,4.5rem)] max-w-[13ch]"
@@ -82,12 +82,8 @@ const factGrid = facts.length === 4 ? "grid-cols-2 md:grid-cols-4 lg:grid-cols-2
           {headline?.after}
         </h1>
 
-        <p class="anim anim-up lede mt-7 lg:mt-5 max-w-[52ch]" style="--anim-delay: 0.16s">
-          {subheading}
-        </p>
-
         {/* Email lead form */}
-        <div class="anim anim-up mt-9 lg:mt-7 max-w-xl" style="--anim-delay: 0.24s">
+        <div class="anim anim-up mt-12 lg:mt-[5.5rem] max-w-xl" style="--anim-delay: 0.16s">
           <div data-hero-success hidden>
             <p class="sheet flex items-start gap-3 border-l-2 border-l-brand px-5 py-4 text-ink font-medium">
               <Icon name="Check" size={18} strokeWidth={2.5} class="mt-0.5 text-brand-dark" />
@@ -128,7 +124,7 @@ const factGrid = facts.length === 4 ? "grid-cols-2 md:grid-cols-4 lg:grid-cols-2
             </form>
             <p data-hero-error class="text-sm text-red-700 mt-2.5" role="alert" hidden></p>
 
-            <div class="flex flex-wrap items-center gap-x-5 gap-y-2 mt-5 lg:mt-4 text-sm text-mute">
+            <div class="flex flex-wrap items-center gap-x-5 gap-y-2 mt-5 text-sm text-mute">
               {
                 trustPoints.map((point) => (
                   <span class="flex items-center gap-2">
@@ -155,10 +151,10 @@ const factGrid = facts.length === 4 ? "grid-cols-2 md:grid-cols-4 lg:grid-cols-2
       {
         lines.length > 0 && balance && (
           <figure
-            class="anim anim-up relative lg:col-span-6 lg:col-start-7 lg:row-start-1 lg:row-span-2 lg:flex lg:flex-col"
+            class="anim anim-up relative lg:col-start-2 lg:row-start-1 lg:row-span-2 lg:flex lg:flex-col"
             style="--anim-delay: 0.3s"
           >
-            <div class="relative pt-7 pb-11 lg:flex-1">
+            <div class="relative pt-7 pb-11 lg:pt-10 lg:flex-1">
               <div
                 aria-hidden="true"
                 class="absolute inset-y-0 left-12 sm:left-16 -right-[50vw] bg-brand rounded-l-md"
@@ -170,8 +166,8 @@ const factGrid = facts.length === 4 ? "grid-cols-2 md:grid-cols-4 lg:grid-cols-2
                   mail && (
                     <>
                       <div class="sheet w-fit max-w-full flex items-center gap-3 px-4 py-3">
-                        <span class="grid place-items-center size-8 shrink-0 rounded-[3px] bg-ink text-white">
-                          <Icon name="Mail" size={15} />
+                        <span class="grid place-items-center size-8 shrink-0 rounded-[3px] border border-rule bg-white">
+                          <Icon name="Gmail" size={18} />
                         </span>
                         <span class="min-w-0">
                           <span class="block truncate text-xs text-mute">{mail.from}</span>
@@ -312,7 +308,7 @@ const factGrid = facts.length === 4 ? "grid-cols-2 md:grid-cols-4 lg:grid-cols-2
 
       {/* Facts */}
       <dl
-        class={`anim anim-up cells ${factGrid} lg:col-span-6 lg:col-start-1 lg:row-start-2`}
+        class={`anim anim-up cells ${factGrid} auto-rows-fr lg:col-start-1 lg:row-start-2`}
         style="--anim-delay: 0.32s"
       >
         {

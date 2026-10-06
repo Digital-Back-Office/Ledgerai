@@ -6,7 +6,6 @@ headline:
   before: "Save"
   accent: "80% of the time"
   after: "you spend on bookkeeping"
-subheading: "Ledger AI extracts statements from emails, PDFs, Excel, and images, then converts them to clean books, categorizes spending, and builds a trial balance — automatically."
 form:
   placeholder: "Enter your work email"
   submitLabel: "Get early access"

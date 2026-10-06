@@ -1,10 +1,8 @@
 ---
-menuLabel: "For Business"
+menuLabel: "Features"
 links:
   - label: "Integrations"
     href: "/integrations"
-  - label: "Features"
-    href: "/#features"
   - label: "How it works"
     href: "/#how-it-works"
   - label: "Pricing"

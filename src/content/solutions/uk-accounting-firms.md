@@ -2,6 +2,7 @@
 order: 0
 url: "/uk-accounting-firms"
 shortTitle: "UK Accounting Firms"
+navLabel: "Built for UK accounting firms"
 tagline: "Bookkeeping automation built for UK practices."
 icon: "Landmark"
 seo:
@@ -38,7 +39,7 @@ challenges:
   subheading: "Every client sends financial documents differently — PDFs by email, scanned receipts, spreadsheets, bank statements in a dozen formats. Turning that into clean, reviewable books usually means hours of manual data entry per client, every single month."
   items:
     - title: "Statements and receipts arrive scattered across email, portals and folders"
-      icon: "Mail"
+      icon: "Gmail"
     - title: "Categorisation and data entry eat into billable and advisory time"
       icon: "Clock"
     - title: "Taking on more clients usually means hiring, not just working smarter"

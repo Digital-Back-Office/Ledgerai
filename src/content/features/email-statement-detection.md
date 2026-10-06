@@ -2,7 +2,7 @@
 order: 1
 title: "Email Statement Detection"
 description: "Connect your firm's inbox. Ledger AI detects incoming statements from client companies, extracts transaction data automatically and maps it to the correct client ledger."
-icon: "Mail"
+icon: "Gmail"
 visual: "email"
 emailNote: "Statement detected & extracted"
 emails:

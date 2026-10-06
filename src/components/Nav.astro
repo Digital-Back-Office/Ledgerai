@@ -26,7 +26,7 @@ const summary =
   "flex items-center gap-1.5 h-16 whitespace-nowrap cursor-pointer list-none [&::-webkit-details-marker]:hidden text-mute hover:text-ink group-open:text-ink transition-colors";
 ---
 
-<nav aria-label="Main" class="sticky top-10 z-50 bg-white border-b border-rule">
+<nav aria-label="Main" class="sticky top-0 z-50 bg-white border-b border-rule">
   <div class="wrap h-16 flex items-center justify-between gap-3 sm:gap-6">
     <a href="/" class="shrink-0" aria-label={`${brand.name} home`}>
       <img
@@ -38,7 +38,7 @@ const summary =
       />
     </a>
 
-    {/* lg rather than md: six items plus the login and demo buttons do not
+    {/* lg rather than md: five items plus the login and demo buttons do not
          fit at 768px. */}
     <div class="hidden lg:flex items-center gap-5 xl:gap-7 text-sm xl:text-[0.9375rem] font-medium">
       {/* A <details> rather than a JS-driven menu: it opens on click without
@@ -66,7 +66,7 @@ const summary =
                     class="group/item flex items-start justify-between gap-4 px-4 py-3.5 border-b border-rule last:border-0 hover:bg-paper aria-[current=page]:bg-paper transition-colors"
                   >
                     <span class="min-w-0">
-                      <span class="block text-ink">{page.data.shortTitle}</span>
+                      <span class="block text-ink">{page.data.navLabel ?? page.data.shortTitle}</span>
                       <span class="block text-mute text-[0.8125rem] font-normal leading-snug mt-0.5">
                         {page.data.tagline}
                       </span>
@@ -135,7 +135,7 @@ const summary =
           </span>
         </summary>
 
-        <div class="absolute inset-x-0 top-full max-h-[calc(100dvh-6.5rem)] overflow-y-auto bg-white border-y border-rule">
+        <div class="absolute inset-x-0 top-full max-h-[calc(100dvh-var(--bar-h)-var(--header-h))] overflow-y-auto bg-white border-y border-rule">
           <div class="wrap py-6">
             <ul class="border-b border-rule">
               {nav.links.map((link) => (
@@ -159,7 +159,7 @@ const summary =
                   {solutions.map((page) => (
                     <li>
                       <a href={page.data.url} class="block py-2.5 text-ink font-medium">
-                        {page.data.shortTitle}
+                        {page.data.navLabel ?? page.data.shortTitle}
                         <span class="block text-mute text-sm font-normal">
                           {page.data.tagline}
                         </span>

@@ -33,7 +33,7 @@ const [demoCta, loginCta, resultCta] = ctas;
             class="flex items-center justify-between mb-4 bg-paper border border-rule rounded-md px-4 py-2.5 text-sm"
           >
             <span class="flex items-center gap-2 text-mute">
-              <Icon name="Mail" size={14} class="text-ink" />
+              <Icon name="Gmail" size={15} />
               Sending to <strong class="text-ink font-medium" data-chip-email></strong>
             </span>
             <button
@@ -101,7 +101,9 @@ const [demoCta, loginCta, resultCta] = ctas;
           {/* CTA button */}
           <button type="button" data-convert disabled class="btn btn-primary w-full mt-5">
             <span data-label class="inline-flex items-center gap-2.5">
-              <Icon name="Mail" size={16} />
+              <span class="grid place-items-center size-6 rounded-[3px] bg-white">
+                <Icon name="Gmail" size={15} />
+              </span>
               {uploader?.submitLabel}
             </span>
             <span data-loading class="inline-flex items-center gap-2" hidden>

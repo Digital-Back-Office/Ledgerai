@@ -221,7 +221,9 @@ const solutions = defineCollection({
     url: z.string(),
     /** Label used wherever the page is cross-linked (nav, footer, sitemap, related). */
     shortTitle: z.string(),
-    /** One line under `shortTitle` in the header dropdown. */
+    /** Header menu only: overrides `shortTitle` there, where a longer label reads better. */
+    navLabel: z.string().optional(),
+    /** One line under the label in the header dropdown. */
     tagline: z.string(),
     /** Key into the generated icon set, used by the header dropdown. */
     icon: z.string(),
