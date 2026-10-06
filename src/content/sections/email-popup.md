@@ -16,10 +16,10 @@ scarcity:
   claimedLabel: "{claimed} claimed"
 form:
   placeholder: "Enter your work email"
-  submitLabel: "Claim My Free Month"
+  submitLabel: "Claim my free month"
   loadingLabel: "Sending..."
   source: "1 month free popup"
-  successTitle: "You're in! 🎉"
+  successTitle: "You're in"
   successMessage: "Your free month is reserved. Our team will reach out to you within 24 hours to get you set up."
   errorMessage: "Something went wrong. Please try again."
   connectionErrorMessage: "Error connecting to server."

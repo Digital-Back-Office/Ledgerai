@@ -1,45 +1,111 @@
 ---
 import Icon from "./Icon.astro";
-import { getSite } from "../lib/content";
+import { getSite, getSolutions } from "../lib/content";
 
 const brand = await getSite("brand");
 const nav = await getSite("navigation");
+
+// The dropdown's entries are the landing pages themselves, so a new file in
+// src/content/solutions/ appears in the header without editing navigation.md.
+const solutions = await getSolutions();
+
+const path = Astro.url.pathname.replace(/\/$/, "") || "/";
+
+/** Marks the link for the page (or section of the site) being viewed. */
+const isCurrent = (href: string) => {
+  if (href.includes("#")) return false;
+  const target = href.replace(/\/$/, "") || "/";
+  return path === target || path.startsWith(target + "/");
+};
+
+const hasSolutions = nav.menuLabel && solutions.length > 0;
+
+const panel =
+  "bg-white border border-rule rounded-md shadow-[0_24px_48px_-24px_rgb(11_18_32/0.4)] overflow-hidden";
+const summary =
+  "flex items-center gap-1.5 h-16 whitespace-nowrap cursor-pointer list-none [&::-webkit-details-marker]:hidden text-mute hover:text-ink group-open:text-ink transition-colors";
 ---
 
-<nav
-  class="anim anim-down sticky top-10 z-50 bg-white/95 backdrop-blur-sm border-b border-slate-100"
->
-  <div class="max-w-6xl mx-auto px-6 h-16 flex items-center justify-between">
-    <a href="/" class="flex items-center gap-2.5 hover:opacity-90 transition-opacity">
+<nav aria-label="Main" class="sticky top-0 z-50 bg-white border-b border-rule">
+  <div class="wrap h-16 flex items-center justify-between gap-3 sm:gap-6">
+    <a href="/" class="shrink-0" aria-label={`${brand.name} home`}>
       <img
         src={brand.logo}
         alt={brand.logoAlt}
         width="160"
         height="40"
-        class="w-24 sm:w-32 md:w-36 lg:w-40 h-auto"
+        class="w-28 max-[359px]:w-24 sm:w-32 xl:w-36 h-auto"
       />
     </a>
 
-    <div class="hidden md:flex items-center gap-8 text-sm text-slate-500 font-medium">
+    {/* lg rather than md: five items plus the login and demo buttons do not
+         fit at 768px. */}
+    <div class="hidden lg:flex items-center gap-5 xl:gap-7 text-sm xl:text-[0.9375rem] font-medium">
+      {/* A <details> rather than a JS-driven menu: it opens on click without
+           any script, is keyboard-operable, and every link is in the HTML for
+           crawlers whether or not the panel is open. The script below adds
+           hover as an enhancement on top of that. */}
+      {
+        hasSolutions && (
+          <details class="relative group" data-nav-menu>
+            <summary class={summary}>
+              {nav.menuLabel}
+              <Icon
+                name="ChevronDown"
+                size={14}
+                class="transition-transform duration-200 group-open:rotate-180"
+              />
+            </summary>
+
+            <div class="absolute -left-4 top-full w-[23rem]">
+              <div class={panel}>
+                {solutions.map((page) => (
+                  <a
+                    href={page.data.url}
+                    aria-current={isCurrent(page.data.url) ? "page" : undefined}
+                    class="group/item flex items-start justify-between gap-4 px-4 py-3.5 border-b border-rule last:border-0 hover:bg-paper aria-[current=page]:bg-paper transition-colors"
+                  >
+                    <span class="min-w-0">
+                      <span class="block text-ink">{page.data.navLabel ?? page.data.shortTitle}</span>
+                      <span class="block text-mute text-[0.8125rem] font-normal leading-snug mt-0.5">
+                        {page.data.tagline}
+                      </span>
+                    </span>
+                    <Icon
+                      name="ArrowRight"
+                      size={15}
+                      class="mt-1 text-ink opacity-0 -translate-x-1 group-hover/item:opacity-100 group-hover/item:translate-x-0 transition-all duration-200"
+                    />
+                  </a>
+                ))}
+              </div>
+            </div>
+          </details>
+        )
+      }
+
       {
         nav.links.map((link) => (
-          <a href={link.href} class="hover:text-slate-900 transition-colors">
+          <a
+            href={link.href}
+            aria-current={isCurrent(link.href) ? "page" : undefined}
+            class="relative flex items-center h-16 whitespace-nowrap text-mute hover:text-ink aria-[current=page]:text-ink transition-colors after:absolute after:inset-x-0 after:-bottom-px after:h-0.5 after:bg-brand after:opacity-0 aria-[current=page]:after:opacity-100"
+          >
             {link.label}
           </a>
         ))
       }
     </div>
 
-    <div class="flex items-center gap-3">
+    <div class="flex items-center gap-2 sm:gap-4 shrink-0">
       {
         nav.login && (
           <a
             href={nav.login.href}
             target="_blank"
             rel="noopener noreferrer"
-            class="flex items-center gap-2 text-slate-700 text-sm font-semibold px-5 py-2.5 rounded-lg border border-slate-200 hover:border-[#13b5ea] hover:text-[#13b5ea] transition-colors"
+            class="hidden sm:inline-flex items-center h-10 px-2 text-[0.9375rem] font-medium text-ink hover:underline decoration-brand decoration-2 underline-offset-4"
           >
-            <Icon name="LogIn" size={16} />
             {nav.login.label}
           </a>
         )
@@ -50,19 +116,133 @@ const nav = await getSite("navigation");
             href={nav.cta.href}
             data-event="book_demo_clicked"
             data-event-label={nav.cta.event}
-            class="bg-[#13b5ea] text-white text-sm font-semibold px-5 py-2.5 rounded-lg hover:bg-[#0e9fd2] transition-colors cursor-pointer"
+            class="btn btn-sm btn-primary"
           >
             {nav.cta.label}
           </a>
         )
       }
+
+      {/* Small-screen menu. Same <details> approach, so it works without JS. */}
+      <details class="lg:hidden group" data-nav-mobile>
+        <summary
+          aria-label="Menu"
+          class="grid place-items-center size-10 border border-rule rounded-md cursor-pointer list-none [&::-webkit-details-marker]:hidden"
+        >
+          <span aria-hidden="true" class="relative block w-4 h-2.5">
+            <span class="absolute inset-x-0 top-0 h-0.5 bg-ink transition-transform duration-200 group-open:translate-y-1 group-open:rotate-45" />
+            <span class="absolute inset-x-0 bottom-0 h-0.5 bg-ink transition-transform duration-200 group-open:-translate-y-1 group-open:-rotate-45" />
+          </span>
+        </summary>
+
+        <div class="absolute inset-x-0 top-full max-h-[calc(100dvh-var(--bar-h)-var(--header-h))] overflow-y-auto bg-white border-y border-rule">
+          <div class="wrap py-6">
+            <ul class="border-b border-rule">
+              {nav.links.map((link) => (
+                <li class="border-t border-rule">
+                  <a
+                    href={link.href}
+                    aria-current={isCurrent(link.href) ? "page" : undefined}
+                    class="flex items-center justify-between py-3.5 h-row"
+                  >
+                    {link.label}
+                    <Icon name="ArrowRight" size={16} class="text-mute" />
+                  </a>
+                </li>
+              ))}
+            </ul>
+
+            {hasSolutions && (
+              <div class="mt-7">
+                <p class="label mb-2">{nav.menuLabel}</p>
+                <ul>
+                  {solutions.map((page) => (
+                    <li>
+                      <a href={page.data.url} class="block py-2.5 text-ink font-medium">
+                        {page.data.navLabel ?? page.data.shortTitle}
+                        <span class="block text-mute text-sm font-normal">
+                          {page.data.tagline}
+                        </span>
+                      </a>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            )}
+
+            {nav.login && (
+              <a
+                href={nav.login.href}
+                target="_blank"
+                rel="noopener noreferrer"
+                class="btn btn-line w-full mt-8"
+              >
+                {nav.login.label}
+              </a>
+            )}
+          </div>
+        </div>
+      </details>
     </div>
   </div>
 </nav>
 
 <script>
+  // Each dropdown is a <details>, so click and keyboard already work with no
+  // JS at all. This layers on hover-to-open for mice, and the dismissals
+  // <details> doesn't give you: clicking away, and Escape.
+  const menus = [...document.querySelectorAll<HTMLDetailsElement>("[data-nav-menu]")];
+  const mobile = document.querySelector<HTMLDetailsElement>("[data-nav-mobile]");
+  const all = mobile ? [...menus, mobile] : menus;
+
+  const closeAll = (except?: HTMLDetailsElement) => {
+    for (const menu of all) if (menu !== except) menu.open = false;
+  };
+
+  for (const menu of menus) {
+    // pointerType guards against touch, where a "hover" fires on the tap that
+    // is also about to toggle the menu — the two would cancel each other out.
+    menu.addEventListener("pointerenter", (event) => {
+      if (event.pointerType !== "mouse") return;
+      menu.open = true;
+      closeAll(menu);
+    });
+
+    menu.addEventListener("pointerleave", (event) => {
+      if (event.pointerType !== "mouse") return;
+      menu.open = false;
+    });
+
+    // Opening one by click or keyboard closes the other.
+    menu.addEventListener("toggle", () => {
+      if (menu.open) closeAll(menu);
+    });
+  }
+
+  // In-page links (/#features) don't reload, so the panel has to close itself.
+  mobile?.querySelectorAll("a").forEach((link) =>
+    link.addEventListener("click", () => {
+      mobile.open = false;
+    })
+  );
+
+  if (all.length) {
+    document.addEventListener("click", (event) => {
+      const inside = all.some((menu) => menu.contains(event.target as Node));
+      if (!inside) closeAll();
+    });
+
+    document.addEventListener("keydown", (event) => {
+      if (event.key !== "Escape") return;
+      const open = all.find((menu) => menu.open);
+      if (!open) return;
+      open.open = false;
+      open.querySelector("summary")?.focus();
+    });
+  }
+
   // The nav CTA is a real link to /#book-demo, so it works without JS and from
-  // any page. This only adds the analytics event the React onClick used to send.
+  // any page. This only adds the analytics event.
   document.querySelectorAll<HTMLElement>("[data-event='book_demo_clicked']").forEach((el) => {
     el.addEventListener("click", () => {
       window.gtag?.("event", "book_demo_clicked", {

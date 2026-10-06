@@ -2,76 +2,526 @@
 
 /* ─────────────────────────────────────────────────────────────────────────────
    Theme
-   The React app set fonts with an inline <style> tag containing an @import,
-   which blocked render. Fonts are now preconnected + preloaded in BaseLayout.
+   Fonts are preconnected + loaded as a stylesheet in BaseLayout.
    ──────────────────────────────────────────────────────────────────────────── */
 @theme {
-  --font-sans: "Sora", "DM Sans", ui-sans-serif, system-ui, sans-serif;
-  --font-mono: "IBM Plex Mono", ui-monospace, SFMono-Regular, monospace;
+  --font-sans: "Geist", ui-sans-serif, system-ui, sans-serif;
+  --font-display: "Bricolage Grotesque", "Geist", ui-sans-serif, system-ui, sans-serif;
+  --font-mono: "Geist Mono", ui-monospace, SFMono-Regular, monospace;
 
   /* The single brand accent used across the whole site. */
   --color-brand: #13b5ea;
   --color-brand-dark: #0e9fd2;
+
+  /* Everything else is one cool-grey family, tinted towards the brand navy. */
+  --color-ink: #0b1220;
+  --color-mute: #56637a;
+  --color-paper: #f4f7f9;
+  --color-rule: #d9e1e8;
 }
 
-* {
-  box-sizing: border-box;
+@layer base {
+  * {
+    box-sizing: border-box;
+  }
+
+  :root {
+    /* The announcement strip, which scrolls away with the page, and the nav
+       under it, which stays pinned. Anchored headings and sticky side rails
+       only have to clear the nav. */
+    --bar-h: 3.5rem;
+    --header-h: 4rem;
+  }
+  @media (min-width: 640px) {
+    :root {
+      --bar-h: 4rem;
+    }
+  }
+
+  html {
+    scroll-behavior: smooth;
+    /* Anchored sections land clear of the pinned nav, with some air. */
+    scroll-padding-top: calc(var(--header-h) + 2rem);
+    -webkit-text-size-adjust: 100%;
+  }
+
+  body {
+    color: var(--color-ink);
+    -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
+  }
+
+  h1,
+  h2,
+  h3 {
+    text-wrap: balance;
+  }
+
+  p,
+  li {
+    text-wrap: pretty;
+  }
+
+  :focus-visible {
+    outline: 2px solid var(--color-brand);
+    outline-offset: 3px;
+  }
+
+  ::selection {
+    background-color: rgb(19 181 234 / 0.3);
+  }
 }
 
-html {
-  scroll-behavior: smooth;
-  /* The sticky top bar + nav are 40px + 64px tall; keep anchored sections clear. */
-  scroll-padding-top: 7rem;
-}
+@layer components {
+  /* A grid with no column utility gets one shrinkable column instead of an
+     auto-sized one. Otherwise a single unbreakable line inside it (a truncated
+     label, a long email address) sets the track's minimum width and pushes the
+     whole column wider than the page. Any grid-cols-* utility overrides this. */
+  .grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
 
-::selection {
-  background-color: rgba(19, 181, 234, 0.25);
-}
+  /* Page container. */
+  .wrap {
+    width: 100%;
+    max-width: 78rem;
+    margin-inline: auto;
+    padding-inline: 1.25rem;
+  }
+  @media (min-width: 640px) {
+    .wrap {
+      padding-inline: 2rem;
+    }
+  }
+  @media (min-width: 1024px) {
+    .wrap {
+      padding-inline: 3rem;
+    }
+  }
 
-::-moz-selection {
-  background-color: rgba(19, 181, 234, 0.25);
-}
+  /* Keyboard users jump past the top bar and nav. */
+  .skip-link {
+    position: absolute;
+    left: 1rem;
+    top: -4rem;
+    z-index: 200;
+    background: var(--color-ink);
+    color: #fff;
+    padding: 0.625rem 1rem;
+    border-radius: 6px;
+    font-size: 0.875rem;
+    font-weight: 500;
+  }
+  .skip-link:focus {
+    top: 0.5rem;
+  }
 
-/* Used by the blog list category strip. */
-.scrollbar-none {
-  scrollbar-width: none;
-  -ms-overflow-style: none;
-}
-.scrollbar-none::-webkit-scrollbar {
-  display: none;
+  /* ── Type ──────────────────────────────────────────────────────────────── */
+  .display {
+    font-family: var(--font-display);
+    font-weight: 700;
+    font-size: clamp(2.6rem, 6.2vw, 5rem);
+    line-height: 0.98;
+    letter-spacing: -0.035em;
+    color: var(--color-ink);
+  }
+
+  .display-sm {
+    font-family: var(--font-display);
+    font-weight: 700;
+    font-size: clamp(2.2rem, 4.6vw, 3.6rem);
+    line-height: 1.02;
+    letter-spacing: -0.032em;
+    color: var(--color-ink);
+  }
+
+  .h-section {
+    font-family: var(--font-display);
+    font-weight: 650;
+    font-size: clamp(1.9rem, 3.6vw, 3rem);
+    line-height: 1.05;
+    letter-spacing: -0.028em;
+    color: var(--color-ink);
+  }
+
+  .h-row {
+    font-family: var(--font-display);
+    font-weight: 600;
+    font-size: 1.375rem;
+    line-height: 1.2;
+    letter-spacing: -0.018em;
+    color: var(--color-ink);
+  }
+
+  .lede {
+    font-size: 1.0625rem;
+    line-height: 1.62;
+    color: var(--color-mute);
+  }
+  @media (min-width: 640px) {
+    .lede {
+      font-size: 1.125rem;
+    }
+  }
+
+  /* Section label: a short brand rule, then plain sentence-case text. */
+  .label {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.625rem;
+    font-size: 0.875rem;
+    font-weight: 500;
+    line-height: 1.3;
+    color: var(--color-ink);
+  }
+  .label::before {
+    content: "";
+    width: 1.25rem;
+    height: 2px;
+    background: var(--color-brand);
+    flex-shrink: 0;
+  }
+  .label-dark {
+    color: #fff;
+  }
+
+  /* Highlighter stroke behind the words that matter. Keeps the text in ink,
+     so it stays readable where cyan-on-white type would not. */
+  .mark {
+    background-image: linear-gradient(
+      to top,
+      rgb(19 181 234 / 0.42) 0,
+      rgb(19 181 234 / 0.42) 0.36em,
+      transparent 0.36em
+    );
+    background-repeat: no-repeat;
+    padding-inline: 0.06em;
+    -webkit-box-decoration-break: clone;
+    box-decoration-break: clone;
+  }
+
+  /* Figures: amounts, dates, counts. */
+  .fig {
+    font-family: var(--font-mono);
+    font-variant-numeric: tabular-nums;
+    letter-spacing: -0.01em;
+  }
+
+  /* ── Buttons ───────────────────────────────────────────────────────────── */
+  .btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.625rem;
+    min-height: 3rem;
+    padding: 0.625rem 1.375rem;
+    border-radius: 6px;
+    border: 1px solid transparent;
+    font-size: 0.9375rem;
+    font-weight: 600;
+    line-height: 1.2;
+    white-space: nowrap;
+    cursor: pointer;
+    transition:
+      background-color 0.2s ease,
+      border-color 0.2s ease,
+      color 0.2s ease,
+      transform 0.12s ease;
+  }
+  .btn:active {
+    transform: translateY(1px);
+  }
+  .btn:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+  .btn .arrow {
+    transition: transform 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+  }
+  .btn:hover .arrow {
+    transform: translateX(3px);
+  }
+  .btn-sm {
+    min-height: 2.5rem;
+    padding: 0.5rem 1rem;
+    font-size: 0.875rem;
+  }
+
+  /* Brand fill with ink text: 9:1 contrast, where white-on-cyan was 2.4:1. */
+  .btn-primary {
+    background: var(--color-brand);
+    color: var(--color-ink);
+  }
+  .btn-primary:hover:not(:disabled) {
+    background: var(--color-ink);
+    color: #fff;
+  }
+  .on-dark .btn-primary:hover:not(:disabled) {
+    background: #fff;
+    color: var(--color-ink);
+  }
+
+  .btn-ink {
+    background: var(--color-ink);
+    color: #fff;
+  }
+  .btn-ink:hover:not(:disabled) {
+    background: #1a2740;
+  }
+
+  .btn-line {
+    background: transparent;
+    color: var(--color-ink);
+    border-color: rgb(11 18 32 / 0.22);
+  }
+  .btn-line:hover:not(:disabled) {
+    border-color: var(--color-ink);
+  }
+  .on-dark .btn-line {
+    color: #fff;
+    border-color: rgb(255 255 255 / 0.28);
+  }
+  .on-dark .btn-line:hover:not(:disabled) {
+    border-color: #fff;
+  }
+
+  /* Text link with a brand underline that thickens on hover. */
+  .link {
+    font-weight: 500;
+    color: var(--color-ink);
+    text-decoration: underline;
+    text-decoration-color: var(--color-brand);
+    text-decoration-thickness: 2px;
+    text-underline-offset: 0.22em;
+    transition: text-decoration-color 0.2s ease;
+  }
+  .link:hover {
+    text-decoration-color: var(--color-ink);
+  }
+
+  /* ── Fields ────────────────────────────────────────────────────────────── */
+  .field {
+    width: 100%;
+    min-height: 3rem;
+    padding: 0.625rem 0.875rem;
+    background: #fff;
+    color: var(--color-ink);
+    border: 1px solid var(--color-rule);
+    border-radius: 6px;
+    font-size: 0.9375rem;
+    transition: border-color 0.2s ease;
+  }
+  .field::placeholder {
+    color: #8794a6;
+  }
+  .field:hover {
+    border-color: #b9c5d1;
+  }
+  .field:focus {
+    outline: none;
+    border-color: var(--color-ink);
+    box-shadow: 0 0 0 3px rgb(19 181 234 / 0.3);
+  }
+
+  /* ── Surfaces ──────────────────────────────────────────────────────────── */
+  /* A sheet of paper: the one raised surface on the site. The shadow is
+     tinted with the ink navy rather than neutral black. */
+  .sheet {
+    background: #fff;
+    border: 1px solid var(--color-rule);
+    border-radius: 6px;
+    box-shadow:
+      0 1px 0 rgb(11 18 32 / 0.04),
+      0 22px 44px -28px rgb(11 18 32 / 0.32);
+  }
+
+  /* Faint ruled lines, like a ledger page. */
+  .ledger-lines {
+    background-image: repeating-linear-gradient(
+      to bottom,
+      transparent 0,
+      transparent 27px,
+      rgb(11 18 32 / 0.05) 27px,
+      rgb(11 18 32 / 0.05) 28px
+    );
+  }
+
+  /* Small squared tag, used for bank names and integration lists. */
+  .tag {
+    display: inline-flex;
+    align-items: center;
+    padding: 0.3125rem 0.625rem;
+    border: 1px solid var(--color-rule);
+    border-radius: 3px;
+    background: #fff;
+    font-size: 0.8125rem;
+    font-weight: 500;
+    color: var(--color-ink);
+  }
+
+  /* Breadcrumb trail. */
+  .crumbs {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.5rem;
+    font-size: 0.8125rem;
+    color: var(--color-mute);
+  }
+  .crumbs a {
+    transition: color 0.15s ease;
+  }
+  .crumbs a:hover {
+    color: var(--color-ink);
+    text-decoration: underline;
+    text-decoration-color: var(--color-brand);
+    text-underline-offset: 0.2em;
+  }
+
+  /* Squared paper: a fine grid behind a section, fading out towards the
+     bottom so it reads as texture rather than as a table. */
+  .grid-paper {
+    position: relative;
+    isolation: isolate;
+  }
+  .grid-paper::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    z-index: -1;
+    pointer-events: none;
+    background-image:
+      linear-gradient(to right, rgb(11 18 32 / 0.06) 1px, transparent 1px),
+      linear-gradient(to bottom, rgb(11 18 32 / 0.06) 1px, transparent 1px);
+    background-size: 40px 40px;
+    -webkit-mask-image: linear-gradient(to bottom, #000 35%, transparent 100%);
+    mask-image: linear-gradient(to bottom, #000 35%, transparent 100%);
+  }
+  .on-dark.grid-paper::before {
+    background-image:
+      linear-gradient(to right, rgb(255 255 255 / 0.07) 1px, transparent 1px),
+      linear-gradient(to bottom, rgb(255 255 255 / 0.07) 1px, transparent 1px);
+  }
+
+  /* A block of cells sharing hairlines, like a table without the table. */
+  .cells {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    gap: 1px;
+    background: var(--color-rule);
+    border: 1px solid var(--color-rule);
+    border-radius: 6px;
+    overflow: hidden;
+  }
+  .cells > * {
+    background: #fff;
+  }
+  .cells-dark {
+    background: rgb(255 255 255 / 0.16);
+    border-color: rgb(255 255 255 / 0.16);
+  }
+  .cells-dark > * {
+    background: var(--color-ink);
+  }
+
+  /* A short dashed drop with an arrowhead, joining two parts of a product
+     illustration. Same dash as the connectors in the pipeline diagram. Give it
+     a height where it is used. */
+  .flow-down {
+    position: relative;
+    width: 1px;
+    background-image: linear-gradient(to bottom, rgb(11 18 32 / 0.42) 50%, transparent 50%);
+    background-size: 1px 8px;
+  }
+  .flow-down::after {
+    content: "";
+    position: absolute;
+    left: 50%;
+    bottom: -1px;
+    transform: translateX(-50%);
+    border-top: 6px solid var(--color-ink);
+    border-right: 4px solid transparent;
+    border-left: 4px solid transparent;
+  }
+
+  /* The same connector lying on its side. Give it a width where it is used. */
+  .flow-right {
+    position: relative;
+    height: 1px;
+    background-image: linear-gradient(to right, rgb(11 18 32 / 0.42) 50%, transparent 50%);
+    background-size: 8px 1px;
+  }
+  .flow-right::after {
+    content: "";
+    position: absolute;
+    top: 50%;
+    right: -1px;
+    transform: translateY(-50%);
+    border-left: 6px solid var(--color-ink);
+    border-top: 4px solid transparent;
+    border-bottom: 4px solid transparent;
+  }
+
+  /* Endless horizontal strip. The list is rendered twice and slid by half. */
+  .marquee {
+    display: flex;
+    width: max-content;
+    animation: marquee 45s linear infinite;
+  }
+  .marquee:hover {
+    animation-play-state: paused;
+  }
+  @keyframes marquee {
+    to {
+      transform: translateX(-50%);
+    }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .marquee {
+      animation: none;
+    }
+  }
+
+  /* Used by the blog list category strip. */
+  .scrollbar-none {
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+  }
+  .scrollbar-none::-webkit-scrollbar {
+    display: none;
+  }
 }
 
 /* ─────────────────────────────────────────────────────────────────────────────
    Entrance animations
 
-   These replace framer-motion. The elements are always in the HTML — the
-   hidden state is applied only once JS has confirmed it can reveal them
-   (`html.js`), so crawlers and no-JS visitors always see fully visible
-   content. IntersectionObserver in BaseLayout adds `.in`.
+   The elements are always in the HTML — the hidden state is applied only once
+   JS has confirmed it can reveal them (`html.js`), so crawlers and no-JS
+   visitors always see fully visible content. IntersectionObserver in
+   BaseLayout adds `.in`.
    ──────────────────────────────────────────────────────────────────────────── */
 .js .anim {
   opacity: 0;
   transition:
-    opacity 0.5s cubic-bezier(0.16, 1, 0.3, 1),
-    transform 0.5s cubic-bezier(0.16, 1, 0.3, 1);
+    opacity 0.6s cubic-bezier(0.16, 1, 0.3, 1),
+    transform 0.6s cubic-bezier(0.16, 1, 0.3, 1);
   transition-delay: var(--anim-delay, 0s);
-  will-change: opacity, transform;
 }
 
 .js .anim-up {
-  transform: translateY(20px);
+  transform: translateY(14px);
 }
 .js .anim-down {
-  transform: translateY(-20px);
+  transform: translateY(-14px);
 }
 .js .anim-left {
-  transform: translateX(-20px);
+  transform: translateX(-14px);
 }
 .js .anim-right {
-  transform: translateX(20px);
+  transform: translateX(14px);
 }
 .js .anim-scale {
-  transform: scale(0.95);
+  transform: scale(0.97);
 }
 
 .js .anim.in {
@@ -93,7 +543,7 @@ html {
   }
 }
 
-/* Rows inside a feature visual cascade in, matching the old stagger delays. */
+/* Rows inside a feature visual cascade in. */
 .visual-row {
   animation: visual-row-in 0.45s cubic-bezier(0.16, 1, 0.3, 1) both;
   animation-delay: var(--row-delay, 0s);
@@ -102,7 +552,7 @@ html {
 @keyframes visual-row-in {
   from {
     opacity: 0;
-    transform: var(--row-from, translateY(10px));
+    transform: var(--row-from, translateY(8px));
   }
   to {
     opacity: 1;
@@ -110,19 +560,10 @@ html {
   }
 }
 
-/* The progress bar under the active feature tab. */
-.feature-progress {
-  transform-origin: left;
-  animation: feature-progress 3.375s linear both;
-}
-
-@keyframes feature-progress {
-  from {
-    transform: scaleX(0);
-  }
-  to {
-    transform: scaleX(1);
-  }
+/* Hold the cascade until the panel it sits in has scrolled into view, so the
+   rows arrive as the visitor reaches them rather than on page load. */
+.js .anim:not(.in) .visual-row {
+  animation-play-state: paused;
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -131,83 +572,83 @@ html {
   }
   .js .anim,
   .visual-enter,
-  .visual-row,
-  .feature-progress {
+  .visual-row {
     animation: none !important;
     transition: none !important;
     opacity: 1 !important;
     transform: none !important;
+  }
+  .btn,
+  .btn .arrow {
+    transition: none;
   }
 }
 
 /* ─────────────────────────────────────────────────────────────────────────────
    Article body
 
-   The React app hand-rolled a markdown-to-JSX renderer and attached Tailwind
-   classes to each element. Astro renders the markdown at build time instead,
-   so those exact styles are reproduced here as CSS on `.prose-content`.
+   Astro renders the markdown at build time, so the article typography lives
+   here as CSS on `.prose-content` rather than as classes on each element.
    ──────────────────────────────────────────────────────────────────────────── */
 .prose-content {
-  color: #334155;
-  line-height: 1.625;
+  color: #2a3547;
+  line-height: 1.7;
+  max-width: 68ch;
 }
 
 .prose-content p {
-  color: #475569;
-  font-size: 1rem;
-  line-height: 1.625;
+  font-size: 1.0625rem;
+  line-height: 1.7;
   margin-block: 1.25rem;
-  font-weight: 400;
+}
+
+.prose-content h1,
+.prose-content h2,
+.prose-content h3,
+.prose-content h4 {
+  font-family: var(--font-display);
+  color: var(--color-ink);
+  letter-spacing: -0.022em;
+  line-height: 1.15;
 }
 
 .prose-content h1 {
-  font-size: 1.875rem;
-  font-weight: 800;
-  color: #0f172a;
+  font-size: 2rem;
+  font-weight: 700;
   margin-top: 2.5rem;
   margin-bottom: 1.25rem;
-  line-height: 1.25;
-  letter-spacing: -0.025em;
 }
 
 .prose-content h2 {
-  font-size: 1.5rem;
-  font-weight: 700;
-  color: #0f172a;
-  margin-top: 3rem;
+  font-size: 1.625rem;
+  font-weight: 650;
+  margin-top: 3.25rem;
   margin-bottom: 1rem;
-  border-bottom: 1px solid #f1f5f9;
-  padding-bottom: 0.75rem;
-  letter-spacing: -0.025em;
 }
 
 .prose-content h3 {
-  font-size: 1.25rem;
-  font-weight: 700;
-  color: #0f172a;
-  margin-top: 2rem;
+  font-size: 1.3125rem;
+  font-weight: 600;
+  margin-top: 2.25rem;
   margin-bottom: 0.75rem;
-  letter-spacing: -0.025em;
 }
 
 .prose-content h4 {
   font-size: 1.125rem;
-  font-weight: 700;
-  color: #0f172a;
+  font-weight: 600;
   margin-top: 1.75rem;
   margin-bottom: 0.5rem;
 }
 
 .prose-content ul,
 .prose-content ol {
-  padding-left: 1.5rem;
+  padding-left: 1.375rem;
   margin-block: 1.5rem;
-  color: #475569;
-  font-size: 1rem;
+  font-size: 1.0625rem;
 }
 
 .prose-content ul {
-  list-style-type: disc;
+  list-style-type: square;
 }
 
 .prose-content ol {
@@ -215,16 +656,22 @@ html {
 }
 
 .prose-content li + li {
-  margin-top: 0.75rem;
+  margin-top: 0.625rem;
 }
 
 .prose-content li::marker {
-  color: #94a3b8;
+  color: var(--color-brand);
+}
+
+.prose-content ol li::marker {
+  color: var(--color-mute);
+  font-family: var(--font-mono);
+  font-size: 0.875em;
 }
 
 .prose-content strong {
-  font-weight: 700;
-  color: #0f172a;
+  font-weight: 600;
+  color: var(--color-ink);
 }
 
 .prose-content em {
@@ -232,32 +679,34 @@ html {
 }
 
 .prose-content a {
-  color: #13b5ea;
-  font-weight: 600;
-  transition: color 0.15s;
+  color: var(--color-ink);
+  font-weight: 500;
+  text-decoration: underline;
+  text-decoration-color: var(--color-brand);
+  text-decoration-thickness: 2px;
+  text-underline-offset: 0.2em;
+  transition: text-decoration-color 0.15s;
 }
 
 .prose-content a:hover {
-  color: #0e9fd2;
-  text-decoration: underline;
+  text-decoration-color: var(--color-ink);
 }
 
 .prose-content code {
-  background-color: #f1f5f9;
-  color: #1e293b;
-  font-size: 0.75rem;
-  font-weight: 600;
+  background-color: var(--color-paper);
+  color: var(--color-ink);
+  font-size: 0.875em;
   font-family: var(--font-mono);
   padding: 0.125rem 0.375rem;
-  border-radius: 0.25rem;
-  border: 1px solid #e2e8f0;
+  border-radius: 3px;
+  border: 1px solid var(--color-rule);
 }
 
 .prose-content pre {
-  background-color: #0f172a;
+  background-color: var(--color-ink);
   color: #e2e8f0;
   padding: 1.25rem;
-  border-radius: 1rem;
+  border-radius: 6px;
   overflow-x: auto;
   margin-block: 2rem;
   font-size: 0.875rem;
@@ -272,34 +721,36 @@ html {
 }
 
 .prose-content hr {
-  margin-block: 2.5rem;
+  margin-block: 2.75rem;
   border: 0;
-  border-top: 1px solid #e2e8f0;
+  border-top: 1px solid var(--color-rule);
 }
 
 .prose-content blockquote {
-  border-left: 4px solid #13b5ea;
-  padding-left: 1.5rem;
-  padding-right: 1rem;
-  padding-block: 0.5rem;
+  border-left: 2px solid var(--color-brand);
+  padding-left: 1.25rem;
   margin-block: 2rem;
-  font-style: italic;
-  color: #64748b;
-  font-size: 1rem;
-  line-height: 1.625;
-  background-color: rgba(248, 250, 252, 0.4);
-  border-radius: 0 0.5rem 0.5rem 0;
+  font-family: var(--font-display);
+  font-size: 1.25rem;
+  line-height: 1.4;
+  letter-spacing: -0.012em;
+  color: var(--color-ink);
+}
+
+.prose-content blockquote p {
+  font-size: inherit;
+  line-height: inherit;
 }
 
 .prose-content img {
   max-width: 100%;
   height: auto;
-  border-radius: 1rem;
+  border-radius: 6px;
   margin-block: 2rem;
 }
 
-/* Wide tables scroll inside their own rounded shell rather than pushing the
-   page sideways. `display: block` turns the table itself into that scroll
+/* Wide tables scroll inside their own shell rather than pushing the page
+   sideways. `display: block` turns the table itself into that scroll
    container; the rows still lay out as a table via anonymous boxes. */
 .prose-content table {
   display: block;
@@ -308,73 +759,38 @@ html {
   overflow-x: auto;
   border-collapse: collapse;
   margin-block: 2rem;
-  border: 1px solid rgba(226, 232, 240, 0.6);
-  border-radius: 1rem;
-  box-shadow: 0 1px 2px 0 rgb(0 0 0 / 0.05);
-}
-
-.prose-content thead {
-  background-color: #f8fafc;
+  border-top: 2px solid var(--color-ink);
+  border-bottom: 1px solid var(--color-rule);
+  font-variant-numeric: tabular-nums;
 }
 
 .prose-content th {
-  padding: 1rem 1.5rem;
+  padding: 0.75rem 1.25rem 0.75rem 0;
   text-align: left;
-  font-size: 0.75rem;
-  font-weight: 800;
-  color: #1e293b;
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
-  background-color: rgba(248, 250, 252, 0.8);
-  border-bottom: 1px solid #e2e8f0;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  color: var(--color-ink);
+  border-bottom: 1px solid var(--color-rule);
 }
 
 .prose-content td {
-  padding: 1rem 1.5rem;
-  font-weight: 500;
-  vertical-align: middle;
-  color: #475569;
-  font-size: 0.875rem;
-  border-bottom: 1px solid #f1f5f9;
+  padding: 0.75rem 1.25rem 0.75rem 0;
+  vertical-align: top;
+  font-size: 0.9375rem;
+  border-bottom: 1px solid var(--color-rule);
 }
 
 .prose-content tbody tr:last-child td {
   border-bottom: 0;
 }
 
-.prose-content tbody tr {
-  transition: background-color 0.15s;
+/* A table with five or more columns would otherwise squeeze every cell down to
+   a word per line before it starts to scroll. A floor on the column width makes
+   it scroll sooner and stay readable. */
+.prose-content table:has(th:nth-child(5)) :is(th, td) {
+  min-width: 12rem;
 }
 
-.prose-content tbody tr:hover {
-  background-color: rgba(248, 250, 252, 0.5);
-}
-
-@media (min-width: 640px) {
-  .prose-content p,
-  .prose-content ul,
-  .prose-content ol,
-  .prose-content blockquote {
-    font-size: 1.125rem;
-  }
-
-  .prose-content h1 {
-    font-size: 2.25rem;
-  }
-
-  .prose-content h2 {
-    font-size: 1.875rem;
-  }
-
-  .prose-content h3 {
-    font-size: 1.5rem;
-  }
-
-  .prose-content code {
-    font-size: 0.875rem;
-  }
-
-  .prose-content td {
-    font-size: 1rem;
-  }
+.prose-content table:has(th:nth-child(5)) :is(th, td):first-child {
+  min-width: 8rem;
 }

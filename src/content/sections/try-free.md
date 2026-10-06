@@ -48,7 +48,7 @@ bullets:
   - text: "Digital PDF statements only — scanned copies coming soon"
     tone: "warning"
 ctas:
-  - label: "Book a Demo"
+  - label: "Book a demo"
     href: "#book-demo"
     style: "primary"
   - label: "Login"

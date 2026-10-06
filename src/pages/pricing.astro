@@ -1,0 +1,462 @@
+---
+/**
+ * /pricing — the three subscription tiers, a side-by-side comparison and the
+ * pricing FAQs.
+ *
+ * Plans come from `src/content/plans/*.md` and the page copy from
+ * `src/content/sections/pricing.md`, so a price change is a markdown edit. Both
+ * monthly and yearly prices are in the HTML; the toggle only swaps which is
+ * visible, so crawlers and no-JS visitors still see monthly by default.
+ */
+import BaseLayout from "../layouts/BaseLayout.astro";
+import TopBar from "../components/TopBar.astro";
+import Nav from "../components/Nav.astro";
+import Footer from "../components/Footer.astro";
+import BookDemoSection from "../components/BookDemoSection.astro";
+import CookieConsent from "../components/CookieConsent.astro";
+import Icon from "../components/Icon.astro";
+import { getOrdered, getSection, getSite } from "../lib/content";
+import { breadcrumbs, faqPage, organization, website } from "../lib/schema";
+
+const brand = await getSite("brand");
+const section = await getSection("pricing");
+const plans = await getOrdered("plans");
+const { billing, comparison, faqs } = section;
+
+const site = (brand.url ?? "").replace(/\/$/, "");
+
+/** 9.99 -> "9.99", 1999 -> "1,999", 83.25 -> "83.25" */
+const gbp = (amount: number) =>
+  Number.isInteger(amount)
+    ? amount.toLocaleString("en-GB")
+    : amount.toLocaleString("en-GB", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+
+const priced = plans.map((plan) => {
+  const { monthlyPrice, yearlyPrice } = plan.data;
+  const saving = Math.round((monthlyPrice * 12 - yearlyPrice) * 100) / 100;
+  return {
+    ...plan.data,
+    saving,
+    yearlyPerMonth: Math.round((yearlyPrice / 12) * 100) / 100,
+  };
+});
+
+const jsonLd = [
+  {
+    "@context": "https://schema.org",
+    "@graph": [
+      organization(brand),
+      website(brand),
+      {
+        "@type": "WebPage",
+        "@id": `${site}/pricing#webpage`,
+        url: `${site}/pricing`,
+        name: section.pageTitle,
+        description: section.pageDescription,
+        inLanguage: "en-GB",
+        isPartOf: { "@id": `${site}/#website` },
+        publisher: { "@id": `${site}/#organization` },
+      },
+      {
+        "@type": "SoftwareApplication",
+        "@id": `${site}/pricing#software`,
+        name: brand.name,
+        applicationCategory: "BusinessApplication",
+        operatingSystem: "All",
+        description: brand.applicationDescription,
+        offers: priced.flatMap((plan) => [
+          {
+            "@type": "Offer",
+            name: `${plan.name} (monthly)`,
+            price: plan.monthlyPrice.toFixed(2),
+            priceCurrency: "GBP",
+            url: `${site}/pricing`,
+          },
+          {
+            "@type": "Offer",
+            name: `${plan.name} (yearly)`,
+            price: plan.yearlyPrice.toFixed(2),
+            priceCurrency: "GBP",
+            url: `${site}/pricing`,
+          },
+        ]),
+      },
+      ...(faqs.length ? [faqPage(brand, faqs, "/pricing")] : []),
+    ],
+  },
+  breadcrumbs(brand, [
+    { name: "Home", item: "/" },
+    { name: "Pricing", item: "/pricing" },
+  ]),
+];
+
+import FaqBlock from "../components/FaqBlock.astro";
+import PageHead from "../components/PageHead.astro";
+import SectionHead from "../components/SectionHead.astro";
+---
+
+<BaseLayout
+  title={section.pageTitle!}
+  description={section.pageDescription}
+  canonical="/pricing"
+  jsonLd={jsonLd}
+>
+  <TopBar />
+  <Nav />
+
+  <main id="main">
+    <div data-billing="monthly" id="pricing-root">
+      {/* ── Header + toggle ─────────────────────────────────────────────── */}
+      <PageHead trail={[{ name: "Pricing" }]} label={section.badge} lede={section.subheading}>
+        <Fragment slot="title">
+          {section.headline?.before}<span class="mark">{section.headline?.accent}</span
+          >{section.headline?.after}
+        </Fragment>
+
+        <div slot="aside">
+          {
+            billing && (
+              <div
+                class="inline-flex bg-white border border-ink rounded-md p-1"
+                role="group"
+                aria-label="Billing period"
+              >
+                <button
+                  type="button"
+                  data-billing-option="monthly"
+                  aria-pressed="true"
+                  class="billing-btn"
+                >
+                  {billing.monthlyLabel}
+                </button>
+                <button
+                  type="button"
+                  data-billing-option="yearly"
+                  aria-pressed="false"
+                  class="billing-btn"
+                >
+                  {billing.yearlyLabel}
+                  <span class="billing-note">{billing.yearlyNote}</span>
+                </button>
+              </div>
+            )
+          }
+        </div>
+      </PageHead>
+
+      {/* ── Plans: one ruled sheet with three columns, not three towers ──── */}
+      <section class="wrap pt-10 pb-20 lg:pt-14 lg:pb-28">
+        <div class="anim anim-up grid grid-cols-1 lg:grid-cols-3 border border-ink rounded-md overflow-hidden">
+          {
+            priced.map((plan) => (
+              <article
+                class:list={[
+                  "row-span-3 grid grid-rows-subgrid gap-y-0 p-6 sm:p-8 border-t first:border-t-0 lg:border-t-0 lg:border-l lg:first:border-l-0 border-ink",
+                  plan.featured ? "on-dark bg-ink text-white" : "bg-white",
+                ]}
+              >
+                {/* The card is a three-row subgrid of the sheet: this block, the
+                     allowances, then the features. Sharing the rows across the
+                     three plans keeps each list starting level with its
+                     neighbours, whatever the lengths above it. */}
+                <div>
+                  <div class="flex items-start justify-between gap-4">
+                    <h2
+                      class:list={["font-display font-semibold text-2xl tracking-tight", plan.featured ? "text-white" : "text-ink"]}
+                    >
+                      {plan.name}
+                    </h2>
+                    {plan.badge && (
+                      <span class="bg-brand text-ink text-xs font-semibold px-2 py-1 rounded-[3px] whitespace-nowrap">
+                        {plan.badge}
+                      </span>
+                    )}
+                  </div>
+                  <p
+                    class:list={[
+                      "text-[0.9375rem] leading-relaxed mt-2 lg:min-h-[3rem]",
+                      plan.featured ? "text-white/70" : "text-mute",
+                    ]}
+                  >
+                    {plan.tagline}
+                  </p>
+
+                  <div class="mt-7">
+                    <p data-price="monthly">
+                      <span class="font-display font-bold text-5xl tracking-tight tabular-nums">
+                        £{gbp(plan.monthlyPrice)}
+                      </span>
+                      <span class:list={["text-sm ml-1", plan.featured ? "text-white/60" : "text-mute"]}>
+                        / month
+                      </span>
+                    </p>
+                    <p data-price="yearly">
+                      <span class="font-display font-bold text-5xl tracking-tight tabular-nums">
+                        £{gbp(plan.yearlyPrice)}
+                      </span>
+                      <span class:list={["text-sm ml-1", plan.featured ? "text-white/60" : "text-mute"]}>
+                        / year
+                      </span>
+                    </p>
+                  </div>
+                  <p
+                    data-price="monthly"
+                    class:list={["fig text-xs mt-2 h-5", plan.featured ? "text-white/60" : "text-mute"]}
+                  >
+                    or £{gbp(plan.yearlyPrice)} billed yearly
+                  </p>
+                  <p
+                    data-price="yearly"
+                    class:list={["fig text-xs mt-2 h-5", plan.featured ? "text-brand" : "text-ink"]}
+                  >
+                    ≈ £{gbp(plan.yearlyPerMonth)}/month · save £{gbp(plan.saving)}
+                  </p>
+
+                  <a
+                    href={plan.cta.href}
+                    target={plan.cta.external ? "_blank" : undefined}
+                    rel={plan.cta.external ? "noopener noreferrer" : undefined}
+                    class:list={["btn w-full mt-7", plan.featured ? "btn-primary" : "btn-line"]}
+                    data-event="cta_click"
+                    data-event-label={plan.cta.event}
+                  >
+                    {plan.cta.label}
+                    <Icon name="ArrowRight" size={16} class="arrow" />
+                  </a>
+                </div>
+
+                <dl class="mt-8 text-sm">
+                  {plan.allowances.map((item) => (
+                    <div
+                      class:list={[
+                        "flex items-start justify-between gap-4 border-t py-3",
+                        plan.featured ? "border-white/15" : "border-rule",
+                      ]}
+                    >
+                      <dt class={plan.featured ? "text-white/70" : "text-mute"}>{item.label}</dt>
+                      <dd class="text-right">
+                        <span class="font-medium tabular-nums">{item.value}</span>
+                        {item.note && (
+                          <span
+                            class:list={["fig block text-xs", plan.featured ? "text-white/55" : "text-mute"]}
+                          >
+                            {item.note}
+                          </span>
+                        )}
+                      </dd>
+                    </div>
+                  ))}
+                </dl>
+
+                <ul
+                  class:list={[
+                    "border-t pt-5 mt-2 space-y-3 text-sm",
+                    plan.featured ? "border-white/15" : "border-rule",
+                  ]}
+                >
+                  {plan.features.map((feature) => (
+                    <li class="flex items-start gap-2.5">
+                      <Icon
+                        name="Check"
+                        size={15}
+                        strokeWidth={2.5}
+                        class={`shrink-0 mt-0.5 ${plan.featured ? "text-brand" : "text-brand-dark"}`}
+                      />
+                      {feature}
+                    </li>
+                  ))}
+                </ul>
+              </article>
+            ))
+          }
+
+          {/* Extras sit in a row of their own beneath the three columns, so a
+               plan with a longer list does not leave the others ending in
+               empty space. On a phone the row follows the last plan. */}
+          {
+            priced
+              .filter((plan) => plan.extras.length > 0)
+              .map((plan) => (
+                <div class="grid grid-cols-1 gap-x-12 gap-y-6 lg:col-span-3 lg:grid-cols-12 border-t border-ink bg-paper p-6 sm:p-8">
+                  <div class="lg:col-span-4">
+                    <p class="label">{plan.name}</p>
+                    {plan.extrasHeading && <p class="h-row mt-3">{plan.extrasHeading}</p>}
+                  </div>
+                  <ul class="lg:col-span-8 grid grid-cols-1 sm:grid-cols-2 gap-x-10 gap-y-3 text-[0.9375rem] text-ink">
+                    {plan.extras.map((extra) => (
+                      <li class="flex items-start gap-2.5">
+                        <span aria-hidden="true" class="size-1.5 bg-brand mt-2 shrink-0" />
+                        {extra}
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              ))
+          }
+        </div>
+
+        {
+          section.trustPoints.length > 0 && (
+            <ul class="flex flex-wrap gap-x-6 gap-y-2 mt-6 text-sm text-mute">
+              {section.trustPoints.map((point) => (
+                <li class="flex items-center gap-2">
+                  <span aria-hidden="true" class="size-1.5 bg-brand" />
+                  {point}
+                </li>
+              ))}
+            </ul>
+          )
+        }
+      </section>
+
+      {/* ── Comparison table ────────────────────────────────────────────── */}
+      {
+        comparison && (
+          <section id="compare" class="bg-paper border-t border-rule">
+            <div class="wrap pt-20 pb-24 lg:pt-28 lg:pb-32">
+              <SectionHead label={comparison.eyebrow} heading={comparison.heading} />
+
+              <div class="anim anim-up overflow-x-auto">
+                <table class="w-full min-w-[680px] text-[0.9375rem] border-b border-ink">
+                  <thead>
+                    <tr class="border-t-2 border-b border-ink">
+                      <th scope="col" class="text-left px-4 py-4 w-[34%]">
+                        <span class="sr-only">Feature</span>
+                      </th>
+                      {priced.map((plan) => (
+                        <th
+                          scope="col"
+                          class:list={[
+                            "px-4 py-4 text-left font-display font-semibold text-lg tracking-tight text-ink",
+                            plan.featured && "bg-white",
+                          ]}
+                        >
+                          {plan.name}
+                        </th>
+                      ))}
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {comparison.rows.map((row) => (
+                      <tr class="border-b border-rule last:border-0">
+                        <th scope="row" class="text-left font-normal text-mute px-4 py-3.5">
+                          {row.label}
+                        </th>
+                        {row.values.map((value, i) => (
+                          <td
+                            class:list={[
+                              "px-4 py-3.5 text-ink tabular-nums",
+                              priced[i]?.featured && "bg-white font-medium",
+                            ]}
+                          >
+                            {value === true ? (
+                              <Icon
+                                name="Check"
+                                size={17}
+                                strokeWidth={2.5}
+                                class="text-brand-dark inline-block"
+                                title="Included"
+                              />
+                            ) : value === false ? (
+                              <span class="text-mute/50" aria-label="Not included">
+                                —
+                              </span>
+                            ) : (
+                              value
+                            )}
+                          </td>
+                        ))}
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </section>
+        )
+      }
+
+      {/* ── FAQs ────────────────────────────────────────────────────────── */}
+      {
+        faqs.length > 0 && (
+          <FaqBlock heading="Pricing questions" items={faqs} name="pricing-faq" tinted={false} />
+        )
+      }
+    </div>
+
+    <BookDemoSection />
+  </main>
+
+  <Footer />
+  <CookieConsent />
+</BaseLayout>
+
+<style>
+  .billing-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    min-height: 2.5rem;
+    padding: 0.375rem 1rem;
+    border-radius: 4px;
+    font-size: 0.9375rem;
+    font-weight: 500;
+    color: var(--color-mute);
+    cursor: pointer;
+    transition:
+      background-color 0.2s ease,
+      color 0.2s ease;
+  }
+  .billing-btn:hover {
+    color: var(--color-ink);
+  }
+  .billing-btn[aria-pressed="true"] {
+    background: var(--color-ink);
+    color: #fff;
+  }
+  .billing-note {
+    font-family: var(--font-mono);
+    font-size: 0.75rem;
+    color: var(--color-ink);
+    background: var(--color-brand);
+    padding: 0.125rem 0.375rem;
+    border-radius: 3px;
+  }
+
+  /* Monthly is the default in the HTML; this flips the pair once yearly is picked. */
+  [data-price="yearly"] {
+    display: none;
+  }
+  [data-billing="yearly"] [data-price="monthly"] {
+    display: none;
+  }
+  [data-billing="yearly"] [data-price="yearly"] {
+    display: block;
+  }
+</style>
+
+<script>
+  const root = document.getElementById("pricing-root");
+  const buttons = document.querySelectorAll<HTMLButtonElement>("[data-billing-option]");
+
+  buttons.forEach((button) => {
+    button.addEventListener("click", () => {
+      const period = button.dataset.billingOption!;
+      if (root) root.dataset.billing = period;
+      buttons.forEach((b) => b.setAttribute("aria-pressed", String(b === button)));
+      window.gtag?.("event", "pricing_billing_toggle", {
+        event_category: "engagement",
+        event_label: period,
+      });
+    });
+  });
+
+  document.querySelectorAll<HTMLElement>("[data-event='cta_click']").forEach((el) => {
+    el.addEventListener("click", () => {
+      window.gtag?.("event", "cta_click", {
+        event_category: "engagement",
+        event_label: el.dataset.eventLabel ?? "pricing",
+      });
+    });
+  });
+</script>

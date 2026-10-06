@@ -1,109 +1,327 @@
 ---
 import Icon from "./Icon.astro";
-import { getSection, getSite } from "../lib/content";
+import { fill, getOrdered, getSection, getSite } from "../lib/content";
 
 const brand = await getSite("brand");
 const hero = await getSection("hero");
-const { headline, form, ctas, trustPoints, badge, subheading } = hero;
+const { headline, form, ctas, trustPoints, badge } = hero;
 const secondaryCta = ctas[0];
+
+// The illustration is built from the same sample data the features section
+// uses, so the hero never shows figures that appear nowhere else on the site.
+// The first email and the first bank statement in that data are the same job
+// (one client's January statement), so the email card and the window header
+// tell one story. If the content is reordered they will simply stop matching.
+const features = await getOrdered("features");
+const sample = (visual: string) => features.find((f) => f.data.visual === visual)?.data;
+const mail = sample("email")?.emails[0];
+const parsed = sample("statements");
+const source = parsed?.banks[0];
+const categorised = sample("categorise");
+const lines = categorised?.transactions.slice(0, 3) ?? [];
+const reports = sample("balance");
+const balance = reports?.ledger;
+
+// Wording for the illustration comes from hero.md's `figure` block, but the
+// figure never depends on it: the two headings fall back to the titles of the
+// features whose data is shown, and the optional captions are simply left
+// out. A missing or stale block costs some labels, not the whole picture.
+const labels = hero.figure;
+const linesLabel = labels?.linesLabel ?? categorised?.title;
+const balanceLabel = labels?.balanceLabel ?? reports?.title;
+const exportFormats = labels?.exportFormats ?? [];
+/** Statement lines the window does not list, for its "+ n more" line. */
+const unseen = source ? source.transactions - lines.length : 0;
+
+// Both tables in the window share one column grid once it is wide enough (`@sm`
+// is a 24rem container), so the statement's category column sits exactly over
+// the trial balance's debit column and the amounts over the credits.
+const cols = "@sm:grid-cols-[minmax(0,1fr)_5.5rem_5rem]";
+const head = "border-b border-rule bg-paper px-4 py-2 text-[0.6875rem] text-mute";
+const fileTag =
+  "fig shrink-0 rounded-[3px] border border-rule bg-paper px-1.5 py-1 text-[0.6875rem] leading-none text-mute";
+/** Start time of a row's entrance, relative to the figure being revealed. */
+const at = (seconds: number, from = "translateY(6px)") =>
+  `--row-delay: ${seconds.toFixed(2)}s; --row-from: ${from};`;
+
+// The fact row. The percentage is lifted from the headline, and the bank and
+// export counts are the lengths of the lists published elsewhere on the site,
+// so none of them can drift from the copy. The four sources are the ones the
+// page description names.
+const { supportedBanks } = await getSection("try-free");
+const { integrations } = await getSite("integrations");
+const facts = [
+  { figure: headline?.accent?.match(/\d+%/)?.[0], label: "of bookkeeping time saved" },
+  { figure: String(supportedBanks.length), label: "UK bank statement formats read" },
+  { figure: "4", label: "sources: emails, PDFs, Excel, images" },
+  {
+    figure: String(integrations.length),
+    label: `exports: ${integrations.map((item) => item.name).join(", ")}`,
+  },
+].filter((fact) => fact.figure);
+// Four facts sit 2x2 beside the figure on wide screens and under the copy on
+// phones, and run four across in between, where the hero is a single column.
+const factGrid = facts.length === 4 ? "grid-cols-2 md:grid-cols-4 lg:grid-cols-2" : "sm:grid-cols-3";
 ---
 
-<section class="relative bg-white">
-  <div class="relative max-w-4xl mx-auto px-6 pt-24 pb-28 text-center">
-    <div
-      class="anim anim-up inline-flex items-center gap-2 bg-[#13b5ea]/10 text-[#13b5ea] text-xs font-bold px-4 py-2 rounded-full mb-7 uppercase tracking-widest"
-      style="--anim-delay: 0.1s"
-    >
-      <Icon name="Sparkles" size={12} />
-      {badge}
-    </div>
+<section class="grid-paper bg-paper overflow-x-clip">
+  <div class="wrap pt-14 pb-16 sm:pt-20 lg:pt-8 lg:pb-20">
+    {/* Wide screens: copy and facts stack in the left half, top-aligned so the
+         form is above the fold; the figure takes the right half across both
+         rows and is exactly as tall as the two together. Narrow screens: copy,
+         figure, facts, in that order. */}
+    <div class="grid grid-cols-1 gap-y-14 lg:grid-cols-2 lg:gap-x-16 lg:gap-y-8 xl:gap-x-24">
+      <div class="lg:col-start-1 lg:row-start-1">
+        <p class="anim anim-up label mb-6">{badge}</p>
 
-    <h1
-      class="anim anim-up text-5xl sm:text-6xl font-bold text-gray-900 leading-[1.05] tracking-tight mb-6"
-      style="--anim-delay: 0.2s"
-    >
-      {headline?.before} <span class="text-[#13b5ea]">{headline?.accent}</span>{" "}
-      {headline?.after}
-    </h1>
-
-    <p
-      class="anim anim-up text-lg text-gray-600 leading-relaxed mb-10 max-w-xl mx-auto"
-      style="--anim-delay: 0.3s"
-    >
-      {subheading}
-    </p>
-
-    {/* Prominent email lead magnet */}
-    <div class="anim anim-up max-w-2xl mx-auto" style="--anim-delay: 0.4s">
-      <div data-hero-success hidden>
-        <div
-          class="flex items-center justify-center gap-3 bg-[#13b5ea]/10 text-slate-800 rounded-2xl px-6 py-5 max-w-lg mx-auto"
+        <h1
+          class="anim anim-up display text-[clamp(2.6rem,5.3vw,4.5rem)] max-w-[13ch]"
+          style="--anim-delay: 0.08s"
         >
-          <Icon name="CheckCircle2" size={24} class="text-[#13b5ea] shrink-0" />
-          <p class="text-sm font-medium text-left">{form?.successMessage}</p>
+          {headline?.before} <span class="mark">{headline?.accent}</span>{" "}
+          {headline?.after}
+        </h1>
+
+        {/* Email lead form */}
+        <div class="anim anim-up mt-12 lg:mt-[5.5rem] max-w-xl" style="--anim-delay: 0.16s">
+          <div data-hero-success hidden>
+            <p class="sheet flex items-start gap-3 border-l-2 border-l-brand px-5 py-4 text-ink font-medium">
+              <Icon name="Check" size={18} strokeWidth={2.5} class="mt-0.5 text-brand-dark" />
+              {form?.successMessage}
+            </p>
+          </div>
+
+          <div data-hero-idle>
+            <form
+              data-hero-form
+              data-source={form?.source}
+              data-error={form?.errorMessage}
+              data-connection-error={form?.connectionErrorMessage}
+              class="sheet flex flex-col sm:flex-row gap-2 p-2 transition-colors focus-within:border-ink"
+            >
+              <input type="hidden" name="access_key" value={brand.formAccessKey} />
+              <input type="hidden" name="source" value={form?.source} />
+              <label for="hero-email" class="sr-only">{form?.placeholder}</label>
+              <input
+                id="hero-email"
+                type="email"
+                name="email"
+                required
+                autocomplete="email"
+                placeholder={form?.placeholder}
+                class="flex-1 min-w-0 min-h-13 px-4 bg-transparent text-base text-ink placeholder:text-[#8794a6] focus:outline-none"
+              />
+              <button type="submit" class="btn btn-primary min-h-13 px-6 text-base">
+                <span data-label class="inline-flex items-center gap-2.5">
+                  {form?.submitLabel}
+                  <Icon name="ArrowRight" size={18} class="arrow" />
+                </span>
+                <span data-loading class="inline-flex items-center gap-2" hidden>
+                  <Icon name="Loader" size={18} class="animate-spin" />
+                  {form?.loadingLabel}
+                </span>
+              </button>
+            </form>
+            <p data-hero-error class="text-sm text-red-700 mt-2.5" role="alert" hidden></p>
+
+            <div class="flex flex-wrap items-center gap-x-5 gap-y-2 mt-5 text-sm text-mute">
+              {
+                trustPoints.map((point) => (
+                  <span class="flex items-center gap-2">
+                    <span aria-hidden="true" class="size-1.5 bg-brand" />
+                    {point}
+                  </span>
+                ))
+              }
+              {
+                secondaryCta && (
+                  <a href={secondaryCta.href} class="link sm:ml-auto">
+                    {secondaryCta.label}
+                  </a>
+                )
+              }
+            </div>
+          </div>
         </div>
       </div>
 
-      <div data-hero-idle>
-        <form
-          data-hero-form
-          data-source={form?.source}
-          data-error={form?.errorMessage}
-          data-connection-error={form?.connectionErrorMessage}
-          class="flex flex-col sm:flex-row gap-3 bg-white p-3 rounded-2xl shadow-xl shadow-[#13b5ea]/15 border-2 border-[#13b5ea]/20 transition-all focus-within:border-[#13b5ea] focus-within:shadow-[#13b5ea]/30"
-        >
-          <input type="hidden" name="access_key" value={brand.formAccessKey} />
-          <input type="hidden" name="source" value={form?.source} />
-          <label for="hero-email" class="sr-only">{form?.placeholder}</label>
-          <input
-            id="hero-email"
-            type="email"
-            name="email"
-            required
-            autocomplete="email"
-            placeholder={form?.placeholder}
-            class="flex-1 bg-transparent text-slate-900 text-base rounded-xl px-5 py-4 placeholder-slate-400 focus:outline-none"
-          />
-          <button
-            type="submit"
-            class="inline-flex items-center justify-center gap-2 bg-[#13b5ea] text-white font-semibold px-8 py-4 rounded-xl hover:bg-[#0e9fd2] transition-colors text-base shadow-lg shadow-[#13b5ea]/30 disabled:cursor-not-allowed whitespace-nowrap cursor-pointer"
-          >
-            <span data-label class="inline-flex items-center gap-2">
-              {form?.submitLabel}
-              <Icon name="ArrowRight" size={18} />
-            </span>
-            <span data-loading class="inline-flex items-center gap-2" hidden>
-              <Icon name="Loader" size={18} class="animate-spin" />
-              {form?.loadingLabel}
-            </span>
-          </button>
-        </form>
-        <p data-hero-error class="text-sm text-red-600 mt-2" hidden></p>
-        {
-          secondaryCta && (
-            <a
-              href={secondaryCta.href}
-              class="inline-block text-sm text-gray-500 hover:text-gray-800 font-medium mt-4 transition-colors"
-            >
-              {secondaryCta.label}
-            </a>
-          )
-        }
-      </div>
-    </div>
-
-    <div
-      class="anim anim-fade flex flex-wrap items-center justify-center gap-x-6 gap-y-2 mt-10 text-sm text-gray-500"
-      style="--anim-delay: 0.6s"
-    >
+      {/* One product window on a solid brand block, with the email that starts
+           the job feeding in at the top and the export hanging off the end.
+           Everything sits on one left edge; nothing overlaps content. */}
       {
-        trustPoints.map((point) => (
-          <span class="flex items-center gap-1.5">
-            <Icon name="Check" size={14} class="text-[#13b5ea]" />
-            {point}
-          </span>
-        ))
+        lines.length > 0 && balance && (
+          <figure
+            class="anim anim-up relative lg:col-start-2 lg:row-start-1 lg:row-span-2 lg:flex lg:flex-col"
+            style="--anim-delay: 0.3s"
+          >
+            <div class="relative pt-7 pb-11 lg:pt-10 lg:flex-1">
+              <div
+                aria-hidden="true"
+                class="absolute inset-y-0 left-12 sm:left-16 -right-[50vw] bg-brand rounded-l-md"
+              />
+
+              <div class="relative">
+                {/* 1. The email arrives */}
+                {
+                  mail && (
+                    <>
+                      <div class="sheet w-fit max-w-full flex items-center gap-3 px-4 py-3">
+                        <span class="grid place-items-center size-8 shrink-0 rounded-[3px] border border-rule bg-white">
+                          <Icon name="Gmail" size={18} />
+                        </span>
+                        <span class="min-w-0">
+                          <span class="block truncate text-xs text-mute">{mail.from}</span>
+                          <span class="block truncate text-[0.8125rem] font-medium text-ink">
+                            {mail.subject}
+                          </span>
+                        </span>
+                        {labels?.attachment && <span class={fileTag}>{labels.attachment}</span>}
+                        <span class="fig shrink-0 text-xs text-mute">{mail.time}</span>
+                      </div>
+                      {/* Drops from under the mail icon into the window. */}
+                      <div aria-hidden="true" class="flow-down ml-8 h-6" />
+                    </>
+                  )
+                }
+
+                {/* 2. The window: statement lines in, trial balance out */}
+                <div class="@container sheet relative overflow-hidden shadow-[0_30px_60px_-30px_rgb(11_18_32/0.55)]">
+                  {
+                    source && (
+                      <div class="flex items-center justify-between gap-4 border-b border-rule px-4 py-2.5">
+                        <div class="min-w-0">
+                          <p class="truncate text-sm font-semibold text-ink">{source.client}</p>
+                          <p class="fig truncate text-[0.6875rem] text-mute">
+                            {source.name} · {source.date}
+                          </p>
+                        </div>
+                        {parsed?.bankBadge && (
+                          <p class="flex items-center gap-1.5 shrink-0 text-xs font-medium text-ink">
+                            <Icon name="Check" size={13} strokeWidth={2.5} class="text-brand-dark" />
+                            {parsed.bankBadge}
+                          </p>
+                        )}
+                      </div>
+                    )
+                  }
+
+                  <p class={`${head} flex items-center justify-between gap-4`}>
+                    <span>{linesLabel}</span>
+                    {source && <span class="fig">{source.transactions} transactions</span>}
+                  </p>
+                  <ul>
+                    {lines.map((txn, i) => (
+                      <li
+                        class={`visual-row grid grid-cols-[minmax(0,1fr)_auto] ${cols} items-center gap-x-3 border-b border-rule px-4 py-2 text-[0.8125rem]`}
+                        style={at(0.25 + i * 0.07)}
+                      >
+                        <span class="truncate text-ink">{txn.name}</span>
+                        {/* Under the name in a narrow window, in its own column in a wide one. */}
+                        <span class="col-start-1 row-start-2 @sm:col-start-2 @sm:row-start-1 flex items-center gap-1.5 text-xs text-mute">
+                          <span
+                            class="size-1.5 shrink-0 rounded-[1px]"
+                            style={`background-color: ${txn.color}`}
+                            aria-hidden="true"
+                          />
+                          {txn.category}
+                        </span>
+                        <span class="fig col-start-2 row-start-1 row-span-2 @sm:col-start-3 @sm:row-span-1 text-right text-ink">
+                          {txn.amount}
+                        </span>
+                      </li>
+                    ))}
+                  </ul>
+                  {
+                    unseen > 0 && labels?.moreLabel && (
+                      <p class="visual-row px-4 py-2 text-xs text-mute" style={at(0.25 + lines.length * 0.07)}>
+                        {fill(labels.moreLabel, { count: unseen })}
+                      </p>
+                    )
+                  }
+
+                  <p
+                    class="visual-row flex items-center justify-between gap-4 bg-ink px-4 py-2 text-xs font-medium text-white"
+                    style={at(0.6, "none")}
+                  >
+                    <span>{balanceLabel}</span>
+                    {
+                      labels?.balanceStatus && (
+                        <span class="flex items-center gap-2 font-normal text-white/70">
+                          <span class="size-1.5 bg-brand" aria-hidden="true" />
+                          {labels.balanceStatus}
+                        </span>
+                      )
+                    }
+                  </p>
+                  <div class={`${head} grid grid-cols-[minmax(0,1fr)_4.25rem_4.25rem] ${cols} gap-x-3`}>
+                    {balance.columns.map((column, i) => (
+                      <span class={i === 0 ? "" : "text-right"}>{column}</span>
+                    ))}
+                  </div>
+                  <div>
+                    {balance.rows.map((entry, i) => (
+                      <div
+                        class={`visual-row grid grid-cols-[minmax(0,1fr)_4.25rem_4.25rem] ${cols} gap-x-3 border-b border-rule last:border-b-0 px-4 py-2 text-[0.8125rem]`}
+                        style={at(0.68 + i * 0.06, "none")}
+                      >
+                        <span class="truncate text-ink">{entry.account}</span>
+                        <span class="fig text-right text-ink">{entry.debit}</span>
+                        <span class="fig text-right text-ink">{entry.credit}</span>
+                      </div>
+                    ))}
+                  </div>
+                  {/* A ruled-off closing line, as a ledger total would be. */}
+                  <p
+                    class="visual-row flex items-start gap-2 border-t border-ink px-4 py-2.5 text-xs font-medium text-ink"
+                    style={at(0.68 + balance.rows.length * 0.06 + 0.08, "none")}
+                  >
+                    <Icon name="Check" size={13} strokeWidth={2.5} class="mt-px text-brand-dark" />
+                    <span class="fig">{balance.footer}</span>
+                  </p>
+                </div>
+
+                {/* 3. Out the other end. Laps the window's bottom edge only. */}
+                {
+                  labels?.exportLabel && exportFormats.length > 0 && (
+                    <p
+                      class="sheet visual-row absolute -bottom-9 right-3 lg:-right-6 flex items-center gap-2 px-3.5 py-2.5 text-xs font-medium text-ink shadow-[0_18px_36px_-18px_rgb(11_18_32/0.5)]"
+                      style={at(0.68 + balance.rows.length * 0.06 + 0.3)}
+                    >
+                      <span class="mr-0.5">{labels.exportLabel}</span>
+                      {exportFormats.map((format) => (
+                        <span class={fileTag}>{format}</span>
+                      ))}
+                    </p>
+                  )
+                }
+              </div>
+            </div>
+
+            {labels?.caption && (
+              <figcaption class="mt-3 pl-12 sm:pl-16 text-xs text-mute lg:absolute lg:top-full lg:left-0">
+                {labels.caption}
+              </figcaption>
+            )}
+          </figure>
+        )
       }
+
+      {/* Facts */}
+      <dl
+        class={`anim anim-up cells ${factGrid} auto-rows-fr lg:col-start-1 lg:row-start-2`}
+        style="--anim-delay: 0.32s"
+      >
+        {
+          facts.map((fact) => (
+            <div class="flex flex-col-reverse justify-end gap-2 p-5 lg:py-4">
+              <dt class="text-sm text-mute leading-snug">{fact.label}</dt>
+              <dd class="font-display font-bold text-4xl leading-none tracking-tight text-ink">
+                {fact.figure}
+              </dd>
+            </div>
+          ))
+        }
+      </dl>
     </div>
   </div>
 </section>

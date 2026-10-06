@@ -1,8 +1,8 @@
 ---
-heading: "Ready to Automate Your Bookkeeping?"
+heading: "Ready to automate your bookkeeping?"
 subheading: "Eliminate manual data entries and secure HMRC and Companies House compliance automatically. Get started with Ledger AI."
 ctas:
-  - label: "Book a Live Demo"
+  - label: "Book a live demo"
     href: "/#book-demo"
     style: "primary"
 ---

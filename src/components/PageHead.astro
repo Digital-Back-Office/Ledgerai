@@ -1,0 +1,63 @@
+---
+/**
+ * The header band for inner pages: breadcrumb, label, H1 and intro on the
+ * paper-grid background.
+ *
+ * Slots:
+ *  - `title`  the H1's content (a slot so it can carry a highlighted span)
+ *  - `meta`   a line under the intro (author and date, "last updated", …)
+ *  - `aside`  sits bottom-right, level with the intro (the pricing toggle)
+ *  - `bleed`  hangs off the bottom edge of the band (a post's cover image);
+ *             whatever follows needs top padding to clear it
+ */
+import Breadcrumb from "./Breadcrumb.astro";
+
+interface Props {
+  trail: { name: string; item?: string }[];
+  label?: string;
+  lede?: string;
+}
+
+const { trail, label, lede } = Astro.props;
+const hasAside = Astro.slots.has("aside");
+const hasBleed = Astro.slots.has("bleed");
+---
+
+<section class="bg-paper grid-paper border-b border-rule">
+  <div class:list={["wrap pt-8", hasBleed ? "pb-0" : "pb-12 lg:pb-16"]}>
+    <Breadcrumb trail={trail} class="mb-10 lg:mb-14" />
+
+    <div class="grid gap-x-12 gap-y-8 lg:grid-cols-12 lg:items-end">
+      <div class={hasAside ? "lg:col-span-8" : "lg:col-span-10"}>
+        {label && <p class="anim anim-up label mb-6">{label}</p>}
+        <h1 class="anim anim-up display-sm" style="--anim-delay: 0.08s">
+          <slot name="title" />
+        </h1>
+        {
+          lede && (
+            <p class="anim anim-up lede mt-6 max-w-[60ch]" style="--anim-delay: 0.16s">
+              {lede}
+            </p>
+          )
+        }
+        <slot name="meta" />
+      </div>
+
+      {
+        hasAside && (
+          <div class="anim anim-up lg:col-span-4 lg:justify-self-end" style="--anim-delay: 0.24s">
+            <slot name="aside" />
+          </div>
+        )
+      }
+    </div>
+
+    {
+      hasBleed && (
+        <div class="relative mt-10 lg:mt-14 -mb-20 lg:-mb-28">
+          <slot name="bleed" />
+        </div>
+      )
+    }
+  </div>
+</section>

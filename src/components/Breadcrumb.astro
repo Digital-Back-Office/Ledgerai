@@ -1,0 +1,46 @@
+---
+/** Breadcrumb trail. "Home" is always first; the last crumb is the current page. */
+interface Crumb {
+  name: string;
+  item?: string;
+}
+
+interface Props {
+  trail: Crumb[];
+  class?: string;
+}
+
+const { trail, class: className = "" } = Astro.props;
+
+// On a phone a long page title would wrap under the trail and strand its
+// separator, and the H1 directly below says the same thing anyway. So where
+// there is a parent to show, the current page is dropped from the narrow
+// layout (it stays in the markup for assistive tech and crawlers).
+const collapse = trail.length > 1;
+---
+
+<nav aria-label="Breadcrumb" class:list={["crumbs", className]}>
+  <a href="/">Home</a>
+  {
+    trail.map((crumb, i) => {
+      const current = i === trail.length - 1;
+      const narrow = current && collapse ? "max-sm:sr-only" : "";
+      return (
+        <>
+          <span aria-hidden="true" class:list={["text-rule", current && collapse && "max-sm:hidden"]}>
+            /
+          </span>
+          {current ? (
+            <span class:list={["text-ink line-clamp-1", narrow]} aria-current="page">
+              {crumb.name}
+            </span>
+          ) : crumb.item ? (
+            <a href={crumb.item}>{crumb.name}</a>
+          ) : (
+            <span>{crumb.name}</span>
+          )}
+        </>
+      );
+    })
+  }
+</nav>

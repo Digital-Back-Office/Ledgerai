@@ -18,7 +18,7 @@ ledger:
       debit: "£20,000"
     - account: "Travel & Subsistence"
       debit: "£8,640"
-    - account: "Retained Earnings"
-      credit: "£178,440"
+    - account: "Cash at Bank"
+      debit: "£178,440"
   footer: "Balanced — £248,500 = £248,500"
 ---

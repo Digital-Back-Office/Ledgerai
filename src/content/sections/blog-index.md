@@ -1,7 +1,7 @@
 ---
 pageTitle: "Accounting & Bookkeeping Insights | Ledger AI"
 pageDescription: "Expert financial guidance, compliance advice, tax tips, and bookkeeping strategies for UK startups, SMEs, and growing businesses."
-badge: "Expert Resources"
+badge: "Expert resources"
 headline:
   before: "Accounting &"
   accent: "Bookkeeping"

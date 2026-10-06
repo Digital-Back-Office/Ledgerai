@@ -1,0 +1,366 @@
+---
+/**
+ * Inputs -> Ledger AI -> outputs, drawn in HTML and CSS so the labels are real
+ * text: crisp at any size, selectable, and editable in showcase.md.
+ *
+ * The connector geometry relies on every chip being exactly `--row` tall. Each
+ * chip sends a stub out to a vertical bus, and the bus runs from the centre of
+ * the first chip to the centre of the last. Both lists are centred on the core
+ * block, so the midpoint of each bus always meets the core's own stub — however
+ * many chips either side has.
+ *
+ * Three columns need about 35rem. The diagram is a container, so it switches
+ * on its own width rather than the viewport's: narrower than that — a phone,
+ * or a seven-column figure on a small laptop — and the lists stack above and
+ * below the core, with the connectors turned vertical.
+ */
+interface Props {
+  pipeline: {
+    inputLabel?: string;
+    outputLabel?: string;
+    inputs: { label: string; type?: string }[];
+    core: string;
+    coreNote?: string;
+    outputs: string[];
+  };
+}
+
+const { pipeline } = Astro.props;
+---
+
+<div class="pipeline-box">
+  <div class="pipeline">
+    {pipeline.inputLabel && <p class="pipe-heading pipe-heading-in">{pipeline.inputLabel}</p>}
+    {pipeline.outputLabel && <p class="pipe-heading pipe-heading-out">{pipeline.outputLabel}</p>}
+
+    <ul class="pipe-col pipe-in" aria-label={pipeline.inputLabel}>
+      {
+        pipeline.inputs.map((input) => (
+          <li>
+            {input.type && <span class="pipe-type">{input.type}</span>}
+            {input.label}
+          </li>
+        ))
+      }
+    </ul>
+
+    <div class="pipe-core">
+      <span class="pipe-arrow" aria-hidden="true"></span>
+      {pipeline.coreNote && <p class="pipe-core-note">{pipeline.coreNote}</p>}
+      <p class="pipe-core-name">{pipeline.core}</p>
+      <span class="pipe-bars" aria-hidden="true"><i></i><i></i><i></i><i></i></span>
+    </div>
+
+    <ul class="pipe-col pipe-out" aria-label={pipeline.outputLabel}>
+      {
+        pipeline.outputs.map((output) => (
+          <li>
+            <span class="pipe-dot" aria-hidden="true" />
+            {output}
+          </li>
+        ))
+      }
+    </ul>
+  </div>
+</div>
+
+<style>
+  .pipeline-box {
+    container-type: inline-size;
+  }
+
+  .pipeline {
+    --row: 3rem;
+    --gap: 2rem;
+    --line: rgb(11 18 32 / 0.42);
+    --dash-x: linear-gradient(to right, var(--line) 50%, transparent 50%);
+    --dash-y: linear-gradient(to bottom, var(--line) 50%, transparent 50%);
+
+    display: grid;
+    grid-template-areas: "in" "core" "out";
+    row-gap: var(--gap);
+  }
+
+  .pipe-in {
+    grid-area: in;
+  }
+  .pipe-core {
+    grid-area: core;
+  }
+  .pipe-out {
+    grid-area: out;
+  }
+
+  /* Column headings only fit once the lists sit side by side. */
+  .pipe-heading {
+    display: none;
+    font-size: 0.8125rem;
+    color: var(--color-mute);
+  }
+
+  /* ── Chips ─────────────────────────────────────────────────────────────── */
+  .pipe-col {
+    position: relative;
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    gap: 0.625rem;
+  }
+  .pipe-col li {
+    position: relative;
+    display: flex;
+    align-items: center;
+    gap: 0.625rem;
+    height: var(--row);
+    padding-inline: 0.75rem;
+    background: #fff;
+    border: 1px solid var(--color-rule);
+    border-radius: 4px;
+    font-size: 0.875rem;
+    font-weight: 500;
+    color: var(--color-ink);
+    white-space: nowrap;
+  }
+  /* Two chips side by side once a pair of the longest labels fits. */
+  @container (min-width: 18.5rem) {
+    .pipe-col {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+    .pipe-col li:last-child:nth-child(odd) {
+      grid-column: 1 / -1;
+    }
+  }
+
+  .pipe-type {
+    min-width: 2.5rem;
+    padding: 0.25rem 0.375rem;
+    background: var(--color-paper);
+    border: 1px solid var(--color-rule);
+    border-radius: 3px;
+    font-family: var(--font-mono);
+    font-size: 0.6875rem;
+    line-height: 1;
+    text-align: center;
+    color: var(--color-mute);
+  }
+  .pipe-dot {
+    width: 0.375rem;
+    height: 0.375rem;
+    background: var(--color-brand);
+    flex-shrink: 0;
+  }
+
+  /* ── Core ──────────────────────────────────────────────────────────────── */
+  .pipe-core {
+    position: relative;
+    padding: 1.125rem 1.5rem 1.25rem;
+    background: var(--color-ink);
+    border-radius: 6px;
+    color: #fff;
+    text-align: center;
+  }
+  .pipe-core-note {
+    font-size: 0.75rem;
+    color: rgb(255 255 255 / 0.6);
+  }
+  .pipe-core-name {
+    font-family: var(--font-display);
+    font-weight: 700;
+    font-size: 1.375rem;
+    line-height: 1.2;
+    letter-spacing: -0.02em;
+    white-space: nowrap;
+  }
+  .pipe-bars {
+    display: flex;
+    justify-content: center;
+    gap: 3px;
+    margin-top: 0.75rem;
+  }
+  .pipe-bars i {
+    width: 14px;
+    height: 3px;
+    background: var(--color-brand);
+    opacity: 0.25;
+    animation: pipe-pulse 1.6s ease-in-out infinite;
+  }
+  .pipe-bars i:nth-child(2) {
+    animation-delay: 0.2s;
+  }
+  .pipe-bars i:nth-child(3) {
+    animation-delay: 0.4s;
+  }
+  .pipe-bars i:nth-child(4) {
+    animation-delay: 0.6s;
+  }
+
+  /* ── Connectors, stacked layout: straight down through the core ────────── */
+  .pipe-core::before,
+  .pipe-core::after {
+    content: "";
+    position: absolute;
+    left: 50%;
+    width: 1px;
+    height: var(--gap);
+    background-image: var(--dash-y);
+    background-size: 1px 8px;
+  }
+  .pipe-core::before {
+    bottom: 100%;
+  }
+  .pipe-core::after {
+    top: 100%;
+  }
+  .pipe-arrow,
+  .pipe-out::after {
+    content: "";
+    position: absolute;
+    left: 50%;
+    bottom: 100%;
+    transform: translateX(-50%);
+    border-top: 6px solid var(--color-ink);
+    border-right: 4px solid transparent;
+    border-bottom: 0;
+    border-left: 4px solid transparent;
+  }
+
+  /* ── Connectors, three-column layout ───────────────────────────────────── */
+  @container (min-width: 35rem) {
+    .pipeline {
+      grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
+      grid-template-areas:
+        "hin . hout"
+        "in core out";
+      column-gap: calc(var(--gap) * 2);
+      row-gap: 0.875rem;
+      align-items: center;
+    }
+
+    .pipe-heading {
+      display: block;
+    }
+    .pipe-heading-in {
+      grid-area: hin;
+    }
+    .pipe-heading-out {
+      grid-area: hout;
+    }
+
+    .pipe-col {
+      grid-template-columns: minmax(0, 1fr);
+    }
+    .pipe-col li:last-child:nth-child(odd) {
+      grid-column: auto;
+    }
+
+    /* A stub from each chip out to its bus. */
+    .pipe-in li::after,
+    .pipe-out li::before {
+      content: "";
+      position: absolute;
+      top: 50%;
+      width: var(--gap);
+      height: 1px;
+      background-image: var(--dash-x);
+      background-size: 8px 1px;
+      animation: pipe-flow 1s linear infinite;
+    }
+    .pipe-in li::after {
+      left: 100%;
+    }
+    .pipe-out li::before {
+      right: 100%;
+    }
+
+    /* Arrowhead into each output chip. */
+    .pipe-out li::after {
+      content: "";
+      position: absolute;
+      right: 100%;
+      top: 50%;
+      transform: translateY(-50%);
+      border-top: 4px solid transparent;
+      border-bottom: 4px solid transparent;
+      border-left: 6px solid var(--color-ink);
+    }
+
+    /* The buses: first chip centre to last chip centre. */
+    .pipe-in::after,
+    .pipe-out::before {
+      content: "";
+      position: absolute;
+      top: calc(var(--row) / 2);
+      bottom: calc(var(--row) / 2);
+      width: 1px;
+      background-image: var(--dash-y);
+      background-size: 1px 8px;
+    }
+    .pipe-in::after {
+      right: calc(var(--gap) * -1);
+    }
+    .pipe-out::before {
+      left: calc(var(--gap) * -1);
+    }
+    /* In the stacked layout this pseudo-element is the arrow into the list. */
+    .pipe-out::after {
+      content: none;
+    }
+
+    /* The core's stubs, meeting each bus at its midpoint. */
+    .pipe-core::before,
+    .pipe-core::after {
+      top: 50%;
+      bottom: auto;
+      width: var(--gap);
+      height: 1px;
+      background-image: var(--dash-x);
+      background-size: 8px 1px;
+      animation: pipe-flow 1s linear infinite;
+    }
+    .pipe-core::before {
+      left: auto;
+      right: 100%;
+    }
+    .pipe-core::after {
+      left: 100%;
+    }
+    .pipe-arrow {
+      left: auto;
+      right: 100%;
+      bottom: auto;
+      top: 50%;
+      transform: translateY(-50%);
+      border-top: 4px solid transparent;
+      border-right: 0;
+      border-bottom: 4px solid transparent;
+      border-left: 6px solid var(--color-ink);
+    }
+  }
+
+  @keyframes pipe-flow {
+    to {
+      background-position-x: 8px;
+    }
+  }
+  @keyframes pipe-pulse {
+    0%,
+    100% {
+      opacity: 0.25;
+    }
+    40% {
+      opacity: 1;
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .pipe-bars i,
+    .pipe-col li::before,
+    .pipe-col li::after,
+    .pipe-core::before,
+    .pipe-core::after {
+      animation: none;
+    }
+    .pipe-bars i {
+      opacity: 1;
+    }
+  }
+</style>

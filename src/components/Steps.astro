@@ -1,0 +1,56 @@
+---
+/**
+ * A numbered sequence on the ink band. Shared by the home page and the
+ * solution pages so "how it works" looks the same wherever it appears.
+ */
+import Icon from "./Icon.astro";
+import SectionHead from "./SectionHead.astro";
+import type { IconName } from "./icons-data";
+import { cellGrid, cellSpan } from "../lib/layout";
+
+interface Props {
+  id?: string;
+  label?: string;
+  heading: string;
+  sub?: string;
+  items: { title: string; description: string; icon?: string; number?: string }[];
+}
+
+const { id, label, heading, sub, items } = Astro.props;
+
+// A longer sequence wraps onto a second row, so the gap under each numeral is
+// repeated; it is drawn in a little to keep the section from running long.
+const numeralGap = items.length > 4 ? "mb-7 lg:mb-10" : "mb-10 lg:mb-14";
+---
+
+<section id={id} class="on-dark grid-paper bg-ink text-white">
+  <div class="wrap pt-20 pb-24 lg:pt-28 lg:pb-28">
+    <SectionHead label={label} heading={heading} sub={sub} dark />
+
+    {/* The reveal is on the list, not each step: a step that is still hidden
+         would leave the hairline colour showing through as a solid block. */}
+    <ol class={`anim anim-up cells cells-dark ${cellGrid(items.length)}`}>
+      {
+        items.map((step, i) => (
+          <li class={`flex flex-col p-7 lg:p-9 ${cellSpan(i, items.length)}`}>
+            <div class={`flex items-start justify-between ${numeralGap}`}>
+              <span class="font-display font-bold text-6xl lg:text-7xl leading-none tracking-tight text-brand">
+                {step.number ?? String(i + 1).padStart(2, "0")}
+              </span>
+              {step.icon && (
+                <Icon
+                  name={step.icon as IconName}
+                  size={24}
+                  strokeWidth={1.5}
+                  class="text-white/45"
+                />
+              )}
+            </div>
+            <h3 class="h-row text-2xl text-white">{step.title}</h3>
+            <p class="mt-3 max-w-[46ch] text-white/65 leading-relaxed">{step.description}</p>
+          </li>
+        ))
+      }
+    </ol>
+  </div>
+</section>

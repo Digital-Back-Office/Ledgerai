@@ -32,6 +32,14 @@ npm run build    # -> dist/
 npm run preview
 ```
 
+**If something is missing in `npm run dev` but present in a build**, the dev
+server's content cache is stale. `dev` and `build` keep separate caches, and
+the dev one skips any file whose contents it has already seen. So if a field is
+added to `content.config.ts` while `dev` is running, a content file saved just
+before it is validated against the old schema, the new field is dropped, and
+that copy is then reused, even after a restart. Stop the dev server, delete
+`.astro/data-store.json`, and start it again.
+
 ## Layout
 
 ```
@@ -39,8 +47,8 @@ src/
   content/          all site copy, as markdown
     site/           brand, navigation, footer
     sections/       one file per page section
-    features/       the five rotating product features (+ their demo data)
-    steps/          "how it works" cards
+    features/       the five product features (+ their demo data)
+    steps/          "how it works" steps
     faqs/           FAQ entries — also the source for FAQPage JSON-LD
     blog/           articles
   content.config.ts collection schemas (zod) — the contract for the above
@@ -48,6 +56,7 @@ src/
   layouts/          BaseLayout: head, meta, JSON-LD, analytics
   lib/
     content.ts      typed helpers for reading collections
+    layout.ts       column and span helpers for `.cells` grids
     schema.ts       schema.org graph builders
   pages/            routes
   styles/global.css theme, entrance animations, article styles
@@ -87,6 +96,36 @@ Toggling always uses the `hidden` **attribute**, never the `hidden` class:
 Tailwind's preflight declares `[hidden] { display: none !important }`, so the
 attribute reliably beats any `flex`/`grid` utility on the same element. The
 class would lose to them.
+
+### Design system
+
+The look is built from a small set of classes in `styles/global.css` and a
+handful of shared components, so a new page is assembled rather than styled
+from scratch.
+
+| Piece | What it is |
+| --- | --- |
+| `.wrap` | The page container. |
+| `.sheet` | The one raised surface: white, hairline border, navy-tinted shadow. |
+| `.cells` | A block of cells sharing hairlines. Use `cellGrid` / `cellSpan` from `lib/layout.ts` so the last row is never left with an empty slot. |
+| `.grid-paper` | Squared-paper texture for tinted and ink sections. |
+| `.label`, `.mark` | Section label with its brand rule; the highlighter stroke behind key words. |
+| `.btn` + `-primary` / `-ink` / `-line` | Buttons. Primary is brand fill with ink text, which keeps contrast high. |
+| `SectionHead` | Label and heading on the left, supporting line on the right. |
+| `PageHead` | Header band for inner pages (breadcrumb, H1, intro, optional slots). |
+| `Steps`, `FaqBlock` | The ink "how it works" band and the FAQ section, shared across pages. |
+| `FeatureVisual`, `FeatureFigure` | The product panels, and one framed as a hero figure. |
+
+Two things to know before changing layout:
+
+- **Every `grid` has one shrinkable column by default** (`.grid` in
+  `global.css`). Without it, a single unbreakable line inside a grid sets the
+  track's minimum width and pushes the column wider than the page, which a
+  section's `overflow-x: clip` then hides rather than fixes. Any `grid-cols-*`
+  utility overrides the default.
+- **`FeatureVisual` and `PipelineDiagram` size themselves by container, not
+  viewport.** The same panel appears in cards from about 280px to 570px wide,
+  so their `@md:` / `@container` rules respond to the box they are placed in.
 
 ## URLs
 

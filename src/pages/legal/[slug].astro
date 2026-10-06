@@ -6,7 +6,8 @@ import TopBar from "../../components/TopBar.astro";
 import Nav from "../../components/Nav.astro";
 import Footer from "../../components/Footer.astro";
 import CookieConsent from "../../components/CookieConsent.astro";
-import Icon from "../../components/Icon.astro";
+import PageHead from "../../components/PageHead.astro";
+import Toc from "../../components/Toc.astro";
 import { formatDate, getLegalPages, getSite } from "../../lib/content";
 import { breadcrumbs } from "../../lib/schema";
 
@@ -20,8 +21,10 @@ const { entry } = Astro.props;
 const page = entry.data;
 
 // Compiled to HTML at build time, exactly as the blog posts are — crawlers get
-// the full policy text rather than an empty container.
-const { Content } = await render(entry);
+// the full policy text rather than an empty container. `headings` feeds the
+// "on this page" list.
+const { Content, headings } = await render(entry);
+const toc = headings.filter((heading) => heading.depth === 2);
 
 const pages = await getLegalPages();
 
@@ -51,75 +54,65 @@ const jsonLd = [
   ogTitle={page.seo.title}
   ogDescription={page.seo.description}
   jsonLd={jsonLd}
-  bodyClass="bg-slate-50"
 >
   <TopBar />
   <Nav />
 
-  <div class="bg-white border-b border-slate-100">
-    <div class="max-w-5xl mx-auto px-6 py-6">
-      <nav
-        aria-label="Breadcrumb"
-        class="flex items-center gap-2 text-xs font-medium text-slate-500"
-      >
-        <a href="/" class="hover:text-[#13b5ea] flex items-center gap-1 transition-colors">
-          <Icon name="Home" size={12} /> Home
-        </a>
-        <Icon name="ChevronRight" size={10} class="text-slate-400" />
-        <span class="text-slate-800" aria-current="page">{page.title}</span>
-      </nav>
-    </div>
-  </div>
-
-  <main class="max-w-5xl mx-auto px-6 pt-12 pb-20">
-    <header class="text-center max-w-3xl mx-auto mb-12">
-      <span
-        class="inline-flex items-center gap-2 bg-[#13b5ea]/10 text-[#13b5ea] text-xs font-bold px-4 py-2 rounded-full mb-6 uppercase tracking-widest"
-      >
-        <Icon name="FileText" size={12} />
-        Legal
-      </span>
-      <h1
-        class="text-3xl sm:text-4xl lg:text-5xl font-extrabold text-slate-900 tracking-tight leading-tight mb-5"
-      >
-        {page.title}
-      </h1>
-      <p class="text-base sm:text-lg text-slate-600 leading-relaxed mb-6">{page.summary}</p>
-      <p class="text-xs font-medium text-slate-400 uppercase tracking-wider">
-        Last updated <time datetime={page.updated}>{formatDate(page.updated)}</time>
+  <main id="main">
+    <PageHead trail={[{ name: page.title }]} label="Legal" lede={page.summary}>
+      <Fragment slot="title">{page.title}</Fragment>
+      <p slot="meta" class="anim anim-up mt-6 text-sm text-mute" style="--anim-delay: 0.2s">
+        Last updated <time class="fig text-ink" datetime={page.updated}
+          >{formatDate(page.updated)}</time
+        >
       </p>
-    </header>
+    </PageHead>
 
-    {/* Sibling policies, so a visitor who lands on one can reach the rest. */}
-    <nav
-      aria-label="Legal pages"
-      class="flex flex-wrap items-center justify-center gap-2 mb-12"
-    >
-      {
-        pages.map((other) => (
-          <a
-            href={`/legal/${other.id}`}
-            aria-current={other.id === entry.id ? "page" : undefined}
-            class="text-xs font-semibold px-4 py-2 rounded-xl transition-all bg-white text-slate-600 border border-slate-100 hover:text-slate-900 hover:border-slate-200 aria-[current=page]:bg-[#13b5ea] aria-[current=page]:text-white aria-[current=page]:border-[#13b5ea] aria-[current=page]:shadow-sm aria-[current=page]:shadow-[#13b5ea]/25"
-          >
-            {other.data.shortTitle}
-          </a>
-        ))
-      }
-    </nav>
+    <div class="wrap pt-12 pb-20 lg:pt-16 lg:pb-28">
+      <div class="grid grid-cols-1 gap-x-12 gap-y-10 lg:grid-cols-12">
+        <aside
+          class="lg:col-span-3 lg:sticky lg:top-24 lg:self-start lg:max-h-[calc(100dvh-7rem)] lg:overflow-y-auto lg:pr-2"
+        >
+          {/* Sibling policies, so a visitor who lands on one can reach the rest. */}
+          <nav aria-label="Legal pages">
+            <ul class="cells grid-cols-2 lg:grid-cols-1">
+              {
+                pages.map((other) => (
+                  <li class="last:odd:col-span-2 lg:last:odd:col-span-1">
+                    <a
+                      href={`/legal/${other.id}`}
+                      aria-current={other.id === entry.id ? "page" : undefined}
+                      class="block px-4 py-3 text-[0.9375rem] font-medium text-mute transition-colors hover:text-ink aria-[current=page]:bg-ink aria-[current=page]:text-white"
+                    >
+                      {other.data.shortTitle}
+                    </a>
+                  </li>
+                ))
+              }
+            </ul>
+          </nav>
 
-    <div
-      class="prose-content max-w-none select-text bg-white rounded-3xl border border-slate-100 shadow-sm p-6 sm:p-10 lg:p-12"
-    >
-      <Content />
+          {
+            toc.length > 1 && (
+              <nav aria-label="On this page" class="hidden lg:block mt-10">
+                <p class="label mb-4">On this page</p>
+                <Toc headings={toc} />
+              </nav>
+            )
+          }
+        </aside>
+
+        <div class="min-w-0 lg:col-span-8 lg:col-start-5">
+          <div class="prose-content select-text [&>*:first-child]:mt-0">
+            <Content />
+          </div>
+
+          <p class="mt-14 pt-6 border-t border-rule text-mute">
+            Questions about this page? <a href="/#book-demo" class="link">Get in touch</a>.
+          </p>
+        </div>
+      </div>
     </div>
-
-    <p class="text-center text-sm text-slate-500 mt-10">
-      Questions about this page? <a
-        href="/#book-demo"
-        class="text-[#13b5ea] font-semibold hover:underline">Get in touch</a
-      >.
-    </p>
   </main>
 
   <Footer />

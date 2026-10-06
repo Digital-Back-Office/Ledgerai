@@ -1,0 +1,59 @@
+---
+/**
+ * A whole FAQ section: sticky heading and a route to the demo form on the
+ * left, the questions on a sheet on the right. Shared by the home page, the
+ * pricing page and the solution pages, all of which carry a #book-demo form.
+ */
+import Icon from "./Icon.astro";
+import FaqList from "./FaqList.astro";
+import { getSection } from "../lib/content";
+
+interface Props {
+  id?: string;
+  label?: string;
+  heading: string;
+  sub?: string;
+  items: { question: string; answer: string }[];
+  name: string;
+  /** Paper background with the grid texture; otherwise plain white. */
+  tinted?: boolean;
+}
+
+const { id = "faq", label = "FAQs", heading, sub, items, name, tinted = true } = Astro.props;
+const demo = await getSection("book-demo");
+---
+
+<section id={id} class:list={["border-t border-rule", tinted ? "bg-paper grid-paper" : "bg-white"]}>
+  <div class="wrap pt-20 pb-24 lg:pt-28 lg:pb-32">
+    <div class="grid gap-x-12 gap-y-10 lg:grid-cols-12">
+      {/* The heading stays put while the questions scroll past it. */}
+      <header class="anim anim-up lg:col-span-4 lg:sticky lg:top-28 lg:self-start">
+        <p class="label mb-5">{label}</p>
+        <h2 class="h-section">{heading}</h2>
+        {sub && <p class="lede mt-4 text-base">{sub}</p>}
+
+        <a
+          href="#book-demo"
+          class:list={[
+            "group flex items-center justify-between gap-4 mt-8 p-5 rounded-md border border-rule transition-colors hover:border-ink",
+            tinted ? "bg-white" : "bg-paper",
+          ]}
+        >
+          <span>
+            <span class="block font-medium text-ink">Something we haven't covered?</span>
+            {demo.form?.subtitle && (
+              <span class="block text-sm text-mute mt-1 leading-snug">{demo.form.subtitle}</span>
+            )}
+          </span>
+          <span class="grid place-items-center size-10 shrink-0 rounded-md bg-brand text-ink transition-transform duration-300 group-hover:translate-x-1">
+            <Icon name="ArrowRight" size={18} />
+          </span>
+        </a>
+      </header>
+
+      <div class="anim anim-up sheet lg:col-span-8 px-5 sm:px-8" style="--anim-delay: 0.1s">
+        <FaqList items={items} name={name} />
+      </div>
+    </div>
+  </div>
+</section>

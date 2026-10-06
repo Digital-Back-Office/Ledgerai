@@ -1,0 +1,249 @@
+---
+/**
+ * /integrations — the accounting platforms Ledger AI exports to, on one page.
+ *
+ * The platforms come from `src/content/site/integrations.md` and the wording
+ * around them from `src/content/sections/integrations.md`. Adding a platform is
+ * a markdown edit: it gets a card here, a place in the diagram and a mention in
+ * the sitemap without touching this file.
+ */
+import BaseLayout from "../layouts/BaseLayout.astro";
+import TopBar from "../components/TopBar.astro";
+import Nav from "../components/Nav.astro";
+import Footer from "../components/Footer.astro";
+import BookDemoSection from "../components/BookDemoSection.astro";
+import CookieConsent from "../components/CookieConsent.astro";
+import FaqBlock from "../components/FaqBlock.astro";
+import Icon from "../components/Icon.astro";
+import PageHead from "../components/PageHead.astro";
+import PipelineDiagram from "../components/PipelineDiagram.astro";
+import SectionHead from "../components/SectionHead.astro";
+import { fill, getOrdered, getSection, getSite } from "../lib/content";
+import { cellGrid, cellSpan } from "../lib/layout";
+import { breadcrumbs, organization, website } from "../lib/schema";
+
+const brand = await getSite("brand");
+const section = await getSection("integrations");
+const { integrations: platforms } = await getSite("integrations");
+const { apps, flow, notes } = section;
+
+/** "QuickBooks" -> "quickbooks": the id each card is linked to from the header. */
+const anchor = (name: string) => name.toLowerCase().replace(/[^a-z0-9]+/g, "-");
+
+// The diagram is the home page's with these platforms on its far side: the
+// same documents go in, and this is where the result ends up.
+const showcase = await getSection("showcase");
+const pipeline = showcase.pipeline && {
+  ...showcase.pipeline,
+  outputLabel: flow?.outputLabel,
+  outputs: platforms.map((platform) => platform.name),
+};
+
+// FAQs are picked from the shared collection by file name, so their wording
+// lives in one place.
+const allFaqs = await getOrdered("faqs");
+const faqs = section.faqIds
+  .map((id) => allFaqs.find((faq) => faq.id === id)?.data)
+  .filter((faq): faq is NonNullable<typeof faq> => Boolean(faq));
+
+const site = (brand.url ?? "").replace(/\/$/, "");
+const title = section.badge ?? "Integrations";
+
+const jsonLd = [
+  {
+    "@context": "https://schema.org",
+    "@graph": [
+      organization(brand),
+      website(brand),
+      {
+        "@type": "WebPage",
+        "@id": `${site}/integrations#webpage`,
+        url: `${site}/integrations`,
+        name: section.pageTitle,
+        description: section.pageDescription,
+        inLanguage: "en-GB",
+        isPartOf: { "@id": `${site}/#website` },
+        publisher: { "@id": `${site}/#organization` },
+      },
+    ],
+  },
+  breadcrumbs(brand, [
+    { name: "Home", item: "/" },
+    { name: title, item: "/integrations" },
+  ]),
+];
+---
+
+<BaseLayout
+  title={section.pageTitle!}
+  description={section.pageDescription}
+  canonical="/integrations"
+  jsonLd={jsonLd}
+>
+  <TopBar />
+  <Nav />
+
+  <main id="main">
+    <PageHead trail={[{ name: title }]} label={section.badge} lede={section.subheading}>
+      <Fragment slot="title">
+        {section.headline?.before}<span class="mark">{section.headline?.accent}</span
+        >{section.headline?.after}
+      </Fragment>
+
+      {/* The answer most visitors came for, before they scroll. */}
+      <ul slot="aside" class="flex flex-wrap gap-1.5 lg:justify-end">
+        {
+          platforms.map((platform) => (
+            <li>
+              <a href={`#${anchor(platform.name)}`} class="tag transition-colors hover:border-ink">
+                {platform.name}
+              </a>
+            </li>
+          ))
+        }
+      </ul>
+    </PageHead>
+
+    {/* ── The platforms ───────────────────────────────────────────────── */}
+    <section>
+      <div class="wrap pt-16 pb-20 lg:pt-20 lg:pb-24">
+        {
+          apps?.heading && (
+            <SectionHead label={apps.eyebrow} heading={apps.heading} sub={apps.subheading} />
+          )
+        }
+
+        {/* Each card is a four-row subgrid of this list, so the name, the
+             "sends" line and the link sit level across all the cards. */}
+        <ul class={`grid grid-cols-1 gap-5 ${cellGrid(platforms.length)}`}>
+          {
+            platforms.map((platform, i) => (
+              <li
+                id={anchor(platform.name)}
+                class={`anim anim-up sheet row-span-4 grid grid-rows-subgrid gap-y-0 overflow-hidden ${cellSpan(i, platforms.length)}`}
+                style={`--anim-delay: ${(i * 0.08).toFixed(2)}s`}
+              >
+                {/* Ledger AI into the platform. */}
+                <div class="flex items-center gap-3 border-b border-rule bg-paper px-6 py-5 sm:px-7">
+                  <img
+                    src={brand.favicon}
+                    alt={brand.name}
+                    width="32"
+                    height="32"
+                    class="size-8 shrink-0 rounded-[6px]"
+                  />
+                  <span aria-hidden="true" class="flow-right w-10 shrink-0" />
+                  <img
+                    src={platform.logo}
+                    alt={`${platform.name} logo`}
+                    loading="lazy"
+                    class="h-8 w-auto max-w-[8rem]"
+                  />
+                </div>
+
+                <div class="px-6 pt-6 sm:px-7">
+                  <h3 class="h-row text-2xl">{platform.name}</h3>
+                  <p class="mt-2.5 text-mute leading-relaxed">{platform.tagline}</p>
+                </div>
+
+                <div class="px-6 pt-6 sm:px-7">
+                  {platform.sends && (
+                    <dl class="border-t border-rule pt-4">
+                      <dt class="text-xs text-mute">{apps?.sendsLabel}</dt>
+                      <dd class="mt-1 font-medium text-ink">{platform.sends}</dd>
+                    </dl>
+                  )}
+                </div>
+
+                <div class="px-6 pt-5 pb-6 sm:px-7">
+                  {platform.href && apps?.linkLabel && (
+                    <a
+                      href={platform.href}
+                      target={platform.external ? "_blank" : undefined}
+                      rel={platform.external ? "noopener noreferrer" : undefined}
+                      class="group inline-flex items-center gap-2 text-sm font-medium text-ink"
+                    >
+                      <span class="underline decoration-brand decoration-2 underline-offset-4 transition-colors group-hover:decoration-ink">
+                        {fill(apps.linkLabel, { name: platform.name })}
+                      </span>
+                      <Icon
+                        name="ArrowRight"
+                        size={14}
+                        class="-rotate-45 transition-transform duration-300 group-hover:translate-x-0.5 group-hover:-translate-y-0.5"
+                      />
+                    </a>
+                  )}
+                </div>
+              </li>
+            ))
+          }
+        </ul>
+      </div>
+    </section>
+
+    {/* ── How it connects ─────────────────────────────────────────────── */}
+    {
+      pipeline && flow?.heading && (
+        <section class="bg-paper grid-paper border-y border-rule">
+          <div class="wrap pt-20 pb-24 lg:pt-28 lg:pb-32">
+            <div class="grid grid-cols-1 gap-x-12 gap-y-10 lg:grid-cols-12 lg:items-center">
+              <div class="anim anim-up lg:col-span-5">
+                {flow.eyebrow && <p class="label mb-5">{flow.eyebrow}</p>}
+                <h2 class="h-section">{flow.heading}</h2>
+                {flow.subheading && <p class="lede mt-5">{flow.subheading}</p>}
+              </div>
+
+              <figure
+                class="anim anim-up sheet lg:col-span-7 p-6 sm:p-9"
+                style="--anim-delay: 0.1s"
+              >
+                <PipelineDiagram pipeline={pipeline} />
+                <figcaption class="sr-only">{flow.heading}</figcaption>
+              </figure>
+            </div>
+          </div>
+        </section>
+      )
+    }
+
+    {/* ── Good to know ────────────────────────────────────────────────── */}
+    {
+      notes?.heading && notes.items.length > 0 && (
+        <section>
+          <div class="wrap pt-20 pb-24 lg:pt-28 lg:pb-32">
+            <SectionHead label={notes.eyebrow} heading={notes.heading} sub={notes.subheading} />
+
+            <ul class={`anim anim-up cells ${cellGrid(notes.items.length)}`}>
+              {notes.items.map((item, i) => (
+                <li class={`flex flex-col p-6 sm:p-7 ${cellSpan(i, notes.items.length)}`}>
+                  <span class="fig text-xs text-brand-dark mb-6">
+                    {String(i + 1).padStart(2, "0")}
+                  </span>
+                  <h3 class="h-row mb-2.5">{item.title}</h3>
+                  <p class="text-mute leading-relaxed">{item.description}</p>
+                  {item.href && item.linkLabel && (
+                    <a href={item.href} class="link mt-5 self-start text-sm">
+                      {item.linkLabel}
+                    </a>
+                  )}
+                </li>
+              ))}
+            </ul>
+          </div>
+        </section>
+      )
+    }
+
+    {/* ── FAQs ────────────────────────────────────────────────────────── */}
+    {
+      faqs.length > 0 && section.faqHeading && (
+        <FaqBlock heading={section.faqHeading} items={faqs} name="integrations-faq" />
+      )
+    }
+
+    <BookDemoSection />
+  </main>
+
+  <Footer />
+  <CookieConsent />
+</BaseLayout>

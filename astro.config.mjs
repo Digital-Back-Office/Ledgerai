@@ -9,6 +9,12 @@ export default defineConfig({
   // the move off the client-rendered Vite/React app.
   output: 'static',
   trailingSlash: 'ignore',
+  server: {
+    // Dev and preview only: lets the site be opened through an ngrok tunnel.
+    // The leading dot allows any ngrok-free.app address, because the free
+    // tunnel is given a new one each time it starts.
+    allowedHosts: ['.ngrok-free.app'],
+  },
   build: {
     // /blogs/foo.html rather than /blogs/foo/index.html keeps URLs identical to
     // the old client-side router. 'preserve' rather than 'file' so that

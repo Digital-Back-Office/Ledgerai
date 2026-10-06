@@ -1,34 +1,97 @@
 ---
-import { getSite } from "../lib/content";
+import Icon from "./Icon.astro";
+import { getSite, getSolutions } from "../lib/content";
 
 const brand = await getSite("brand");
 const footer = await getSite("footer");
+const nav = await getSite("navigation");
+const solutions = await getSolutions();
+
+// The footer's flat link list is split by where each link points, so a new
+// policy or page added to footer.md lands in the right column on its own.
+const isLegal = (href: string) => href.startsWith("/legal/");
+const legalLinks = footer.links.filter((link) => isLegal(link.href));
+
+// Site column: the header's links first, then anything footer.md adds to them.
+const siteLinks = [...nav.links];
+for (const link of footer.links) {
+  if (!isLegal(link.href) && !siteLinks.some((existing) => existing.href === link.href)) {
+    siteLinks.push(link);
+  }
+}
+
+const columns = [
+  {
+    title: nav.menuLabel ?? "Solutions",
+    links: solutions.map((page) => ({ label: page.data.shortTitle, href: page.data.url })),
+    span: "lg:col-span-3",
+  },
+  { title: "Site", links: siteLinks, span: "lg:col-span-2" },
+  { title: "Legal", links: legalLinks, span: "lg:col-span-2" },
+].filter((column) => column.links.length > 0);
+
+const linkClass = "text-ink hover:underline decoration-brand decoration-2 underline-offset-4";
 ---
 
-<footer class="bg-white border-t border-slate-100 py-8">
-  <div
-    class="max-w-6xl mx-auto px-6 flex flex-col md:flex-row items-center justify-between gap-4"
-  >
-    <a href="/" class="flex items-center gap-2 hover:opacity-90 transition-opacity">
-      <img
-        src={brand.logo}
-        alt={brand.logoAlt}
-        width="160"
-        height="40"
-        loading="lazy"
-        class="w-24 sm:w-32 md:w-36 lg:w-40 h-auto"
-      />
-    </a>
+<footer class="bg-paper border-t border-rule">
+  <div class="wrap pt-16 pb-8">
+    <div class="grid gap-x-10 gap-y-12 sm:grid-cols-2 lg:grid-cols-12">
+      <div class="sm:col-span-2 lg:col-span-5">
+        <a href="/" class="inline-block" aria-label={`${brand.name} home`}>
+          <img
+            src={brand.logo}
+            alt={brand.logoAlt}
+            width="160"
+            height="40"
+            loading="lazy"
+            class="w-36 h-auto mix-blend-multiply"
+          />
+        </a>
+        <p class="mt-5 max-w-[38ch] text-mute leading-relaxed">{brand.defaultDescription}</p>
+        {
+          nav.cta && (
+            <a href={nav.cta.href} class="btn btn-sm btn-ink mt-6">
+              {nav.cta.label}
+              <Icon name="ArrowRight" size={15} class="arrow" />
+            </a>
+          )
+        }
+      </div>
 
-    <p class="text-slate-400 text-xs">{footer.copyright}</p>
-
-    <div class="flex items-center gap-6 text-xs text-slate-400">
       {
-        footer.links.map((link) => (
-          <a href={link.href} class="hover:text-slate-600 transition-colors">
-            {link.label}
-          </a>
+        columns.map((column) => (
+          <nav aria-label={column.title} class={column.span}>
+            <p class="label mb-5">{column.title}</p>
+            <ul class="space-y-3 text-[0.9375rem]">
+              {column.links.map((link) => (
+                <li>
+                  <a href={link.href} class={linkClass}>
+                    {link.label}
+                  </a>
+                </li>
+              ))}
+            </ul>
+          </nav>
         ))
+      }
+    </div>
+
+    <div
+      class="flex flex-wrap items-center justify-between gap-x-6 gap-y-3 mt-14 pt-6 border-t border-rule text-[0.8125rem] text-mute"
+    >
+      <p>{footer.copyright}</p>
+      {
+        nav.login && (
+          <a
+            href={nav.login.href}
+            target="_blank"
+            rel="noopener noreferrer"
+            class="flex items-center gap-1.5 hover:text-ink transition-colors"
+          >
+            <Icon name="LogIn" size={14} />
+            {nav.login.label}
+          </a>
+        )
       }
     </div>
   </div>

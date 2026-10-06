@@ -1,0 +1,509 @@
+---
+/**
+ * Service landing pages — /bank-statement-processing and friends.
+ *
+ * One template, driven entirely by `src/content/solutions/*.md`. Each of those
+ * files carries its own `url`, so the briefs' URLs (which sit at different
+ * depths: one at the root, one two levels down, one three) all come out of a
+ * single rest route rather than a folder per page. Only the paths returned by
+ * `getStaticPaths` are ever built, so this never shadows the hand-written
+ * routes alongside it.
+ *
+ * Every section is optional. A page renders the sections its brief specified
+ * and silently skips the rest, which is why the AI bookkeeping page can lead
+ * with a "challenges" block that the other two don't have.
+ */
+import type { GetStaticPaths } from "astro";
+import type { CollectionEntry } from "astro:content";
+import BaseLayout from "../layouts/BaseLayout.astro";
+import TopBar from "../components/TopBar.astro";
+import Nav from "../components/Nav.astro";
+import Footer from "../components/Footer.astro";
+import BookDemoSection from "../components/BookDemoSection.astro";
+import CookieConsent from "../components/CookieConsent.astro";
+import Icon from "../components/Icon.astro";
+import type { IconName } from "../components/icons-data";
+import { getSite, getSolutions } from "../lib/content";
+import { breadcrumbs, solutionPage } from "../lib/schema";
+
+export const getStaticPaths: GetStaticPaths = async () => {
+  const solutions = await getSolutions();
+  return solutions.map((entry) => ({
+    // Astro wants the path without its leading slash for a rest parameter.
+    params: { slug: entry.data.url.replace(/^\//, "") },
+    props: { entry },
+  }));
+};
+
+const brand = await getSite("brand");
+// `GetStaticPaths` widens props to `any`, which would leave every section below
+// untyped; naming the entry type restores the collection's schema.
+const { entry } = Astro.props as { entry: CollectionEntry<"solutions"> };
+const page = entry.data;
+const { hero, challenges, what, audience, process, benefits, integrations, related, faqs, closing } =
+  page;
+
+const jsonLd = [
+  solutionPage(brand, {
+    path: page.url,
+    name: page.shortTitle,
+    headline: hero.h1,
+    description: page.seo.description,
+    features: benefits?.items.map((item) => item.text),
+    faqs,
+  }),
+  breadcrumbs(brand, [{ name: "Home", item: "/" }, ...page.trail]),
+];
+
+import Breadcrumb from "../components/Breadcrumb.astro";
+import FaqBlock from "../components/FaqBlock.astro";
+import FeatureFigure from "../components/FeatureFigure.astro";
+import SectionHead from "../components/SectionHead.astro";
+import Steps from "../components/Steps.astro";
+import { getOrdered } from "../lib/content";
+import { cellGrid, cellSpan } from "../lib/layout";
+
+const ctaClass = (style: string) => (style === "primary" ? "btn btn-primary" : "btn btn-line");
+
+// The hero shows one of the product panels when the page has no photo of its own.
+const heroFeature = hero.visual
+  ? (await getOrdered("features")).find((feature) => feature.data.visual === hero.visual)?.data
+  : undefined;
+const hasFigure = Boolean(hero.image || heroFeature);
+// Beside a figure the H1 has half the width, so it is set smaller, and
+// smaller again when the headline is a long one.
+const h1Size = hero.h1.length > 70 ? "lg:text-[2.75rem]" : "lg:text-[3.25rem]";
+
+/**
+ * Light sections alternate white and paper so no two neighbours share a
+ * background, whichever optional sections a page happens to have. The hero is
+ * paper, so each run starts on white; the ink "how it works" band, where there
+ * is one, splits the page into two runs.
+ */
+const present: Record<string, boolean> = {
+  challenges: Boolean(challenges),
+  what: Boolean(what),
+  benefits: Boolean(benefits),
+  audience: Boolean(audience),
+  integrations: Boolean(integrations),
+  related: Boolean(related),
+  faq: faqs.length > 0,
+};
+const beforeSteps = ["challenges", "what"].filter((key) => present[key]);
+const afterSteps = ["benefits", "audience", "integrations", "related", "faq"].filter(
+  (key) => present[key]
+);
+const runs = process ? [beforeSteps, afterSteps] : [[...beforeSteps, ...afterSteps]];
+const tinted = new Set(runs.flatMap((run) => run.filter((_, i) => i % 2 === 1)));
+const bg = (key: string) =>
+  `border-t border-rule ${tinted.has(key) ? "bg-paper grid-paper" : "bg-white"}`;
+
+const band = "wrap pt-20 pb-24 lg:pt-28 lg:pb-32";
+---
+
+<BaseLayout
+  title={page.seo.title}
+  description={page.seo.description}
+  canonical={page.url}
+  ogTitle={page.seo.title}
+  ogDescription={page.seo.description}
+  jsonLd={jsonLd}
+>
+  <TopBar />
+  <Nav />
+
+  <main id="main">
+    {/* ── Hero ─────────────────────────────────────────────────────────── */}
+    <section class="bg-paper grid-paper overflow-x-clip border-b border-rule">
+      <div class="wrap pt-8 pb-16 lg:pb-24">
+        <Breadcrumb trail={page.trail} class="mb-10 lg:mb-14" />
+
+        <div
+          class={hasFigure
+            ? "grid grid-cols-1 gap-x-12 gap-y-14 lg:grid-cols-12 lg:items-center"
+            : ""}
+        >
+          <div class={hasFigure ? "lg:col-span-6" : "max-w-4xl"}>
+            <p class="anim anim-up label mb-6">{hero.badge}</p>
+
+            <h1
+              class:list={["anim anim-up display-sm", hasFigure && h1Size]}
+              style="--anim-delay: 0.08s"
+            >
+              {hero.h1}
+            </h1>
+
+            <p class="anim anim-up lede mt-6 max-w-[58ch]" style="--anim-delay: 0.16s">
+              {hero.intro}
+            </p>
+
+            <div
+              class="anim anim-up flex flex-col sm:flex-row gap-3 mt-9"
+              style="--anim-delay: 0.24s"
+            >
+              {
+                hero.ctas.map((cta) => (
+                  <a
+                    href={cta.href}
+                    class={ctaClass(cta.style)}
+                    data-event="cta_click"
+                    data-event-label={cta.event}
+                  >
+                    {cta.label}
+                    {cta.style === "primary" && <Icon name="ArrowRight" size={16} class="arrow" />}
+                  </a>
+                ))
+              }
+            </div>
+
+            {
+              hero.trustPoints.length > 0 && (
+                <ul
+                  class="anim anim-fade flex flex-wrap gap-x-5 gap-y-2 mt-7 text-sm text-mute"
+                  style="--anim-delay: 0.4s"
+                >
+                  {hero.trustPoints.map((point) => (
+                    <li class="flex items-center gap-2">
+                      <span aria-hidden="true" class="size-1.5 bg-brand" />
+                      {point}
+                    </li>
+                  ))}
+                </ul>
+              )
+            }
+          </div>
+
+          {
+            hero.image ? (
+              <figure
+                class="anim anim-up relative lg:col-span-6 py-8 sm:py-10"
+                style="--anim-delay: 0.28s"
+              >
+                <div
+                  aria-hidden="true"
+                  class="absolute inset-y-0 left-8 sm:left-16 -right-[50vw] bg-brand rounded-l-md"
+                />
+                <img
+                  src={hero.image.src}
+                  alt={hero.image.alt}
+                  width="1204"
+                  height="678"
+                  fetchpriority="high"
+                  decoding="async"
+                  class="sheet relative w-full h-auto shadow-[0_30px_60px_-30px_rgb(11_18_32/0.55)]"
+                />
+              </figure>
+            ) : heroFeature ? (
+              <FeatureFigure
+                feature={heroFeature}
+                note={page.tagline}
+                class="anim anim-up lg:col-span-6"
+              />
+            ) : null
+          }
+        </div>
+      </div>
+    </section>
+
+    {/* ── Challenges ───────────────────────────────────────────────────── */}
+    {
+      challenges &&
+        (challenges.image ? (
+          <section class={bg("challenges")}>
+            <div class={`${band} grid grid-cols-1 gap-x-12 gap-y-12 lg:grid-cols-12 lg:items-center`}>
+              <div class="lg:col-span-6">
+                <div class="anim anim-up">
+                  <p class="label mb-5">{challenges.eyebrow}</p>
+                  <h2 class="h-section">{challenges.heading}</h2>
+                  {challenges.subheading && (
+                    <p class="lede mt-4 max-w-[52ch]">{challenges.subheading}</p>
+                  )}
+                </div>
+                <ul class="anim anim-up cells mt-9">
+                  {challenges.items.map((item) => (
+                    <li class="flex items-start gap-4 p-5">
+                      <Icon
+                        name={item.icon as IconName}
+                        size={20}
+                        strokeWidth={1.5}
+                        class="mt-0.5 text-ink"
+                      />
+                      <span class="font-medium leading-snug text-ink">{item.title}</span>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+
+              <div class="anim anim-up lg:col-span-6" style="--anim-delay: 0.15s">
+                <img
+                  src={challenges.image.src}
+                  alt={challenges.image.alt}
+                  width="1204"
+                  height="802"
+                  loading="lazy"
+                  decoding="async"
+                  class="sheet w-full h-auto"
+                />
+              </div>
+            </div>
+          </section>
+        ) : (
+          <section class={bg("challenges")}>
+            <div class={band}>
+              <SectionHead
+                label={challenges.eyebrow}
+                heading={challenges.heading!}
+                sub={challenges.subheading}
+              />
+              <ul class={`anim anim-up cells ${cellGrid(challenges.items.length)}`}>
+                {challenges.items.map((item, i) => (
+                  <li class={`flex flex-col gap-6 p-6 sm:p-7 ${cellSpan(i, challenges.items.length)}`}>
+                    <Icon name={item.icon as IconName} size={22} strokeWidth={1.5} class="text-ink" />
+                    <span class="text-[1.0625rem] font-medium leading-snug text-ink">
+                      {item.title}
+                    </span>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          </section>
+        ))
+    }
+
+    {/* ── What it does ─────────────────────────────────────────────────── */}
+    {
+      what && (
+        <section id="what-it-does" class={bg("what")}>
+          <div class={band}>
+            <div class="anim anim-up grid grid-cols-1 gap-x-12 gap-y-6 lg:grid-cols-12">
+              <div class="lg:col-span-5">
+                <p class="label mb-5">{what.eyebrow}</p>
+                <h2 class="h-section">{what.heading}</h2>
+              </div>
+              <div class="lg:col-span-7 lg:pt-11 space-y-5">
+                {what.body.map((paragraph) => (
+                  <p class="lede max-w-[62ch]">{paragraph}</p>
+                ))}
+              </div>
+            </div>
+
+            {what.highlights.length > 0 && (
+              <div class={`anim anim-up cells mt-12 lg:mt-16 ${cellGrid(what.highlights.length)}`}>
+                {what.highlights.map((item, i) => (
+                  <div class={`p-6 sm:p-7 ${cellSpan(i, what.highlights.length)}`}>
+                    <Icon
+                      name={item.icon as IconName}
+                      size={22}
+                      strokeWidth={1.5}
+                      class="text-ink mb-6"
+                    />
+                    <h3 class="h-row mb-2">{item.title}</h3>
+                    <p class="text-mute leading-relaxed">{item.description}</p>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        </section>
+      )
+    }
+
+    {/* ── How it works ─────────────────────────────────────────────────── */}
+    {
+      process && (
+        <Steps
+          id="how-it-works"
+          label={process.eyebrow}
+          heading={process.heading!}
+          sub={process.subheading}
+          items={process.items}
+        />
+      )
+    }
+
+    {/* ── Benefits ─────────────────────────────────────────────────────── */}
+    {
+      benefits && (
+        <section id="benefits" class={bg("benefits")}>
+          <div class={band}>
+            <SectionHead label={benefits.eyebrow} heading={benefits.heading!} />
+
+            <ul class={`anim anim-up cells ${cellGrid(benefits.items.length)}`}>
+              {benefits.items.map((item, i) => (
+                <li class={`flex flex-col gap-8 p-6 sm:p-7 ${cellSpan(i, benefits.items.length)}`}>
+                  <div class="flex items-center justify-between">
+                    <span class="fig text-xs text-brand-dark">
+                      {String(i + 1).padStart(2, "0")}
+                    </span>
+                    <Icon
+                      name={item.icon as IconName}
+                      size={20}
+                      strokeWidth={1.5}
+                      class="text-mute"
+                    />
+                  </div>
+                  <span class="h-row">{item.text}</span>
+                </li>
+              ))}
+            </ul>
+          </div>
+        </section>
+      )
+    }
+
+    {/* ── Who it's for ─────────────────────────────────────────────────── */}
+    {
+      audience && (
+        <section id="who-its-for" class={bg("audience")}>
+          <div class={`${band} grid grid-cols-1 gap-x-12 gap-y-10 lg:grid-cols-12`}>
+            <header class="anim anim-up lg:col-span-5 lg:sticky lg:top-28 lg:self-start">
+              <p class="label mb-5">{audience.eyebrow}</p>
+              <h2 class="h-section">{audience.heading}</h2>
+            </header>
+
+            <ul class="anim anim-up cells lg:col-span-7" style="--anim-delay: 0.1s">
+              {audience.items.map((item, i) => (
+                <li class="flex items-start gap-5 p-5 sm:p-6">
+                  <span class="fig text-[0.8125rem] text-brand-dark w-6 shrink-0 pt-0.5">
+                    {String(i + 1).padStart(2, "0")}
+                  </span>
+                  <span class="flex-1 text-[1.0625rem] leading-snug text-ink">{item.text}</span>
+                  <Icon
+                    name={item.icon as IconName}
+                    size={18}
+                    strokeWidth={1.5}
+                    class="mt-0.5 text-mute"
+                  />
+                </li>
+              ))}
+            </ul>
+          </div>
+        </section>
+      )
+    }
+
+    {/* ── Integrations ─────────────────────────────────────────────────── */}
+    {
+      integrations && (
+        <section id="integrations" class={bg("integrations")}>
+          <div class={band}>
+            <SectionHead
+              label={integrations.eyebrow}
+              heading={integrations.heading!}
+              sub={integrations.body}
+            />
+
+            <dl class={`anim anim-up cells ${cellGrid(integrations.groups.length)}`}>
+              {integrations.groups.map((group) => (
+                <div class="p-6 sm:p-7">
+                  <dt class="flex items-center gap-2.5 h-row mb-5">
+                    <Icon name={group.icon as IconName} size={19} strokeWidth={1.5} />
+                    {group.title}
+                  </dt>
+                  <dd class="flex flex-wrap gap-1.5">
+                    {group.items.map((name) => (
+                      <span class="tag bg-paper">{name}</span>
+                    ))}
+                  </dd>
+                </div>
+              ))}
+            </dl>
+          </div>
+        </section>
+      )
+    }
+
+    {/* ── Related pages ────────────────────────────────────────────────── */}
+    {
+      related && (
+        <section class={bg("related")}>
+          <div class={band}>
+            <SectionHead label={related.eyebrow} heading={related.heading!} />
+
+            <div class={`anim anim-up cells ${cellGrid(related.items.length)}`}>
+              {related.items.map((item, i) => (
+                <a
+                  href={item.href}
+                  class={`group flex flex-col p-6 sm:p-7 transition-colors hover:bg-paper ${cellSpan(i, related.items.length)}`}
+                >
+                  <h3 class="h-row first-letter:uppercase group-hover:underline decoration-brand decoration-2 underline-offset-4">
+                    {item.label}
+                  </h3>
+                  <p class="text-mute leading-relaxed mt-2.5 mb-8">{item.description}</p>
+                  <span class="mt-auto flex items-center justify-between text-sm font-medium text-ink">
+                    Read more
+                    <span class="grid place-items-center size-9 rounded-md bg-ink text-white transition-colors group-hover:bg-brand group-hover:text-ink">
+                      <Icon name="ArrowRight" size={16} />
+                    </span>
+                  </span>
+                </a>
+              ))}
+            </div>
+          </div>
+        </section>
+      )
+    }
+
+    {/* ── FAQs ─────────────────────────────────────────────────────────── */}
+    {
+      faqs.length > 0 && (
+        <FaqBlock
+          heading={`Questions about ${page.shortTitle}`}
+          items={faqs}
+          name="solution-faq"
+          tinted={tinted.has("faq")}
+        />
+      )
+    }
+
+    {/* ── Closing band: solid brand, ink type ──────────────────────────── */}
+    {
+      closing && (
+        <section class="bg-brand text-ink">
+          <div class="wrap py-16 lg:py-20 grid grid-cols-1 gap-x-12 gap-y-8 lg:grid-cols-12 lg:items-end">
+            <div class="anim anim-up lg:col-span-8">
+              <p class="flex items-center gap-2.5 text-sm font-medium mb-5">
+                <span aria-hidden="true" class="w-5 h-0.5 bg-ink" />
+                {closing.eyebrow}
+              </p>
+              <h2 class="h-section max-w-[20ch]">{closing.heading}</h2>
+              {closing.body && (
+                <p class="mt-4 text-lg leading-relaxed text-ink/80 max-w-[56ch]">{closing.body}</p>
+              )}
+            </div>
+            <div class="anim anim-up lg:col-span-4 flex flex-col sm:flex-row lg:flex-col xl:flex-row gap-3 lg:justify-self-end">
+              {closing.ctas.map((cta) => (
+                <a
+                  href={cta.href}
+                  class={cta.style === "primary" ? "btn btn-ink" : "btn btn-line border-ink/40"}
+                  data-event="cta_click"
+                  data-event-label={cta.event}
+                >
+                  {cta.label}
+                  {cta.style === "primary" && <Icon name="ArrowRight" size={16} class="arrow" />}
+                </a>
+              ))}
+            </div>
+          </div>
+        </section>
+      )
+    }
+
+    <BookDemoSection />
+  </main>
+
+  <Footer />
+  <CookieConsent />
+</BaseLayout>
+
+<script>
+  // Same analytics event the nav and hero CTAs send, for the in-page ones.
+  document.querySelectorAll<HTMLElement>("[data-event='cta_click']").forEach((el) => {
+    el.addEventListener("click", () => {
+      window.gtag?.("event", "cta_click", {
+        event_category: "engagement",
+        event_label: el.dataset.eventLabel ?? "solution",
+      });
+    });
+  });
+</script>

@@ -1,0 +1,53 @@
+---
+/**
+ * One of the product panels, framed as a sheet on the solid brand block that
+ * runs off the right edge of the page. A landing page uses it as its hero
+ * figure when it has no photo of its own.
+ *
+ * The parent section must clip horizontal overflow (`overflow-x-clip`).
+ */
+import Icon from "./Icon.astro";
+import FeatureVisual from "./FeatureVisual.astro";
+import type { CollectionEntry } from "astro:content";
+
+interface Props {
+  feature: CollectionEntry<"features">["data"];
+  /** A short line on a second sheet that overlaps the panel's bottom edge. */
+  note?: string;
+  class?: string;
+}
+
+const { feature, note, class: className = "" } = Astro.props;
+---
+
+<figure class:list={["relative py-8 sm:py-10", className]}>
+  <div
+    aria-hidden="true"
+    class="absolute inset-y-0 left-8 sm:left-16 -right-[50vw] bg-brand rounded-l-md"
+  >
+  </div>
+
+  <div class="sheet relative overflow-hidden shadow-[0_30px_60px_-30px_rgb(11_18_32/0.55)]">
+    <p
+      class="flex items-center justify-between gap-4 bg-ink text-white px-5 sm:px-7 py-3 text-xs font-medium"
+    >
+      <span class="truncate">{feature.title}</span>
+      <span class="flex items-center gap-2 shrink-0 text-white/70 font-normal">
+        <span class="size-1.5 bg-brand" aria-hidden="true"></span>
+        Sample data
+      </span>
+    </p>
+    <FeatureVisual feature={feature} />
+  </div>
+
+  {
+    note && (
+      <p class="sheet relative -mt-2 ml-4 sm:-ml-6 mr-8 w-fit flex items-start gap-2.5 px-4 py-3 text-sm font-medium text-ink shadow-[0_24px_48px_-24px_rgb(11_18_32/0.5)]">
+        <Icon name="Check" size={16} strokeWidth={2.5} class="mt-0.5 text-brand-dark" />
+        {note}
+      </p>
+    )
+  }
+
+  <figcaption class="sr-only">{feature.title}: illustrative sample data.</figcaption>
+</figure>

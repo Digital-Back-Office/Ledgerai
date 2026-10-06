@@ -63,7 +63,10 @@ const form = z.object({
     .default([]),
 });
 
-/** The five rotating product features, with the mock data each panel shows. */
+/** The mock product panels a feature — or a landing page's hero — can show. */
+const visual = z.enum(["email", "statements", "categorise", "balance", "alerts"]);
+
+/** The five product features, with the mock data each panel shows. */
 const features = defineCollection({
   loader: md("features"),
   schema: z.object({
@@ -73,7 +76,7 @@ const features = defineCollection({
     /** Key into the generated icon set. */
     icon: z.string(),
     /** Which visual panel renders for this feature. */
-    visual: z.enum(["email", "statements", "categorise", "balance", "alerts"]),
+    visual,
 
     /** visual: email */
     emails: z
@@ -201,6 +204,164 @@ const legal = defineCollection({
   }),
 });
 
+/**
+ * SEO landing pages for a single service or topic (bank statement processing,
+ * invoice processing, AI bookkeeping).
+ *
+ * Each file is a whole page: its own URL, meta, breadcrumb trail and every
+ * section it renders, all driven by `src/pages/[...slug].astro`. Sections are
+ * optional so a page can drop the ones its brief didn't call for, and the
+ * template skips whatever is absent rather than rendering an empty shell.
+ */
+const solutions = defineCollection({
+  loader: md("solutions"),
+  schema: z.object({
+    order: z.number(),
+    /** Site-relative URL, no trailing slash — this is what the route builds. */
+    url: z.string(),
+    /** Label used wherever the page is cross-linked (nav, footer, sitemap, related). */
+    shortTitle: z.string(),
+    /** Header menu only: overrides `shortTitle` there, where a longer label reads better. */
+    navLabel: z.string().optional(),
+    /** One line under the label in the header dropdown. */
+    tagline: z.string(),
+    /** Key into the generated icon set, used by the header dropdown. */
+    icon: z.string(),
+    seo: z.object({
+      title: z.string(),
+      description: z.string(),
+      /** Authoring notes from the content brief; not rendered. */
+      primaryKeyword: z.string().optional(),
+      secondaryKeywords: z.array(z.string()).default([]),
+    }),
+    /** Breadcrumb trail between Home and this page. */
+    trail: z.array(z.object({ name: z.string(), item: z.string().optional() })).default([]),
+
+    hero: z.object({
+      badge: z.string(),
+      h1: z.string(),
+      intro: z.string(),
+      ctas: z.array(cta).default([]),
+      trustPoints: z.array(z.string()).default([]),
+      image: z.object({ src: z.string(), alt: z.string() }).optional(),
+      /**
+       * A product panel to show beside the copy when the page has no `image`:
+       * the matching entry in the `features` collection supplies the data.
+       */
+      visual: visual.optional(),
+    }),
+
+    /** "Why the manual way hurts" — the problem framing, where a brief has one. */
+    challenges: z
+      .object({
+        ...sectionHeader,
+        items: z.array(z.object({ title: z.string(), icon: z.string() })).default([]),
+        image: z.object({ src: z.string(), alt: z.string() }).optional(),
+      })
+      .optional(),
+
+    /** Prose block(s) explaining the product, plus optional stat-style callouts. */
+    what: z
+      .object({
+        ...sectionHeader,
+        body: z.array(z.string()).default([]),
+        highlights: z
+          .array(z.object({ title: z.string(), description: z.string(), icon: z.string() }))
+          .default([]),
+      })
+      .optional(),
+
+    audience: z
+      .object({
+        ...sectionHeader,
+        items: z.array(z.object({ text: z.string(), icon: z.string() })).default([]),
+      })
+      .optional(),
+
+    /** Numbered walkthrough. `title` is the step's short label. */
+    process: z
+      .object({
+        ...sectionHeader,
+        items: z.array(z.object({ title: z.string(), description: z.string(), icon: z.string() }))
+          .default([]),
+      })
+      .optional(),
+
+    benefits: z
+      .object({
+        ...sectionHeader,
+        items: z.array(z.object({ text: z.string(), icon: z.string() })).default([]),
+      })
+      .optional(),
+
+    integrations: z
+      .object({
+        ...sectionHeader,
+        body: z.string().optional(),
+        groups: z
+          .array(z.object({ title: z.string(), icon: z.string(), items: z.array(z.string()) }))
+          .default([]),
+      })
+      .optional(),
+
+    /** Contextual internal links, with descriptive anchor text. */
+    related: z
+      .object({
+        ...sectionHeader,
+        items: z
+          .array(z.object({ label: z.string(), href: z.string(), description: z.string() }))
+          .default([]),
+      })
+      .optional(),
+
+    /** Rendered as an accordion and emitted as FAQPage structured data. */
+    faqs: z.array(z.object({ question: z.string(), answer: z.string() })).default([]),
+
+    /** Closing band above the demo form. */
+    closing: z
+      .object({
+        ...sectionHeader,
+        body: z.string().optional(),
+        ctas: z.array(cta).default([]),
+      })
+      .optional(),
+  }),
+});
+
+/**
+ * Subscription tiers on /pricing, one file per plan. The body is unused — every
+ * figure is frontmatter so the cards, the comparison table and the Offer
+ * structured data all read the same numbers.
+ */
+const plans = defineCollection({
+  loader: md("plans"),
+  schema: z.object({
+    order: z.number(),
+    name: z.string(),
+    tagline: z.string(),
+    /** GBP. The yearly saving shown on the card is derived from these two. */
+    monthlyPrice: z.number(),
+    yearlyPrice: z.number(),
+    /** Draws the card with the brand border and this ribbon. */
+    badge: z.string().optional(),
+    featured: z.boolean().default(false),
+    /** The headline allowances, shown as a list under the price. */
+    allowances: z.array(z.object({ label: z.string(), value: z.string(), note: z.string().optional() })),
+    features: z.array(z.string()).default([]),
+    /** Premium-only extras, listed under their own heading. */
+    extrasHeading: z.string().optional(),
+    extras: z.array(z.string()).default([]),
+    cta: cta,
+  }),
+});
+
+/** Rows of the plan-by-plan comparison table on /pricing. */
+const comparisonRow = z.object({
+  label: z.string(),
+  /** One cell per plan, in plan order. `true`/`false` render as a tick or dash. */
+  values: z.array(z.union([z.string(), z.boolean()])),
+});
+
 const sections = defineCollection({
   loader: md("sections"),
   schema: z.object({
@@ -238,8 +399,82 @@ const sections = defineCollection({
       })
       .optional(),
 
+    /**
+     * hero: the wording in the product illustration. Its names and figures are
+     * not here — they come from the sample data in the `features` collection.
+     */
+    figure: z
+      .object({
+        /** File-type tag on the incoming email. */
+        attachment: z.string().optional(),
+        linesLabel: z.string(),
+        /** `{count}` is the number of statement lines not listed. */
+        moreLabel: z.string().optional(),
+        balanceLabel: z.string(),
+        balanceStatus: z.string().optional(),
+        exportLabel: z.string().optional(),
+        exportFormats: z.array(z.string()).default([]),
+        caption: z.string().optional(),
+      })
+      .optional(),
+
     /** showcase: the illustration beside the copy. */
     image: z.object({ alt: z.string() }).optional(),
+
+    /**
+     * integrations page: the blocks under its header. The platforms themselves
+     * are listed in `site/integrations.md`; these are the words around them.
+     */
+    apps: z
+      .object({
+        ...sectionHeader,
+        /** Caption above each platform's `sends` line. */
+        sendsLabel: z.string().optional(),
+        /** Link to the vendor's own site. `{name}` is the platform's name. */
+        linkLabel: z.string().optional(),
+      })
+      .optional(),
+    flow: z
+      .object({
+        ...sectionHeader,
+        /** Heading over the platforms in the diagram. */
+        outputLabel: z.string().optional(),
+      })
+      .optional(),
+    notes: z
+      .object({
+        ...sectionHeader,
+        items: z
+          .array(
+            z.object({
+              title: z.string(),
+              description: z.string(),
+              href: z.string().optional(),
+              linkLabel: z.string().optional(),
+            })
+          )
+          .default([]),
+      })
+      .optional(),
+    /** integrations page: heading for its FAQs. */
+    faqHeading: z.string().optional(),
+    /** Entries of the `faqs` collection to show, by file name without `.md`. */
+    faqIds: z.array(z.string()).default([]),
+    /**
+     * showcase: the inputs -> Ledger AI -> outputs diagram, drawn in HTML so
+     * its labels are real text. Without it the section falls back to the PNG.
+     */
+    pipeline: z
+      .object({
+        inputLabel: z.string().optional(),
+        outputLabel: z.string().optional(),
+        /** `type` is the short file-type tag drawn beside the label. */
+        inputs: z.array(z.object({ label: z.string(), type: z.string().optional() })),
+        core: z.string(),
+        coreNote: z.string().optional(),
+        outputs: z.array(z.string()),
+      })
+      .optional(),
 
     /** try-free: uploader copy and limits. */
     uploader: z
@@ -302,6 +537,15 @@ const sections = defineCollection({
 
     /** cookie consent: the policy links inside the body copy. */
     links: z.array(z.object({ label: z.string(), href: z.string() })).default([]),
+
+    /** pricing: billing toggle, comparison table and the page's own FAQs. */
+    billing: z
+      .object({ monthlyLabel: z.string(), yearlyLabel: z.string(), yearlyNote: z.string() })
+      .optional(),
+    comparison: z
+      .object({ ...sectionHeader, rows: z.array(comparisonRow) })
+      .optional(),
+    faqs: z.array(z.object({ question: z.string(), answer: z.string() })).default([]),
   }),
 });
 
@@ -329,10 +573,35 @@ const site = defineCollection({
 
     /** navigation + footer */
     links: z.array(z.object({ label: z.string(), href: z.string() })).default([]),
+    /**
+     * Header dropdown holding the `solutions` landing pages. Only the label is
+     * authored here — the entries come from the collection, so adding a landing
+     * page puts it in the menu without touching this file.
+     */
+    menuLabel: z.string().optional(),
+    /**
+     * integrations: the accounting software Ledger AI syncs with, shown on the
+     * /integrations page. `logo` is a path under public/ — swap the
+     * placeholder files there for the official brand assets.
+     */
+    integrations: z
+      .array(
+        z.object({
+          name: z.string(),
+          logo: z.string(),
+          tagline: z.string(),
+          /** What Ledger AI hands over to this platform, as a short noun phrase. */
+          sends: z.string().optional(),
+          /** The vendor's own site. Omit to leave the link out. */
+          href: z.string().optional(),
+          external: z.boolean().default(false),
+        })
+      )
+      .default([]),
     login: z.object({ label: z.string(), href: z.string() }).optional(),
     cta: cta.optional(),
     copyright: z.string().optional(),
   }),
 });
 
-export const collections = { features, steps, faqs, blog, legal, sections, site };
+export const collections = { features, steps, faqs, blog, legal, sections, site, solutions, plans };
