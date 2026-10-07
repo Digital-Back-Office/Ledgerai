@@ -8,8 +8,11 @@ const { announcement } = await getSection("topbar");
   announcement && (
     <div class="bg-ink text-white">
       <div class="wrap h-(--bar-h) flex items-center justify-center text-[0.9375rem] sm:text-base md:text-lg">
-        <button
-          type="button"
+        {/* A link, not a button: the offer popup only exists on the home page,
+             so everywhere else this goes there and the popup opens on arrival
+             (see EmailPopup). On the home page the popup opens in place. */}
+        <a
+          href="/?offer=1"
           data-open-popup
           data-event="banner_click"
           class="group flex items-center gap-2.5 cursor-pointer min-w-0"
@@ -22,7 +25,7 @@ const { announcement } = await getSection("topbar");
           <span class="hidden sm:inline underline decoration-brand decoration-2 underline-offset-4 group-hover:decoration-white transition-colors">
             {announcement.linkLabel}
           </span>
-        </button>
+        </a>
       </div>
     </div>
   )

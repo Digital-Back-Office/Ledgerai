@@ -159,4 +159,4 @@ On average, UK accounting firms save up to 80% of the time spent on manual bookk
 
 Stop wasting valuable hours typing PDF statements into general ledgers. At **Ledger AI**, we automate the path from raw document ingestion to Trial Balance creation, freeing your staff to deliver high-margin business advisory. 
 
-Explore our [Bookkeeping Automation Solutions](/services/bookkeeping) or [book a live demo](#book-demo) with our workflow engineering team today to see how you can scale your firm's capacity.
+Explore our [Bookkeeping Automation Solutions](/trial-balance-automation) or [book a live demo](/#book-demo) with our workflow engineering team today to see how you can scale your firm's capacity.

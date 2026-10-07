@@ -126,4 +126,4 @@ Yes, the AI engine is trained to read and extract data from various financial do
 
 Don't let manual bank statement processing erode your firm's profits. At **Ledger AI**, we automate document data extraction and reconciliation, allowing your firm to scale capacity and deliver real-time financial advisory.
 
-Explore our [Bookkeeping Automation Services](/services/bookkeeping) or [book a live demo](#book-demo) with our workflow consultants today to see how much your firm can save.
+Explore our [Bookkeeping Automation Services](/bank-statement-processing) or [book a live demo](/#book-demo) with our workflow consultants today to see how much your firm can save.
