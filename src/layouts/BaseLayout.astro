@@ -48,6 +48,15 @@ const canonicalUrl = canonical
     : siteUrl + canonical
   : new URL(Astro.url.pathname, Astro.site ?? siteUrl).href.replace(/\/$/, "") || siteUrl + "/";
 const ogImageUrl = ogImage?.startsWith("http") ? ogImage : siteUrl + ogImage;
+// Only the site-wide card has known dimensions (public/og-image.png is
+// 1200x630). A page that passes its own image, such as a blog cover, gets no
+// size at all: a size the file does not have makes some scrapers drop the card.
+const isDefaultOgImage = ogImage === brand.ogImage;
+const ogImageType = /\.jpe?g$/i.test(ogImage ?? "")
+  ? "image/jpeg"
+  : /\.webp$/i.test(ogImage ?? "")
+    ? "image/webp"
+    : "image/png";
 
 const graphs = jsonLd ? (Array.isArray(jsonLd) ? jsonLd : [jsonLd]) : [];
 ---
@@ -87,11 +96,9 @@ const graphs = jsonLd ? (Array.isArray(jsonLd) ? jsonLd : [jsonLd]) : [];
     <meta property="og:description" content={ogDescription} />
     <meta property="og:url" content={canonicalUrl} />
     <meta property="og:image" content={ogImageUrl} />
-    <meta property="og:image:width" content="1200" />
-    {/* 600, not the usual 630 — og-image.png really is 1200x600. Declaring a
-         height the file does not have makes some scrapers discard the card. */}
-    <meta property="og:image:height" content="600" />
-    <meta property="og:image:type" content="image/png" />
+    {isDefaultOgImage && <meta property="og:image:width" content="1200" />}
+    {isDefaultOgImage && <meta property="og:image:height" content="630" />}
+    <meta property="og:image:type" content={ogImageType} />
     <meta property="og:image:alt" content={ogTitle} />
     <meta property="og:site_name" content={brand.name} />
     <meta property="og:locale" content="en_GB" />
@@ -102,7 +109,7 @@ const graphs = jsonLd ? (Array.isArray(jsonLd) ? jsonLd : [jsonLd]) : [];
     <meta name="twitter:description" content={ogDescription} />
     <meta name="twitter:image" content={ogImageUrl} />
 
-    <meta name="sitemap" content="/sitemap-index.xml" />
+    <meta name="sitemap" content="/sitemap.xml" />
     <link rel="alternate" type="application/rss+xml" title={`${brand.name} Blog`} href="/rss.xml" />
 
     {

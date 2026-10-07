@@ -135,4 +135,4 @@ A typical transition takes between 3 to 6 months. It involves setting up your st
 
 Don't let manual admin limit your firm's growth. At **Ledger AI**, we partner with UK accounting firms to automate their bookkeeping pipelines, ensuring complete MTD compliance and scaling service capacity.
 
-Learn more about our [Firm Partner Programs](/services/compliance) or [schedule a technical consultation](#book-demo) with our systems integration team today to plan your firm's automation roadmap.
+Learn more about our [Firm Partner Programs](/uk-accounting-firms) or [schedule a technical consultation](/#book-demo) with our systems integration team today to plan your firm's automation roadmap.

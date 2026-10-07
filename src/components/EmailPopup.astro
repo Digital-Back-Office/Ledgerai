@@ -204,7 +204,10 @@ const { badge, headline, subheading, scarcity, form, trustPoints } = section;
 
     // Anything marked `data-open-popup` opens it (top bar, showcase CTA).
     document.querySelectorAll<HTMLElement>("[data-open-popup]").forEach((el) => {
-      el.addEventListener("click", () => {
+      el.addEventListener("click", (click) => {
+        // The top-bar trigger is a link to `/?offer=1` so it still leads
+        // somewhere on pages without the popup; here it opens in place.
+        click.preventDefault();
         const event = el.dataset.event;
         if (event) {
           window.gtag?.("event", event, {
@@ -215,6 +218,15 @@ const { badge, headline, subheading, scarcity, form, trustPoints } = section;
         open("manual");
       });
     });
+
+    // Arriving from that link on another page: open the offer straight away,
+    // then drop the flag so a refresh or a shared URL does not reopen it.
+    const arrival = new URL(window.location.href);
+    if (arrival.searchParams.has("offer")) {
+      arrival.searchParams.delete("offer");
+      history.replaceState(null, "", arrival.pathname + arrival.search + arrival.hash);
+      open("manual");
+    }
 
     popup.querySelector("[data-popup-close]")!.addEventListener("click", close);
     popup.addEventListener("click", (e) => {

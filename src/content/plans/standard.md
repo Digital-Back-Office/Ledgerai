@@ -23,7 +23,7 @@ features:
   - "1 month data retention after cancellation"
 cta:
   label: "Get started"
-  href: "https://la.backoffice.digital/"
+  href: "https://la.backoffice.digital/signup?plan=standard"
   event: "pricing_standard"
   style: "primary"
   external: true
