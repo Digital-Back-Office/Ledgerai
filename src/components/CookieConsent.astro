@@ -51,6 +51,14 @@ const [before, after] = (section.subheading ?? "").split("{links}");
 
     const dismiss = (choice: string) => {
       localStorage.setItem("cookieConsent", choice);
+      if (choice === "accepted") {
+        window.gtag?.("consent", "update", {
+          ad_storage: "granted",
+          analytics_storage: "granted",
+          ad_user_data: "granted",
+          ad_personalization: "granted",
+        });
+      }
       banner.hidden = true;
     };
 

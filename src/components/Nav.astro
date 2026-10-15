@@ -1,4 +1,6 @@
 ---
+import { Image } from "astro:assets";
+import logo from "../assets/logo.png";
 import Icon from "./Icon.astro";
 import { getSite, getSolutions } from "../lib/content";
 
@@ -29,11 +31,14 @@ const summary =
 <nav aria-label="Main" class="sticky top-0 z-50 bg-white border-b border-rule">
   <div class="wrap h-16 flex items-center justify-between gap-3 sm:gap-6">
     <a href="/" class="shrink-0" aria-label={`${brand.name} home`}>
-      <img
-        src={brand.logo}
-        alt={brand.logoAlt}
-        width="160"
-        height="40"
+      <Image
+        src={logo}
+        alt={brand.logoAlt ?? ""}
+        width={160}
+        height={40}
+        densities={[1, 2]}
+        format="webp"
+        loading="eager"
         class="w-28 max-[359px]:w-24 sm:w-32 xl:w-36 h-auto"
       />
     </a>

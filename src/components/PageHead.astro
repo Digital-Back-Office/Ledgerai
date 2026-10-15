@@ -29,13 +29,13 @@ const hasBleed = Astro.slots.has("bleed");
 
     <div class="grid gap-x-12 gap-y-8 lg:grid-cols-12 lg:items-end">
       <div class={hasAside ? "lg:col-span-8" : "lg:col-span-10"}>
-        {label && <p class="anim anim-up label mb-6">{label}</p>}
-        <h1 class="anim anim-up display-sm" style="--anim-delay: 0.08s">
+        {label && <p class="label mb-6">{label}</p>}
+        <h1 class="display-sm">
           <slot name="title" />
         </h1>
         {
           lede && (
-            <p class="anim anim-up lede mt-6 max-w-[60ch]" style="--anim-delay: 0.16s">
+            <p class="lede mt-6 max-w-[60ch]">
               {lede}
             </p>
           )
@@ -45,7 +45,7 @@ const hasBleed = Astro.slots.has("bleed");
 
       {
         hasAside && (
-          <div class="anim anim-up lg:col-span-4 lg:justify-self-end" style="--anim-delay: 0.24s">
+          <div class="lg:col-span-4 lg:justify-self-end">
             <slot name="aside" />
           </div>
         )

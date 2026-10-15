@@ -22,6 +22,8 @@ export default defineConfig({
     // with 'file' both blogs.html and a blogs/ directory exist, and GitHub Pages
     // resolves a bare /blogs to the directory, which has no index and 404s.
     format: 'preserve',
+    // Inline every stylesheet into the HTML so CSS is never render-blocking.
+    inlineStylesheets: 'always',
   },
   // No @astrojs/sitemap: the XML sitemap is served by src/pages/sitemap.xml.ts,
   // a single flat urlset matching the format dataflow.zone uses. Running both
@@ -29,5 +31,7 @@ export default defineConfig({
   integrations: [],
   vite: {
     plugins: [tailwindcss()],
+    // Modern browsers only: no legacy transforms or polyfills.
+    build: { target: 'es2022' },
   },
 });

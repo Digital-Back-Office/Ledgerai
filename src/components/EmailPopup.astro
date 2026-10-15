@@ -237,22 +237,28 @@ const { badge, headline, subheading, scarcity, form, trustPoints } = section;
     });
 
     // Auto-open once per visitor when they reach the "how it works" section.
-    if (!localStorage.getItem("leadPopupSeen")) {
-      const target = document.getElementById("how-it-works");
-      if (target) {
-        const observer = new IntersectionObserver(
-          (entries) => {
-            if (entries[0].isIntersecting) {
-              open("auto");
-              localStorage.setItem("leadPopupSeen", "true");
-              observer.disconnect();
-            }
-          },
-          { threshold: 0.25 }
-        );
-        observer.observe(target);
+    // Observed from idle time so it stays off the load path.
+    const watchHowItWorks = () => {
+      if (!localStorage.getItem("leadPopupSeen")) {
+        const target = document.getElementById("how-it-works");
+        if (target) {
+          const observer = new IntersectionObserver(
+            (entries) => {
+              if (entries[0].isIntersecting) {
+                open("auto");
+                localStorage.setItem("leadPopupSeen", "true");
+                observer.disconnect();
+              }
+            },
+            { threshold: 0.25 }
+          );
+          observer.observe(target);
+        }
       }
-    }
+
+    };
+    if ("requestIdleCallback" in window) requestIdleCallback(watchHowItWorks);
+    else setTimeout(watchHowItWorks, 1);
 
     input.addEventListener("input", () => {
       if (!emailStarted && input.value.length > 0) {

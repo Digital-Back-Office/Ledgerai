@@ -8,6 +8,7 @@
  */
 import { getSite } from "../lib/content";
 import "../styles/global.css";
+import headingFont from "@fontsource-variable/bricolage-grotesque/files/bricolage-grotesque-latin-wght-normal.woff2?url";
 
 interface Props {
   title: string;
@@ -81,14 +82,8 @@ const graphs = jsonLd ? (Array.isArray(jsonLd) ? jsonLd : [jsonLd]) : [];
     <meta name="theme-color" content="#13b5ea" />
     <meta name="generator" content={Astro.generator} />
 
-    {/* Fonts: preconnected and loaded as a real stylesheet rather than an
-         @import inside a runtime <style>, which used to serialise the download. */}
-    <link rel="preconnect" href="https://fonts.googleapis.com" />
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link
-      rel="stylesheet"
-      href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400..800&family=Geist:wght@400..700&family=Geist+Mono:wght@400..600&display=swap"
-    />
+    {/* The h1 font is the LCP text; the @font-face rules live in global.css. */}
+    <link rel="preload" as="font" type="font/woff2" href={headingFont} crossorigin />
 
     <!-- Open Graph -->
     <meta property="og:type" content={ogType} />
@@ -125,34 +120,59 @@ const graphs = jsonLd ? (Array.isArray(jsonLd) ? jsonLd : [jsonLd]) : [];
       document.documentElement.classList.add("js");
     </script>
 
-    <!-- Google Tag Manager -->
-    <script is:inline define:vars={{ gtmId: brand.gtmId }}>
-      (function (w, d, s, l, i) {
-        w[l] = w[l] || [];
-        w[l].push({ "gtm.start": new Date().getTime(), event: "gtm.js" });
-        var f = d.getElementsByTagName(s)[0],
-          j = d.createElement(s),
-          dl = l != "dataLayer" ? "&l=" + l : "";
-        j.async = true;
-        j.src = "https://www.googletagmanager.com/gtm.js?id=" + i + dl;
-        f.parentNode.insertBefore(j, f);
-      })(window, document, "script", "dataLayer", gtmId);
-    </script>
-    <!-- End Google Tag Manager -->
-
-    <!-- Google Ads Tag -->
-    <script is:inline async src={`https://www.googletagmanager.com/gtag/js?id=${brand.googleAdsId}`}
-    ></script>
-    <script is:inline define:vars={{ adsId: brand.googleAdsId }}>
+    {/* Consent Mode v2: everything denied until the visitor accepts (the choice
+         is replayed from localStorage on return visits). window.gtag is the
+         page's event API; calls made before GTM loads queue in dataLayer. */}
+    <script is:inline>
       window.dataLayer = window.dataLayer || [];
       function gtag() {
         dataLayer.push(arguments);
       }
       window.gtag = gtag;
-      gtag("js", new Date());
-      gtag("config", adsId);
+      gtag("consent", "default", {
+        ad_storage: "denied",
+        analytics_storage: "denied",
+        ad_user_data: "denied",
+        ad_personalization: "denied",
+        wait_for_update: 500,
+      });
+      try {
+        if (localStorage.getItem("cookieConsent") === "accepted") {
+          gtag("consent", "update", {
+            ad_storage: "granted",
+            analytics_storage: "granted",
+            ad_user_data: "granted",
+            ad_personalization: "granted",
+          });
+        }
+      } catch (e) {}
     </script>
-    <!-- End Google Ads Tag -->
+
+    {/* GTM (which also carries Google Ads) loads on first interaction, or after
+         10s for visitors who never touch the page, so it stays off the
+         load-time main thread. */}
+    <script is:inline define:vars={{ gtmId: brand.gtmId }}>
+      (function () {
+        var events = ["pointerdown", "scroll", "keydown"];
+        var loaded = false;
+        function load() {
+          if (loaded) return;
+          loaded = true;
+          events.forEach(function (e) {
+            removeEventListener(e, load);
+          });
+          dataLayer.push({ "gtm.start": Date.now(), event: "gtm.js" });
+          var j = document.createElement("script");
+          j.async = true;
+          j.src = "https://www.googletagmanager.com/gtm.js?id=" + gtmId;
+          document.head.appendChild(j);
+        }
+        events.forEach(function (e) {
+          addEventListener(e, load, { passive: true });
+        });
+        setTimeout(load, 10000);
+      })();
+    </script>
   </head>
 
   <body class={`min-h-screen font-sans text-ink ${bodyClass}`}>
@@ -170,63 +190,70 @@ const graphs = jsonLd ? (Array.isArray(jsonLd) ? jsonLd : [jsonLd]) : [];
     <slot />
 
     <script>
-      // Reveal-on-scroll, replacing framer-motion's `initial`/`whileInView`.
-      const animated = document.querySelectorAll<HTMLElement>(".anim");
+      // Observer setup is not needed for first paint; run it when the main
+      // thread is idle (the timeout keeps the reveal from lagging on busy pages).
+      const idle = (fn: () => void) =>
+        "requestIdleCallback" in window ? requestIdleCallback(fn, { timeout: 300 }) : setTimeout(fn, 1);
 
-      if (animated.length) {
-        const observer = new IntersectionObserver(
-          (entries) => {
-            for (const entry of entries) {
-              if (entry.isIntersecting) {
-                entry.target.classList.add("in");
-                observer.unobserve(entry.target);
+      idle(() => {
+        // Reveal-on-scroll, replacing framer-motion's `initial`/`whileInView`.
+        const animated = document.querySelectorAll<HTMLElement>(".anim");
+
+        if (animated.length) {
+          const observer = new IntersectionObserver(
+            (entries) => {
+              for (const entry of entries) {
+                if (entry.isIntersecting) {
+                  entry.target.classList.add("in");
+                  observer.unobserve(entry.target);
+                }
               }
-            }
-          },
-          { threshold: 0.15, rootMargin: "0px 0px -40px 0px" }
-        );
-        animated.forEach((el) => observer.observe(el));
-      }
+            },
+            { threshold: 0.15, rootMargin: "0px 0px -40px 0px" }
+          );
+          animated.forEach((el) => observer.observe(el));
+        }
 
-      // Scroll-depth funnel events, previously wired up in the Hero component.
-      const funnel: Array<[string, string]> = [
-        ["features", "features"],
-        ["how-it-works", "how_it_works"],
-        ["book-demo", "book_demo"],
-      ];
+        // Scroll-depth funnel events, previously wired up in the Hero component.
+        const funnel: Array<[string, string]> = [
+          ["features", "features"],
+          ["how-it-works", "how_it_works"],
+          ["book-demo", "book_demo"],
+        ];
 
-      for (const [id, label] of funnel) {
-        const el = document.getElementById(id);
-        if (!el) continue;
-        const observer = new IntersectionObserver(
-          (entries) => {
-            if (entries[0].isIntersecting) {
-              window.gtag?.("event", "section_view", {
-                event_category: "scroll_funnel",
-                event_label: label,
-              });
-              observer.disconnect();
-            }
-          },
-          { threshold: 0.3 }
-        );
-        observer.observe(el);
-      }
+        for (const [id, label] of funnel) {
+          const el = document.getElementById(id);
+          if (!el) continue;
+          const observer = new IntersectionObserver(
+            (entries) => {
+              if (entries[0].isIntersecting) {
+                window.gtag?.("event", "section_view", {
+                  event_category: "scroll_funnel",
+                  event_label: label,
+                });
+                observer.disconnect();
+              }
+            },
+            { threshold: 0.3 }
+          );
+          observer.observe(el);
+        }
 
-      // Fires once when the footer is reached.
-      const footer = document.querySelector("footer");
-      if (footer) {
-        const observer = new IntersectionObserver(
-          (entries) => {
-            if (entries[0].isIntersecting) {
-              window.gtag?.("event", "scrolled_to_bottom", { event_category: "engagement" });
-              observer.disconnect();
-            }
-          },
-          { threshold: 0.5 }
-        );
-        observer.observe(footer);
-      }
+        // Fires once when the footer is reached.
+        const footer = document.querySelector("footer");
+        if (footer) {
+          const observer = new IntersectionObserver(
+            (entries) => {
+              if (entries[0].isIntersecting) {
+                window.gtag?.("event", "scrolled_to_bottom", { event_category: "engagement" });
+                observer.disconnect();
+              }
+            },
+            { threshold: 0.5 }
+          );
+          observer.observe(footer);
+        }
+      });
     </script>
   </body>
 </html>
