@@ -124,22 +124,20 @@ const band = "wrap pt-20 pb-24 lg:pt-28 lg:pb-32";
             : ""}
         >
           <div class={hasFigure ? "lg:col-span-6" : "max-w-4xl"}>
-            <p class="anim anim-up label mb-6">{hero.badge}</p>
+            <p class="label mb-6">{hero.badge}</p>
 
             <h1
-              class:list={["anim anim-up display-sm", hasFigure && h1Size]}
-              style="--anim-delay: 0.08s"
+              class:list={["display-sm", hasFigure && h1Size]}
             >
               {hero.h1}
             </h1>
 
-            <p class="anim anim-up lede mt-6 max-w-[58ch]" style="--anim-delay: 0.16s">
+            <p class="lede mt-6 max-w-[58ch]">
               {hero.intro}
             </p>
 
             <div
-              class="anim anim-up flex flex-col sm:flex-row gap-3 mt-9"
-              style="--anim-delay: 0.24s"
+              class="flex flex-col sm:flex-row gap-3 mt-9"
             >
               {
                 hero.ctas.map((cta) => (
@@ -159,8 +157,7 @@ const band = "wrap pt-20 pb-24 lg:pt-28 lg:pb-32";
             {
               hero.trustPoints.length > 0 && (
                 <ul
-                  class="anim anim-fade flex flex-wrap gap-x-5 gap-y-2 mt-7 text-sm text-mute"
-                  style="--anim-delay: 0.4s"
+                  class="flex flex-wrap gap-x-5 gap-y-2 mt-7 text-sm text-mute"
                 >
                   {hero.trustPoints.map((point) => (
                     <li class="flex items-center gap-2">

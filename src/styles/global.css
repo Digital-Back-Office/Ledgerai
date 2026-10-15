@@ -1,8 +1,36 @@
 @import "tailwindcss";
 
 /* ─────────────────────────────────────────────────────────────────────────────
+   Self-hosted fonts (Fontsource), Latin subset only. The heading font is
+   preloaded in BaseLayout.
+   ──────────────────────────────────────────────────────────────────────────── */
+@font-face {
+  font-family: "Bricolage Grotesque";
+  font-style: normal;
+  font-display: swap;
+  font-weight: 200 800;
+  src: url("../../node_modules/@fontsource-variable/bricolage-grotesque/files/bricolage-grotesque-latin-wght-normal.woff2")
+    format("woff2-variations");
+}
+@font-face {
+  font-family: "Geist";
+  font-style: normal;
+  font-display: swap;
+  font-weight: 100 900;
+  src: url("../../node_modules/@fontsource-variable/geist/files/geist-latin-wght-normal.woff2")
+    format("woff2-variations");
+}
+@font-face {
+  font-family: "Geist Mono";
+  font-style: normal;
+  font-display: swap;
+  font-weight: 100 900;
+  src: url("../../node_modules/@fontsource-variable/geist-mono/files/geist-mono-latin-wght-normal.woff2")
+    format("woff2-variations");
+}
+
+/* ─────────────────────────────────────────────────────────────────────────────
    Theme
-   Fonts are preconnected + loaded as a stylesheet in BaseLayout.
    ──────────────────────────────────────────────────────────────────────────── */
 @theme {
   --font-sans: "Geist", ui-sans-serif, system-ui, sans-serif;
@@ -500,33 +528,33 @@
    visitors always see fully visible content. IntersectionObserver in
    BaseLayout adds `.in`.
    ──────────────────────────────────────────────────────────────────────────── */
-.js .anim {
-  opacity: 0;
-  transition:
-    opacity 0.6s cubic-bezier(0.16, 1, 0.3, 1),
-    transform 0.6s cubic-bezier(0.16, 1, 0.3, 1);
-  transition-delay: var(--anim-delay, 0s);
-}
-
-.js .anim-up {
-  transform: translateY(14px);
-}
-.js .anim-down {
-  transform: translateY(-14px);
-}
-.js .anim-left {
-  transform: translateX(-14px);
-}
-.js .anim-right {
-  transform: translateX(14px);
-}
-.js .anim-scale {
-  transform: scale(0.97);
-}
-
-.js .anim.in {
-  opacity: 1;
-  transform: none;
+/* Hidden only when JS can reveal them AND motion is allowed; otherwise (and
+   always in the static HTML) everything is visible. */
+@media (prefers-reduced-motion: no-preference) {
+  .js .anim {
+    transition:
+      opacity 0.6s cubic-bezier(0.16, 1, 0.3, 1),
+      transform 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+    transition-delay: var(--anim-delay, 0s);
+  }
+  .js .anim:not(.in) {
+    opacity: 0;
+  }
+  .js .anim-up:not(.in) {
+    transform: translateY(14px);
+  }
+  .js .anim-down:not(.in) {
+    transform: translateY(-14px);
+  }
+  .js .anim-left:not(.in) {
+    transform: translateX(-14px);
+  }
+  .js .anim-right:not(.in) {
+    transform: translateX(14px);
+  }
+  .js .anim-scale:not(.in) {
+    transform: scale(0.97);
+  }
 }
 
 /* The feature-panel visuals swap on a timer; fade each new one in. */

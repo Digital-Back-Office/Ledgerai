@@ -72,18 +72,17 @@ const factGrid = facts.length === 4 ? "grid-cols-2 md:grid-cols-4 lg:grid-cols-2
          figure, facts, in that order. */}
     <div class="grid grid-cols-1 gap-y-14 lg:grid-cols-2 lg:gap-x-16 lg:gap-y-8 xl:gap-x-24">
       <div class="lg:col-start-1 lg:row-start-1">
-        <p class="anim anim-up label mb-6">{badge}</p>
+        <p class="label mb-6">{badge}</p>
 
         <h1
-          class="anim anim-up display text-[clamp(2.6rem,5.3vw,4.5rem)] max-w-[13ch]"
-          style="--anim-delay: 0.08s"
+          class="display text-[clamp(2.6rem,5.3vw,4.5rem)] max-w-[13ch]"
         >
           {headline?.before} <span class="mark">{headline?.accent}</span>{" "}
           {headline?.after}
         </h1>
 
         {/* Email lead form */}
-        <div class="anim anim-up mt-12 lg:mt-[5.5rem] max-w-xl" style="--anim-delay: 0.16s">
+        <div class="mt-12 lg:mt-[5.5rem] max-w-xl">
           <div data-hero-success hidden>
             <p class="sheet flex items-start gap-3 border-l-2 border-l-brand px-5 py-4 text-ink font-medium">
               <Icon name="Check" size={18} strokeWidth={2.5} class="mt-0.5 text-brand-dark" />
@@ -151,8 +150,7 @@ const factGrid = facts.length === 4 ? "grid-cols-2 md:grid-cols-4 lg:grid-cols-2
       {
         lines.length > 0 && balance && (
           <figure
-            class="anim anim-up relative lg:col-start-2 lg:row-start-1 lg:row-span-2 lg:flex lg:flex-col"
-            style="--anim-delay: 0.3s"
+            class="relative lg:col-start-2 lg:row-start-1 lg:row-span-2 lg:flex lg:flex-col"
           >
             <div class="relative pt-7 pb-11 lg:pt-10 lg:flex-1">
               <div
@@ -308,8 +306,7 @@ const factGrid = facts.length === 4 ? "grid-cols-2 md:grid-cols-4 lg:grid-cols-2
 
       {/* Facts */}
       <dl
-        class={`anim anim-up cells ${factGrid} auto-rows-fr lg:col-start-1 lg:row-start-2`}
-        style="--anim-delay: 0.32s"
+        class={`cells ${factGrid} auto-rows-fr lg:col-start-1 lg:row-start-2`}
       >
         {
           facts.map((fact) => (
