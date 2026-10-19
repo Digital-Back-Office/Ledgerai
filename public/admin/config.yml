@@ -1,0 +1,1133 @@
+# Decap CMS configuration. Served at /admin/ (see index.html).
+# Generated shape mirrors the zod schemas in src/content.config.ts: every field
+# here is a key the schema accepts; keep the two in step.
+backend:
+  name: github
+  repo: Digital-Back-Office/Ledgerai
+  branch: main
+  # base_url: https://<your-oauth-proxy>  # required for login; see CLAUDE.md "Content editing (Decap)"
+local_backend: true
+publish_mode: editorial_workflow
+site_url: https://ledgerai.backoffice.digital
+display_url: https://ledgerai.backoffice.digital
+media_folder: public
+public_folder: /
+collections:
+  - name: sections
+    label: Page sections
+    files:
+      - label: Blog-cta
+        name: blog-cta
+        file: src/content/sections/blog-cta.md
+        fields:
+          - {label: Eyebrow, name: eyebrow, widget: string, required: false}
+          - {label: Heading, name: heading, widget: string, required: false}
+          - {label: Subheading, name: subheading, widget: text, required: false}
+          - label: Buttons
+            name: ctas
+            widget: list
+            required: false
+            fields:
+              - {label: Label, name: label, widget: string}
+              - {label: Href, name: href, widget: string, required: false}
+              - {label: Event, name: event, widget: string, required: false}
+              - {label: Style, name: style, widget: select, required: false, options: [primary, secondary, ghost], default: primary}
+              - {label: Opens Popup, name: opensPopup, widget: boolean, required: false}
+              - {label: External, name: external, widget: boolean, required: false}
+      - label: Blog-index
+        name: blog-index
+        file: src/content/sections/blog-index.md
+        fields:
+          - {label: Page Title, name: pageTitle, widget: string, required: false}
+          - {label: Page Description, name: pageDescription, widget: text, required: false}
+          - {label: Badge, name: badge, widget: string, required: false}
+          - label: Headline
+            name: headline
+            widget: object
+            required: false
+            fields:
+              - {label: Before, name: before, widget: string, required: false}
+              - {label: Accent, name: accent, widget: string}
+              - {label: After, name: after, widget: string, required: false}
+          - {label: Subheading, name: subheading, widget: text, required: false}
+          - {label: Search Placeholder, name: searchPlaceholder, widget: string, required: false}
+          - {label: All Categories Label, name: allCategoriesLabel, widget: string, required: false}
+          - label: Empty State
+            name: emptyState
+            widget: object
+            required: false
+            fields:
+              - {label: Message, name: message, widget: string}
+              - {label: Action, name: action, widget: string}
+      - label: Blog-post-cta
+        name: blog-post-cta
+        file: src/content/sections/blog-post-cta.md
+        fields:
+          - {label: Heading, name: heading, widget: string, required: false}
+          - {label: Subheading, name: subheading, widget: text, required: false}
+          - label: Buttons
+            name: ctas
+            widget: list
+            required: false
+            fields:
+              - {label: Label, name: label, widget: string}
+              - {label: Href, name: href, widget: string, required: false}
+              - {label: Event, name: event, widget: string, required: false}
+              - {label: Style, name: style, widget: select, required: false, options: [primary, secondary, ghost], default: primary}
+              - {label: Opens Popup, name: opensPopup, widget: boolean, required: false}
+              - {label: External, name: external, widget: boolean, required: false}
+      - label: Book-demo
+        name: book-demo
+        file: src/content/sections/book-demo.md
+        fields:
+          - {label: Eyebrow, name: eyebrow, widget: string, required: false}
+          - {label: Heading, name: heading, widget: string, required: false}
+          - {label: Subheading, name: subheading, widget: text, required: false}
+          - label: Testimonial
+            name: testimonial
+            widget: object
+            required: false
+            fields:
+              - {label: Quote, name: quote, widget: text}
+              - {label: Stars, name: stars, widget: number, required: false, value_type: int, default: 5}
+          - label: Form
+            name: form
+            widget: object
+            required: false
+            fields:
+              - {label: Title, name: title, widget: string, required: false}
+              - {label: Subtitle, name: subtitle, widget: string, required: false}
+              - {label: Placeholder, name: placeholder, widget: string, required: false}
+              - {label: Submit Label, name: submitLabel, widget: string}
+              - {label: Loading Label, name: loadingLabel, widget: string, required: false}
+              - {label: Source, name: source, widget: string, required: false}
+              - {label: Note, name: note, widget: text, required: false}
+              - {label: Success Title, name: successTitle, widget: string, required: false}
+              - {label: Success Message, name: successMessage, widget: text, required: false}
+              - {label: Error Message, name: errorMessage, widget: text, required: false}
+              - {label: Connection Error Message, name: connectionErrorMessage, widget: text, required: false}
+              - label: Fields
+                name: fields
+                widget: list
+                required: false
+                fields:
+                  - {label: Name, name: name, widget: string}
+                  - {label: Placeholder, name: placeholder, widget: string}
+                  - {label: Type, name: type, widget: select, required: false, options: [text, email, tel], default: text}
+                  - {label: Required, name: required, widget: boolean, required: false}
+      - label: Cookie-consent
+        name: cookie-consent
+        file: src/content/sections/cookie-consent.md
+        fields:
+          - {label: Heading, name: heading, widget: string, required: false}
+          - {label: Subheading, name: subheading, widget: text, required: false}
+          - label: Links
+            name: links
+            widget: list
+            required: false
+            fields:
+              - {label: Label, name: label, widget: string}
+              - {label: Href, name: href, widget: string}
+          - label: Buttons
+            name: ctas
+            widget: list
+            required: false
+            fields:
+              - {label: Label, name: label, widget: string}
+              - {label: Href, name: href, widget: string, required: false}
+              - {label: Event, name: event, widget: string, required: false}
+              - {label: Style, name: style, widget: select, required: false, options: [primary, secondary, ghost], default: primary}
+              - {label: Opens Popup, name: opensPopup, widget: boolean, required: false}
+              - {label: External, name: external, widget: boolean, required: false}
+      - label: Email-popup
+        name: email-popup
+        file: src/content/sections/email-popup.md
+        fields:
+          - {label: Badge, name: badge, widget: string, required: false}
+          - label: Headline
+            name: headline
+            widget: object
+            required: false
+            fields:
+              - {label: Before, name: before, widget: string, required: false}
+              - {label: Accent, name: accent, widget: string}
+              - {label: After, name: after, widget: string, required: false}
+          - {label: Subheading, name: subheading, widget: text, required: false}
+          - label: Scarcity
+            name: scarcity
+            widget: object
+            required: false
+            fields:
+              - {label: Total Spots, name: totalSpots, widget: number, value_type: int}
+              - {label: Base Spots Left, name: baseSpotsLeft, widget: number, value_type: int}
+              - {label: Min Spots Left, name: minSpotsLeft, widget: number, value_type: int}
+              - {label: Decay Start, name: decayStart, widget: string}
+              - {label: Decay Every Days, name: decayEveryDays, widget: number, value_type: int}
+              - {label: Decay Amount, name: decayAmount, widget: number, value_type: int}
+              - {label: Label, name: label, widget: string, hint: '{left} and {total} are substituted at runtime'}
+              - {label: Claimed Label, name: claimedLabel, widget: string}
+          - label: Form
+            name: form
+            widget: object
+            required: false
+            fields:
+              - {label: Title, name: title, widget: string, required: false}
+              - {label: Subtitle, name: subtitle, widget: string, required: false}
+              - {label: Placeholder, name: placeholder, widget: string, required: false}
+              - {label: Submit Label, name: submitLabel, widget: string}
+              - {label: Loading Label, name: loadingLabel, widget: string, required: false}
+              - {label: Source, name: source, widget: string, required: false}
+              - {label: Note, name: note, widget: text, required: false}
+              - {label: Success Title, name: successTitle, widget: string, required: false}
+              - {label: Success Message, name: successMessage, widget: text, required: false}
+              - {label: Error Message, name: errorMessage, widget: text, required: false}
+              - {label: Connection Error Message, name: connectionErrorMessage, widget: text, required: false}
+              - label: Fields
+                name: fields
+                widget: list
+                required: false
+                fields:
+                  - {label: Name, name: name, widget: string}
+                  - {label: Placeholder, name: placeholder, widget: string}
+                  - {label: Type, name: type, widget: select, required: false, options: [text, email, tel], default: text}
+                  - {label: Required, name: required, widget: boolean, required: false}
+          - label: Trust Points
+            name: trustPoints
+            widget: list
+            required: false
+            field:
+              label: Item
+              name: item
+              widget: string
+      - label: Faq
+        name: faq
+        file: src/content/sections/faq.md
+        fields:
+          - {label: Eyebrow, name: eyebrow, widget: string, required: false}
+          - {label: Heading, name: heading, widget: string, required: false}
+          - {label: Subheading, name: subheading, widget: text, required: false}
+      - label: Features
+        name: features
+        file: src/content/sections/features.md
+        fields:
+          - {label: Eyebrow, name: eyebrow, widget: string, required: false}
+          - {label: Heading, name: heading, widget: string, required: false}
+          - {label: Subheading, name: subheading, widget: text, required: false}
+      - label: Hero
+        name: hero
+        file: src/content/sections/hero.md
+        fields:
+          - {label: Page Title, name: pageTitle, widget: string, required: false}
+          - {label: Page Description, name: pageDescription, widget: text, required: false}
+          - {label: Badge, name: badge, widget: string, required: false}
+          - label: Headline
+            name: headline
+            widget: object
+            required: false
+            fields:
+              - {label: Before, name: before, widget: string, required: false}
+              - {label: Accent, name: accent, widget: string}
+              - {label: After, name: after, widget: string, required: false}
+          - label: Form
+            name: form
+            widget: object
+            required: false
+            fields:
+              - {label: Title, name: title, widget: string, required: false}
+              - {label: Subtitle, name: subtitle, widget: string, required: false}
+              - {label: Placeholder, name: placeholder, widget: string, required: false}
+              - {label: Submit Label, name: submitLabel, widget: string}
+              - {label: Loading Label, name: loadingLabel, widget: string, required: false}
+              - {label: Source, name: source, widget: string, required: false}
+              - {label: Note, name: note, widget: text, required: false}
+              - {label: Success Title, name: successTitle, widget: string, required: false}
+              - {label: Success Message, name: successMessage, widget: text, required: false}
+              - {label: Error Message, name: errorMessage, widget: text, required: false}
+              - {label: Connection Error Message, name: connectionErrorMessage, widget: text, required: false}
+              - label: Fields
+                name: fields
+                widget: list
+                required: false
+                fields:
+                  - {label: Name, name: name, widget: string}
+                  - {label: Placeholder, name: placeholder, widget: string}
+                  - {label: Type, name: type, widget: select, required: false, options: [text, email, tel], default: text}
+                  - {label: Required, name: required, widget: boolean, required: false}
+          - label: Buttons
+            name: ctas
+            widget: list
+            required: false
+            fields:
+              - {label: Label, name: label, widget: string}
+              - {label: Href, name: href, widget: string, required: false}
+              - {label: Event, name: event, widget: string, required: false}
+              - {label: Style, name: style, widget: select, required: false, options: [primary, secondary, ghost], default: primary}
+              - {label: Opens Popup, name: opensPopup, widget: boolean, required: false}
+              - {label: External, name: external, widget: boolean, required: false}
+          - label: Trust Points
+            name: trustPoints
+            widget: list
+            required: false
+            field:
+              label: Item
+              name: item
+              widget: string
+          - label: Figure
+            name: figure
+            widget: object
+            required: false
+            fields:
+              - {label: Attachment, name: attachment, widget: string, required: false}
+              - {label: Lines Label, name: linesLabel, widget: string}
+              - {label: More Label, name: moreLabel, widget: string, required: false, hint: '{count} is the number of lines not listed'}
+              - {label: Balance Label, name: balanceLabel, widget: string}
+              - {label: Balance Status, name: balanceStatus, widget: string, required: false}
+              - {label: Export Label, name: exportLabel, widget: string, required: false}
+              - label: Export Formats
+                name: exportFormats
+                widget: list
+                required: false
+                field:
+                  label: Item
+                  name: item
+                  widget: string
+              - {label: Caption, name: caption, widget: string, required: false}
+      - label: How-it-works
+        name: how-it-works
+        file: src/content/sections/how-it-works.md
+        fields:
+          - {label: Eyebrow, name: eyebrow, widget: string, required: false}
+          - {label: Heading, name: heading, widget: string, required: false}
+      - label: Integrations
+        name: integrations
+        file: src/content/sections/integrations.md
+        fields:
+          - {label: Page Title, name: pageTitle, widget: string, required: false}
+          - {label: Page Description, name: pageDescription, widget: text, required: false}
+          - {label: Badge, name: badge, widget: string, required: false}
+          - label: Headline
+            name: headline
+            widget: object
+            required: false
+            fields:
+              - {label: Before, name: before, widget: string, required: false}
+              - {label: Accent, name: accent, widget: string}
+              - {label: After, name: after, widget: string, required: false}
+          - {label: Subheading, name: subheading, widget: text, required: false}
+          - label: Apps
+            name: apps
+            widget: object
+            required: false
+            fields:
+              - {label: Eyebrow, name: eyebrow, widget: string, required: false}
+              - {label: Heading, name: heading, widget: string, required: false}
+              - {label: Heading Accent, name: headingAccent, widget: string, required: false}
+              - {label: Subheading, name: subheading, widget: text, required: false}
+              - {label: Badge, name: badge, widget: string, required: false}
+              - {label: Sends Label, name: sendsLabel, widget: string, required: false}
+              - {label: Link Label, name: linkLabel, widget: string, required: false, hint: '{name} is the platform''s name'}
+          - label: Flow
+            name: flow
+            widget: object
+            required: false
+            fields:
+              - {label: Eyebrow, name: eyebrow, widget: string, required: false}
+              - {label: Heading, name: heading, widget: string, required: false}
+              - {label: Heading Accent, name: headingAccent, widget: string, required: false}
+              - {label: Subheading, name: subheading, widget: text, required: false}
+              - {label: Badge, name: badge, widget: string, required: false}
+              - {label: Output Label, name: outputLabel, widget: string, required: false}
+          - label: Notes
+            name: notes
+            widget: object
+            required: false
+            fields:
+              - {label: Eyebrow, name: eyebrow, widget: string, required: false}
+              - {label: Heading, name: heading, widget: string, required: false}
+              - {label: Heading Accent, name: headingAccent, widget: string, required: false}
+              - {label: Subheading, name: subheading, widget: text, required: false}
+              - {label: Badge, name: badge, widget: string, required: false}
+              - label: Items
+                name: items
+                widget: list
+                required: false
+                fields:
+                  - {label: Title, name: title, widget: string}
+                  - {label: Description, name: description, widget: text}
+                  - {label: Href, name: href, widget: string, required: false}
+                  - {label: Link Label, name: linkLabel, widget: string, required: false}
+          - {label: Faq Heading, name: faqHeading, widget: string, required: false}
+          - {label: FAQs shown, name: faqIds, widget: relation, required: false, collection: faqs, value_field: '{{slug}}', search_fields: [question], display_fields: [question], multiple: true}
+      - label: 404 page
+        name: not-found
+        file: src/content/sections/not-found.md
+        fields:
+          - {label: Page Title, name: pageTitle, widget: string, required: false}
+          - {label: Page Description, name: pageDescription, widget: text, required: false}
+          - {label: Heading, name: heading, widget: string, required: false}
+          - {label: Subheading, name: subheading, widget: text, required: false}
+          - label: Buttons
+            name: ctas
+            widget: list
+            required: false
+            fields:
+              - {label: Label, name: label, widget: string}
+              - {label: Href, name: href, widget: string, required: false}
+              - {label: Event, name: event, widget: string, required: false}
+              - {label: Style, name: style, widget: select, required: false, options: [primary, secondary, ghost], default: primary}
+              - {label: Opens Popup, name: opensPopup, widget: boolean, required: false}
+              - {label: External, name: external, widget: boolean, required: false}
+      - label: Pricing
+        name: pricing
+        file: src/content/sections/pricing.md
+        fields:
+          - {label: Page Title, name: pageTitle, widget: string, required: false}
+          - {label: Page Description, name: pageDescription, widget: text, required: false}
+          - {label: Badge, name: badge, widget: string, required: false}
+          - label: Headline
+            name: headline
+            widget: object
+            required: false
+            fields:
+              - {label: Before, name: before, widget: string, required: false}
+              - {label: Accent, name: accent, widget: string}
+              - {label: After, name: after, widget: string, required: false}
+          - {label: Subheading, name: subheading, widget: text, required: false}
+          - label: Trust Points
+            name: trustPoints
+            widget: list
+            required: false
+            field:
+              label: Item
+              name: item
+              widget: string
+          - label: Billing
+            name: billing
+            widget: object
+            required: false
+            fields:
+              - {label: Monthly Label, name: monthlyLabel, widget: string}
+              - {label: Yearly Label, name: yearlyLabel, widget: string}
+              - {label: Yearly Note, name: yearlyNote, widget: string}
+          - label: Comparison
+            name: comparison
+            widget: object
+            required: false
+            fields:
+              - {label: Eyebrow, name: eyebrow, widget: string, required: false}
+              - {label: Heading, name: heading, widget: string, required: false}
+              - {label: Heading Accent, name: headingAccent, widget: string, required: false}
+              - {label: Subheading, name: subheading, widget: text, required: false}
+              - {label: Badge, name: badge, widget: string, required: false}
+            hint: The comparison table rows are not editable here (mixed text/tick values); edit src/content/sections/pricing.md in Git.
+          - label: FAQs
+            name: faqs
+            widget: list
+            required: false
+            fields:
+              - {label: Question, name: question, widget: string}
+              - {label: Answer, name: answer, widget: text}
+      - label: Showcase
+        name: showcase
+        file: src/content/sections/showcase.md
+        fields:
+          - {label: Badge, name: badge, widget: string, required: false}
+          - label: Headline
+            name: headline
+            widget: object
+            required: false
+            fields:
+              - {label: Before, name: before, widget: string, required: false}
+              - {label: Accent, name: accent, widget: string}
+              - {label: After, name: after, widget: string, required: false}
+          - {label: Subheading, name: subheading, widget: text, required: false}
+          - label: Image
+            name: image
+            widget: object
+            required: false
+            fields:
+              - {label: Alt, name: alt, widget: string}
+          - label: Pipeline
+            name: pipeline
+            widget: object
+            required: false
+            fields:
+              - {label: Input Label, name: inputLabel, widget: string, required: false}
+              - {label: Output Label, name: outputLabel, widget: string, required: false}
+              - label: Inputs
+                name: inputs
+                widget: list
+                required: true
+                fields:
+                  - {label: Label, name: label, widget: string}
+                  - {label: Type, name: type, widget: string, required: false}
+              - {label: Core, name: core, widget: string}
+              - {label: Core Note, name: coreNote, widget: string, required: false}
+              - label: Outputs
+                name: outputs
+                widget: list
+                required: true
+                field:
+                  label: Item
+                  name: item
+                  widget: string
+          - label: Bullets
+            name: bullets
+            widget: list
+            required: false
+            fields:
+              - {label: Text, name: text, widget: string}
+              - {label: Tone, name: tone, widget: select, required: false, options: [brand, warning], default: brand}
+          - label: Buttons
+            name: ctas
+            widget: list
+            required: false
+            fields:
+              - {label: Label, name: label, widget: string}
+              - {label: Href, name: href, widget: string, required: false}
+              - {label: Event, name: event, widget: string, required: false}
+              - {label: Style, name: style, widget: select, required: false, options: [primary, secondary, ghost], default: primary}
+              - {label: Opens Popup, name: opensPopup, widget: boolean, required: false}
+              - {label: External, name: external, widget: boolean, required: false}
+      - label: Sitemap page
+        name: sitemap
+        file: src/content/sections/sitemap.md
+        fields:
+          - {label: Page Title, name: pageTitle, widget: string, required: false}
+          - {label: Page Description, name: pageDescription, widget: text, required: false}
+          - {label: Badge, name: badge, widget: string, required: false}
+          - label: Headline
+            name: headline
+            widget: object
+            required: false
+            fields:
+              - {label: Before, name: before, widget: string, required: false}
+              - {label: Accent, name: accent, widget: string}
+              - {label: After, name: after, widget: string, required: false}
+          - {label: Subheading, name: subheading, widget: text, required: false}
+      - label: Top bar
+        name: topbar
+        file: src/content/sections/topbar.md
+        fields:
+          - label: Announcement
+            name: announcement
+            widget: object
+            required: false
+            fields:
+              - {label: Before, name: before, widget: string}
+              - {label: Highlight, name: highlight, widget: string}
+              - {label: After, name: after, widget: string}
+              - {label: Link Label, name: linkLabel, widget: string}
+      - label: Try free
+        name: try-free
+        file: src/content/sections/try-free.md
+        fields:
+          - {label: Eyebrow, name: eyebrow, widget: string, required: false}
+          - {label: Heading, name: heading, widget: string, required: false}
+          - {label: Subheading, name: subheading, widget: text, required: false}
+          - {label: Panel Title, name: panelTitle, widget: string, required: false}
+          - label: Uploader
+            name: uploader
+            widget: object
+            required: false
+            fields:
+              - {label: Daily Limit, name: dailyLimit, widget: number, value_type: int}
+              - {label: Max File Size Mb, name: maxFileSizeMb, widget: number, value_type: int}
+              - {label: Api Base Url, name: apiBaseUrl, widget: string}
+              - {label: Drop Title, name: dropTitle, widget: string}
+              - {label: Drop Hint, name: dropHint, widget: string}
+              - {label: Submit Label, name: submitLabel, widget: string}
+              - {label: Processing Label, name: processingLabel, widget: string}
+              - {label: Remaining Label, name: remainingLabel, widget: string}
+              - {label: Email Prompt Label, name: emailPromptLabel, widget: string}
+              - {label: Sending To Label, name: sendingToLabel, widget: string}
+              - {label: Change Label, name: changeLabel, widget: string}
+              - {label: Invalid Type Error, name: invalidTypeError, widget: string}
+              - {label: Too Large Error, name: tooLargeError, widget: string}
+              - {label: Generic Error, name: genericError, widget: string}
+              - {label: Success Title, name: successTitle, widget: string}
+              - label: Modal
+                name: modal
+                widget: object
+                required: true
+                fields:
+                  - {label: Heading, name: heading, widget: string}
+                  - {label: Body, name: body, widget: string}
+                  - {label: Placeholder, name: placeholder, widget: string}
+                  - {label: Submit Label, name: submitLabel, widget: string}
+                  - {label: Invalid Email, name: invalidEmail, widget: string}
+                  - {label: Note, name: note, widget: string}
+              - label: Limit Reached
+                name: limitReached
+                widget: object
+                required: true
+                fields:
+                  - {label: Heading, name: heading, widget: string}
+                  - {label: Body, name: body, widget: string}
+          - label: Supported Banks
+            name: supportedBanks
+            widget: list
+            required: false
+            field:
+              label: Item
+              name: item
+              widget: string
+          - label: Bullets
+            name: bullets
+            widget: list
+            required: false
+            fields:
+              - {label: Text, name: text, widget: string}
+              - {label: Tone, name: tone, widget: select, required: false, options: [brand, warning], default: brand}
+          - label: Buttons
+            name: ctas
+            widget: list
+            required: false
+            fields:
+              - {label: Label, name: label, widget: string}
+              - {label: Href, name: href, widget: string, required: false}
+              - {label: Event, name: event, widget: string, required: false}
+              - {label: Style, name: style, widget: select, required: false, options: [primary, secondary, ghost], default: primary}
+              - {label: Opens Popup, name: opensPopup, widget: boolean, required: false}
+              - {label: External, name: external, widget: boolean, required: false}
+  - name: site
+    label: Site settings
+    files:
+      - label: Brand
+        name: brand
+        file: src/content/site/brand.md
+        fields:
+          - {label: Name, name: name, widget: string, required: false}
+          - {label: Legal Name, name: legalName, widget: string, required: false}
+          - {label: Logo, name: logo, widget: string, required: false, hint: 'Path under public/, e.g. /logo.png'}
+          - {label: Logo Alt, name: logoAlt, widget: string, required: false}
+          - {label: Favicon, name: favicon, widget: string, required: false}
+          - {label: Og Image, name: ogImage, widget: string, required: false}
+          - {label: Url, name: url, widget: string, required: false}
+          - {label: App Url, name: appUrl, widget: string, required: false}
+          - {label: Default Title, name: defaultTitle, widget: string, required: false}
+          - {label: Default Description, name: defaultDescription, widget: text, required: false}
+          - {label: Application Description, name: applicationDescription, widget: text, required: false}
+          - {label: Form Access Key, name: formAccessKey, widget: string, required: false}
+          - {label: Gtm Id, name: gtmId, widget: string, required: false}
+          - {label: Google Ads Id, name: googleAdsId, widget: string, required: false}
+          - {label: Booking Conversion Label, name: bookingConversionLabel, widget: string, required: false}
+      - label: Footer
+        name: footer
+        file: src/content/site/footer.md
+        fields:
+          - {label: Copyright, name: copyright, widget: string, required: false}
+          - label: Links
+            name: links
+            widget: list
+            required: false
+            fields:
+              - {label: Label, name: label, widget: string}
+              - {label: Href, name: href, widget: string}
+      - label: Integrations list
+        name: integrations
+        file: src/content/site/integrations.md
+        fields:
+          - {label: Menu Label, name: menuLabel, widget: string, required: false}
+          - label: Integrations
+            name: integrations
+            widget: list
+            required: false
+            fields:
+              - {label: Name, name: name, widget: string}
+              - {label: Logo, name: logo, widget: string, hint: Path under public/}
+              - {label: Tagline, name: tagline, widget: string}
+              - {label: Sends, name: sends, widget: string, required: false}
+              - {label: Href, name: href, widget: string, required: false}
+              - {label: External, name: external, widget: boolean, required: false}
+      - label: Navigation
+        name: navigation
+        file: src/content/site/navigation.md
+        fields:
+          - {label: Menu Label, name: menuLabel, widget: string, required: false}
+          - label: Links
+            name: links
+            widget: list
+            required: false
+            fields:
+              - {label: Label, name: label, widget: string}
+              - {label: Href, name: href, widget: string}
+          - label: Login
+            name: login
+            widget: object
+            required: false
+            fields:
+              - {label: Label, name: label, widget: string}
+              - {label: Href, name: href, widget: string}
+          - label: Cta
+            name: cta
+            widget: object
+            required: false
+            fields:
+              - {label: Label, name: label, widget: string}
+              - {label: Href, name: href, widget: string, required: false}
+              - {label: Event, name: event, widget: string, required: false}
+              - {label: Style, name: style, widget: select, required: false, options: [primary, secondary, ghost], default: primary}
+              - {label: Opens Popup, name: opensPopup, widget: boolean, required: false}
+              - {label: External, name: external, widget: boolean, required: false}
+  - name: blog
+    label: Blog
+    folder: src/content/blog
+    extension: md
+    format: frontmatter
+    create: true
+    delete: false
+    slug: '{{slug}}'
+    media_folder: /public/blogs
+    public_folder: /blogs
+    identifier_field: title
+    fields:
+      - {label: Order, name: order, widget: number, value_type: int, hint: Sort position}
+      - {label: Title, name: title, widget: string}
+      - {label: Excerpt, name: excerpt, widget: text}
+      - {label: Cover Image, name: coverImage, widget: image}
+      - {label: Category, name: category, widget: string}
+      - {label: Date, name: date, widget: string, pattern: ['^\d{4}-\d{2}-\d{2}$', Use YYYY-MM-DD], hint: 'ISO date, YYYY-MM-DD'}
+      - {label: Reading Time, name: readingTime, widget: string}
+      - {label: Author, name: author, widget: string}
+      - label: Seo
+        name: seo
+        widget: object
+        required: true
+        fields:
+          - {label: Title, name: title, widget: string}
+          - {label: Description, name: description, widget: text}
+          - {label: Og Title, name: ogTitle, widget: string}
+          - {label: Og Description, name: ogDescription, widget: text}
+          - {label: Suggested Image Prompt, name: suggestedImagePrompt, widget: text, required: false, hint: 'Authoring note, not rendered'}
+      - {label: Related posts, name: related, widget: relation, required: false, collection: blog, value_field: '{{slug}}', search_fields: [title], display_fields: [title], multiple: true}
+      - {label: Post, name: body, widget: markdown}
+  - name: legal
+    label: Legal
+    folder: src/content/legal
+    extension: md
+    format: frontmatter
+    create: true
+    delete: false
+    slug: '{{slug}}'
+    identifier_field: title
+    fields:
+      - {label: Order, name: order, widget: number, value_type: int, hint: Sort position}
+      - {label: Title, name: title, widget: string}
+      - {label: Short Title, name: shortTitle, widget: string}
+      - {label: Summary, name: summary, widget: text}
+      - {label: Updated, name: updated, widget: string, pattern: ['^\d{4}-\d{2}-\d{2}$', Use YYYY-MM-DD], hint: 'ISO date, YYYY-MM-DD'}
+      - label: Seo
+        name: seo
+        widget: object
+        required: true
+        fields:
+          - {label: Title, name: title, widget: string}
+          - {label: Description, name: description, widget: text}
+      - {label: Policy text, name: body, widget: markdown}
+  - name: faqs
+    label: FAQs
+    folder: src/content/faqs
+    extension: md
+    format: frontmatter
+    create: true
+    delete: false
+    slug: '{{slug}}'
+    identifier_field: question
+    fields:
+      - {label: Order, name: order, widget: number, value_type: int, hint: Sort position}
+      - {label: Question, name: question, widget: string}
+      - {label: Answer, name: answer, widget: text}
+  - name: steps
+    label: How-it-works steps
+    folder: src/content/steps
+    extension: md
+    format: frontmatter
+    create: true
+    delete: false
+    slug: '{{slug}}'
+    identifier_field: title
+    fields:
+      - {label: Order, name: order, widget: number, value_type: int, hint: Sort position}
+      - {label: Number, name: number, widget: string}
+      - {label: Title, name: title, widget: string}
+      - {label: Description, name: description, widget: text}
+      - {label: Icon, name: icon, widget: string, hint: Key into the generated icon set}
+  - name: features
+    label: Features
+    folder: src/content/features
+    extension: md
+    format: frontmatter
+    create: true
+    delete: false
+    slug: '{{slug}}'
+    identifier_field: title
+    fields:
+      - {label: Order, name: order, widget: number, value_type: int, hint: Sort position}
+      - {label: Title, name: title, widget: string}
+      - {label: Description, name: description, widget: text}
+      - {label: Icon, name: icon, widget: string, hint: Key into the generated icon set}
+      - {label: Visual, name: visual, widget: select, options: [email, statements, categorise, balance, alerts]}
+      - label: Emails
+        name: emails
+        widget: list
+        required: false
+        fields:
+          - {label: From, name: from, widget: string}
+          - {label: Subject, name: subject, widget: string}
+          - {label: Time, name: time, widget: string}
+      - {label: Email Note, name: emailNote, widget: string, required: false}
+      - label: Banks
+        name: banks
+        widget: list
+        required: false
+        fields:
+          - {label: Name, name: name, widget: string}
+          - {label: Client, name: client, widget: string}
+          - {label: Date, name: date, widget: string}
+          - {label: Transactions, name: transactions, widget: number, value_type: int}
+          - {label: Color, name: color, widget: string}
+      - {label: Bank Badge, name: bankBadge, widget: string, required: false}
+      - label: Transactions
+        name: transactions
+        widget: list
+        required: false
+        fields:
+          - {label: Name, name: name, widget: string}
+          - {label: Category, name: category, widget: string}
+          - {label: Amount, name: amount, widget: string}
+          - {label: Color, name: color, widget: string}
+      - label: Alerts
+        name: alerts
+        widget: list
+        required: false
+        fields:
+          - {label: Company, name: company, widget: string}
+          - {label: Bank, name: bank, widget: string}
+          - {label: Label, name: label, widget: string}
+          - {label: Color, name: color, widget: string}
+          - {label: Icon, name: icon, widget: string}
+      - label: Ledger
+        name: ledger
+        widget: object
+        required: false
+        fields:
+          - label: Columns
+            name: columns
+            widget: list
+            required: true
+            field:
+              label: Item
+              name: item
+              widget: string
+          - label: Rows
+            name: rows
+            widget: list
+            required: true
+            fields:
+              - {label: Account, name: account, widget: string}
+              - {label: Debit, name: debit, widget: string, required: false}
+              - {label: Credit, name: credit, widget: string, required: false}
+          - {label: Footer, name: footer, widget: string}
+  - name: plans
+    label: Pricing plans
+    folder: src/content/plans
+    extension: md
+    format: frontmatter
+    create: true
+    delete: false
+    slug: '{{slug}}'
+    identifier_field: name
+    fields:
+      - {label: Order, name: order, widget: number, value_type: int, hint: Sort position}
+      - {label: Name, name: name, widget: string}
+      - {label: Tagline, name: tagline, widget: string}
+      - {label: Monthly Price, name: monthlyPrice, widget: number, value_type: float}
+      - {label: Yearly Price, name: yearlyPrice, widget: number, value_type: float}
+      - {label: Badge, name: badge, widget: string, required: false}
+      - {label: Featured, name: featured, widget: boolean, required: false}
+      - label: Allowances
+        name: allowances
+        widget: list
+        required: true
+        fields:
+          - {label: Label, name: label, widget: string}
+          - {label: Value, name: value, widget: string}
+          - {label: Note, name: note, widget: string, required: false}
+      - label: Features
+        name: features
+        widget: list
+        required: false
+        field:
+          label: Item
+          name: item
+          widget: string
+      - {label: Extras Heading, name: extrasHeading, widget: string, required: false}
+      - label: Extras
+        name: extras
+        widget: list
+        required: false
+        field:
+          label: Item
+          name: item
+          widget: string
+      - label: Cta
+        name: cta
+        widget: object
+        required: true
+        fields:
+          - {label: Label, name: label, widget: string}
+          - {label: Href, name: href, widget: string, required: false}
+          - {label: Event, name: event, widget: string, required: false}
+          - {label: Style, name: style, widget: select, required: false, options: [primary, secondary, ghost], default: primary}
+          - {label: Opens Popup, name: opensPopup, widget: boolean, required: false}
+          - {label: External, name: external, widget: boolean, required: false}
+  - name: solutions
+    label: Solution landing pages
+    folder: src/content/solutions
+    extension: md
+    format: frontmatter
+    create: true
+    delete: false
+    slug: '{{slug}}'
+    identifier_field: shortTitle
+    fields:
+      - {label: Order, name: order, widget: number, value_type: int, hint: Sort position}
+      - {label: Url, name: url, widget: string, hint: 'Site-relative URL, no trailing slash. Changing it moves the page.'}
+      - {label: Short Title, name: shortTitle, widget: string}
+      - {label: Nav Label, name: navLabel, widget: string, required: false}
+      - {label: Tagline, name: tagline, widget: string}
+      - {label: Icon, name: icon, widget: string, hint: Key into the generated icon set}
+      - label: Seo
+        name: seo
+        widget: object
+        required: true
+        fields:
+          - {label: Title, name: title, widget: string}
+          - {label: Description, name: description, widget: text}
+          - {label: Primary Keyword, name: primaryKeyword, widget: string, required: false}
+          - label: Secondary Keywords
+            name: secondaryKeywords
+            widget: list
+            required: false
+            field:
+              label: Item
+              name: item
+              widget: string
+      - label: Breadcrumb trail
+        name: trail
+        widget: list
+        required: false
+        fields:
+          - {label: Name, name: name, widget: string}
+          - {label: Item, name: item, widget: string, required: false}
+      - label: Hero
+        name: hero
+        widget: object
+        required: true
+        fields:
+          - {label: Badge, name: badge, widget: string}
+          - {label: H1, name: h1, widget: string}
+          - {label: Intro, name: intro, widget: text}
+          - label: Buttons
+            name: ctas
+            widget: list
+            required: false
+            fields:
+              - {label: Label, name: label, widget: string}
+              - {label: Href, name: href, widget: string, required: false}
+              - {label: Event, name: event, widget: string, required: false}
+              - {label: Style, name: style, widget: select, required: false, options: [primary, secondary, ghost], default: primary}
+              - {label: Opens Popup, name: opensPopup, widget: boolean, required: false}
+              - {label: External, name: external, widget: boolean, required: false}
+          - label: Trust Points
+            name: trustPoints
+            widget: list
+            required: false
+            field:
+              label: Item
+              name: item
+              widget: string
+          - label: Image
+            name: image
+            widget: object
+            required: false
+            fields:
+              - {label: Src, name: src, widget: string}
+              - {label: Alt, name: alt, widget: string}
+          - {label: Visual, name: visual, widget: select, required: false, options: [email, statements, categorise, balance, alerts]}
+      - label: Challenges
+        name: challenges
+        widget: object
+        required: false
+        fields:
+          - {label: Eyebrow, name: eyebrow, widget: string, required: false}
+          - {label: Heading, name: heading, widget: string, required: false}
+          - {label: Heading Accent, name: headingAccent, widget: string, required: false}
+          - {label: Subheading, name: subheading, widget: text, required: false}
+          - {label: Badge, name: badge, widget: string, required: false}
+          - label: Items
+            name: items
+            widget: list
+            required: false
+            fields:
+              - {label: Title, name: title, widget: string}
+              - {label: Icon, name: icon, widget: string, hint: Key into the generated icon set}
+          - label: Image
+            name: image
+            widget: object
+            required: false
+            fields:
+              - {label: Src, name: src, widget: string}
+              - {label: Alt, name: alt, widget: string}
+      - label: What
+        name: what
+        widget: object
+        required: false
+        fields:
+          - {label: Eyebrow, name: eyebrow, widget: string, required: false}
+          - {label: Heading, name: heading, widget: string, required: false}
+          - {label: Heading Accent, name: headingAccent, widget: string, required: false}
+          - {label: Subheading, name: subheading, widget: text, required: false}
+          - {label: Badge, name: badge, widget: string, required: false}
+          - label: Paragraphs
+            name: body
+            widget: list
+            required: false
+            field:
+              label: Item
+              name: item
+              widget: string
+          - label: Highlights
+            name: highlights
+            widget: list
+            required: false
+            fields:
+              - {label: Title, name: title, widget: string}
+              - {label: Description, name: description, widget: text}
+              - {label: Icon, name: icon, widget: string, hint: Key into the generated icon set}
+      - label: Audience
+        name: audience
+        widget: object
+        required: false
+        fields:
+          - {label: Eyebrow, name: eyebrow, widget: string, required: false}
+          - {label: Heading, name: heading, widget: string, required: false}
+          - {label: Heading Accent, name: headingAccent, widget: string, required: false}
+          - {label: Subheading, name: subheading, widget: text, required: false}
+          - {label: Badge, name: badge, widget: string, required: false}
+          - label: Items
+            name: items
+            widget: list
+            required: false
+            fields:
+              - {label: Text, name: text, widget: string}
+              - {label: Icon, name: icon, widget: string, hint: Key into the generated icon set}
+      - label: Process
+        name: process
+        widget: object
+        required: false
+        fields:
+          - {label: Eyebrow, name: eyebrow, widget: string, required: false}
+          - {label: Heading, name: heading, widget: string, required: false}
+          - {label: Heading Accent, name: headingAccent, widget: string, required: false}
+          - {label: Subheading, name: subheading, widget: text, required: false}
+          - {label: Badge, name: badge, widget: string, required: false}
+          - label: Items
+            name: items
+            widget: list
+            required: false
+            fields:
+              - {label: Title, name: title, widget: string}
+              - {label: Description, name: description, widget: text}
+              - {label: Icon, name: icon, widget: string, hint: Key into the generated icon set}
+      - label: Benefits
+        name: benefits
+        widget: object
+        required: false
+        fields:
+          - {label: Eyebrow, name: eyebrow, widget: string, required: false}
+          - {label: Heading, name: heading, widget: string, required: false}
+          - {label: Heading Accent, name: headingAccent, widget: string, required: false}
+          - {label: Subheading, name: subheading, widget: text, required: false}
+          - {label: Badge, name: badge, widget: string, required: false}
+          - label: Items
+            name: items
+            widget: list
+            required: false
+            fields:
+              - {label: Text, name: text, widget: string}
+              - {label: Icon, name: icon, widget: string, hint: Key into the generated icon set}
+      - label: Integrations
+        name: integrations
+        widget: object
+        required: false
+        fields:
+          - {label: Eyebrow, name: eyebrow, widget: string, required: false}
+          - {label: Heading, name: heading, widget: string, required: false}
+          - {label: Heading Accent, name: headingAccent, widget: string, required: false}
+          - {label: Subheading, name: subheading, widget: text, required: false}
+          - {label: Badge, name: badge, widget: string, required: false}
+          - {label: Body, name: body, widget: text, required: false}
+          - label: Groups
+            name: groups
+            widget: list
+            required: false
+            fields:
+              - {label: Title, name: title, widget: string}
+              - {label: Icon, name: icon, widget: string, hint: Key into the generated icon set}
+              - label: Items
+                name: items
+                widget: list
+                required: true
+                field:
+                  label: Item
+                  name: item
+                  widget: string
+      - label: Related
+        name: related
+        widget: object
+        required: false
+        fields:
+          - {label: Eyebrow, name: eyebrow, widget: string, required: false}
+          - {label: Heading, name: heading, widget: string, required: false}
+          - {label: Heading Accent, name: headingAccent, widget: string, required: false}
+          - {label: Subheading, name: subheading, widget: text, required: false}
+          - {label: Badge, name: badge, widget: string, required: false}
+          - label: Items
+            name: items
+            widget: list
+            required: false
+            fields:
+              - {label: Label, name: label, widget: string}
+              - {label: Href, name: href, widget: string}
+              - {label: Description, name: description, widget: text}
+      - label: FAQs
+        name: faqs
+        widget: list
+        required: false
+        fields:
+          - {label: Question, name: question, widget: string}
+          - {label: Answer, name: answer, widget: text}
+      - label: Closing
+        name: closing
+        widget: object
+        required: false
+        fields:
+          - {label: Eyebrow, name: eyebrow, widget: string, required: false}
+          - {label: Heading, name: heading, widget: string, required: false}
+          - {label: Heading Accent, name: headingAccent, widget: string, required: false}
+          - {label: Subheading, name: subheading, widget: text, required: false}
+          - {label: Badge, name: badge, widget: string, required: false}
+          - {label: Body, name: body, widget: text, required: false}
+          - label: Buttons
+            name: ctas
+            widget: list
+            required: false
+            fields:
+              - {label: Label, name: label, widget: string}
+              - {label: Href, name: href, widget: string, required: false}
+              - {label: Event, name: event, widget: string, required: false}
+              - {label: Style, name: style, widget: select, required: false, options: [primary, secondary, ghost], default: primary}
+              - {label: Opens Popup, name: opensPopup, widget: boolean, required: false}
+              - {label: External, name: external, widget: boolean, required: false}

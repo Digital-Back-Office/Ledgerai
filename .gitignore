@@ -23,3 +23,6 @@ pnpm-debug.log*
 node_modules
 
 tmp
+.claude/
+CLAUDE.md
+skills-lock.json
