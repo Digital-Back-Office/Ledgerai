@@ -5,7 +5,7 @@ backend:
   name: github
   repo: Digital-Back-Office/Ledgerai
   branch: main
-  # base_url: https://<your-oauth-proxy>  # required for login; see CLAUDE.md "Content editing (Decap)"
+  auth_endpoint: admin/auth.html
 local_backend: true
 publish_mode: editorial_workflow
 site_url: https://ledgerai.backoffice.digital

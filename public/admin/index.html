@@ -5,9 +5,13 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta name="robots" content="noindex" />
     <title>Content Manager</title>
+    <script>window.CMS_MANUAL_INIT = true;</script>
   </head>
   <body>
-    <!-- Config is read from /admin/config.yml (same folder). Version is pinned. -->
     <script src="https://unpkg.com/decap-cms@3.17.1/dist/decap-cms.js"></script>
+    <script>
+      // Login popup must answer from this exact origin (see admin/callback.html).
+      CMS.init({ config: { backend: { base_url: window.location.origin } } });
+    </script>
   </body>
 </html>
