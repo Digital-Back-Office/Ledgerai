@@ -13,6 +13,9 @@ import { glob } from "astro/loaders";
  *  - global chrome (brand, nav, footer) lives in `site/`.
  */
 
+// Decap writes YYYY-MM-DD unquoted, which YAML parses as a Date; keep it a string.
+const isoDate = z.preprocess((v) => (v instanceof Date ? v.toISOString().slice(0, 10) : v), z.string());
+
 const md = (dir: string) => glob({ pattern: "**/*.md", base: `./src/content/${dir}` });
 
 /** A button or link rendered as a call to action. */
@@ -172,7 +175,7 @@ const blog = defineCollection({
     coverImage: z.string(),
     category: z.string(),
     /** ISO date — drives both the displayed date and `datePublished`. */
-    date: z.string(),
+    date: isoDate,
     readingTime: z.string(),
     author: z.string(),
     seo: z.object({
@@ -199,7 +202,7 @@ const legal = defineCollection({
     /** One-line summary rendered under the H1. */
     summary: z.string(),
     /** ISO date — shown as "Last updated" and used for `dateModified`. */
-    updated: z.string(),
+    updated: isoDate,
     seo: z.object({ title: z.string(), description: z.string() }),
   }),
 });
