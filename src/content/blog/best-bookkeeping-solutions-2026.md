@@ -451,6 +451,6 @@ If your current bookkeeping feels cumbersome and complicated, 2026 could be an o
 
 ### Written by
 
-**Himanshi Asnani** — SEO and Content Writer with 2 years of experience, with experience working on more than 4 websites with the goal of improving organic search performance.
+**Himanshi Asnani** - SEO and Content Writer with 2 years of experience, with experience working on more than 4 websites with the goal of improving organic search performance.
 
 *Disclaimer: This article was initially drafted using AI assistance. However, the content has undergone thorough revisions, editing, and fact-checking by human editors and subject matter experts to ensure accuracy.*
