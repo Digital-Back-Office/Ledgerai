@@ -12,6 +12,170 @@
     <script>
       // Login popup must answer from this exact origin (see admin/callback.html).
       CMS.init({ config: { backend: { base_url: window.location.origin } } });
+
+      // The build inlines each page's CSS into its own <style> tag (see
+      // astro.config.mjs: inlineStylesheets: 'always'), so there is no single
+      // standalone stylesheet to link — the only way to get real site styles
+      // into the preview pane is to fetch a built page and lift its <style>
+      // tag out. Tailwind's utility classes are identical everywhere (the
+      // JIT scan is project-wide, not per page), but each page also carries
+      // its own hashed component-scoped styles (Astro's `data-astro-cid-*`
+      // rules) for whatever components that page actually uses. So one route
+      // is not enough for every preview:
+      //   - "/blogs/" carries .prose-content (blog + legal bodies) and is
+      //     byte-identical, CSS-wise, to a legal page.
+      //   - "/" (the homepage) additionally carries the scoped styles for
+      //     Hero/FaqSection/HowItWorks and friends, which "/blogs/" does not.
+      // Fetching both is the smallest set that covers every preview below;
+      // a failed fetch is logged rather than swallowed, since a silent
+      // failure would just look like "the preview has no styling" with no
+      // clue why.
+      function loadPreviewStyles(path) {
+        fetch(path)
+          .then((r) => {
+            if (!r.ok) throw new Error(`${path} responded with ${r.status}`);
+            return r.text();
+          })
+          .then((html) => {
+            const doc = new DOMParser().parseFromString(html, "text/html");
+            const css = [...doc.querySelectorAll("style")].map((s) => s.textContent).join("\n");
+            if (!css) throw new Error(`${path} had no inlined <style> tag to copy`);
+            CMS.registerPreviewStyle(css, { raw: true });
+          })
+          .catch((error) => {
+            console.error(`[admin preview] could not load styles from ${path}:`, error);
+          });
+      }
+
+      loadPreviewStyles("/blogs/");
+      loadPreviewStyles("/");
+
+      // Reads one frontmatter field without throwing on a missing/empty entry.
+      function field(entry, path, fallback) {
+        return entry.getIn(["data", ...path], fallback);
+      }
+
+      // Immutable List -> plain array, treating a missing list as empty.
+      function list(entry, path) {
+        const value = entry.getIn(["data", ...path]);
+        return value && typeof value.toJS === "function" ? value.toJS() : [];
+      }
+
+      // Same wrapper as src/pages/blogs/[slug].astro, so .prose-content styles apply.
+      CMS.registerPreviewTemplate("blog", ({ entry, widgetFor }) =>
+        h("div", { className: "prose-content", style: { padding: "2rem" } },
+          h("h1", {}, entry.getIn(["data", "title"])),
+          widgetFor("body")
+        )
+      );
+
+      // Same wrapper as src/pages/legal/[slug].astro: title, "Last updated"
+      // line, then the policy body through .prose-content.
+      CMS.registerPreviewTemplate("legal", ({ entry, widgetFor }) =>
+        h("div", { style: { padding: "2rem" } },
+          h("p", { className: "label", style: { marginBottom: "0.75rem" } }, "Legal"),
+          h("h1", { style: { marginBottom: "0.5rem" } }, field(entry, ["title"], "")),
+          field(entry, ["summary"], "") &&
+            h("p", { className: "lede", style: { marginTop: "0.5rem" } }, field(entry, ["summary"], "")),
+          field(entry, ["updated"], "") &&
+            h(
+              "p",
+              { className: "text-sm text-mute", style: { marginTop: "0.75rem" } },
+              `Last updated ${field(entry, ["updated"], "")}`
+            ),
+          h("div", { className: "prose-content", style: { marginTop: "2rem" } }, widgetFor("body"))
+        )
+      );
+
+      // sections/hero.md. The mock product illustration (the statement ->
+      // trial balance window in HeroSection.astro) pulls its sample data from
+      // the separate `features` collection, which this entry's own fields
+      // don't carry — the preview sticks to what hero.md actually controls:
+      // badge, headline, trust points and the secondary CTA.
+      CMS.registerPreviewTemplate("hero", ({ entry }) => {
+        const headlineBefore = field(entry, ["headline", "before"], "");
+        const headlineAccent = field(entry, ["headline", "accent"], "");
+        const headlineAfter = field(entry, ["headline", "after"], "");
+        const trustPoints = list(entry, ["trustPoints"]);
+        const ctas = list(entry, ["ctas"]);
+        const secondaryCta = ctas[0];
+
+        return h(
+          "section",
+          { className: "grid-paper bg-paper", style: { padding: "2.5rem 2rem" } },
+          field(entry, ["badge"], "") &&
+            h("p", { className: "label", style: { marginBottom: "1.25rem" } }, field(entry, ["badge"], "")),
+          h(
+            "h1",
+            { className: "display", style: { maxWidth: "20ch" } },
+            `${headlineBefore} `,
+            h("span", { className: "mark" }, headlineAccent),
+            ` ${headlineAfter}`
+          ),
+          h(
+            "div",
+            {
+              style: {
+                display: "flex",
+                flexWrap: "wrap",
+                alignItems: "center",
+                gap: "1.25rem",
+                marginTop: "1.75rem",
+              },
+            },
+            trustPoints.map((point, i) =>
+              h(
+                "span",
+                { key: i, className: "text-sm text-mute", style: { display: "flex", alignItems: "center", gap: "0.5rem" } },
+                h("span", { "aria-hidden": "true", className: "size-1.5 bg-brand" }),
+                point
+              )
+            ),
+            secondaryCta &&
+              h("a", { className: "link", href: secondaryCta.href }, secondaryCta.label)
+          )
+        );
+      });
+
+      // sections/faq.md. FaqSection.astro renders this header plus the
+      // accordion itself, whose questions live in the separate `faqs`
+      // collection — not fields on this entry — so the preview shows the
+      // header only, matching FaqBlock.astro's left column.
+      CMS.registerPreviewTemplate("faq", ({ entry }) =>
+        h(
+          "section",
+          { className: "bg-paper grid-paper", style: { padding: "2.5rem 2rem" } },
+          field(entry, ["eyebrow"], "") &&
+            h("p", { className: "label", style: { marginBottom: "1.25rem" } }, field(entry, ["eyebrow"], "")),
+          h("h2", { className: "h-section" }, field(entry, ["heading"], "")),
+          field(entry, ["subheading"], "") &&
+            h("p", { className: "lede", style: { marginTop: "1rem" } }, field(entry, ["subheading"], "")),
+          h(
+            "p",
+            { className: "text-sm text-mute", style: { marginTop: "1.5rem" } },
+            "Questions themselves are edited in the FAQs collection."
+          )
+        )
+      );
+
+      // sections/how-it-works.md. HowItWorks.astro renders this header on the
+      // ink band, then the numbered steps, which live in the separate
+      // `steps` collection — not fields on this entry — so the preview shows
+      // the header only, matching Steps.astro's SectionHead usage.
+      CMS.registerPreviewTemplate("how-it-works", ({ entry }) =>
+        h(
+          "section",
+          { className: "on-dark bg-ink", style: { padding: "2.5rem 2rem", color: "#fff" } },
+          field(entry, ["eyebrow"], "") &&
+            h("p", { className: "label label-dark", style: { marginBottom: "1.25rem" } }, field(entry, ["eyebrow"], "")),
+          h("h2", { className: "h-section", style: { color: "#fff" } }, field(entry, ["heading"], "")),
+          h(
+            "p",
+            { className: "text-sm", style: { marginTop: "1.5rem", color: "rgba(255,255,255,0.65)" } },
+            "Steps themselves are edited in the How-it-works steps collection."
+          )
+        )
+      );
     </script>
   </body>
 </html>
