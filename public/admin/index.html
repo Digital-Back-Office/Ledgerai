@@ -745,6 +745,388 @@
           renderClosingBand(entry)
         );
       });
+
+      // sections/showcase.md. ShowcaseSection.astro's brand-coloured card:
+      // badge, headline, subheading and the bullet checklist. The pipeline
+      // diagram and the `/integrations` tag list beside it pull from other
+      // collections (the `features` sample data / `site/integrations.md`)
+      // and aren't reproduced here.
+      CMS.registerPreviewTemplate("showcase", ({ entry }) => {
+        const before = field(entry, ["headline", "before"], "");
+        const accent = field(entry, ["headline", "accent"], "");
+        const bullets = list(entry, ["bullets"]);
+        const ctas = list(entry, ["ctas"]);
+
+        return h(
+          "div",
+          { className: "bg-brand text-ink", style: { padding: "2rem", maxWidth: "32rem", borderRadius: "4px" } },
+          field(entry, ["badge"], "") && h("p", { style: { fontWeight: 500, marginBottom: "1rem" } }, field(entry, ["badge"], "")),
+          h("h2", { className: "h-section" }, `${before} ${accent}`),
+          field(entry, ["subheading"], "") &&
+            h("p", { style: { marginTop: "0.75rem", fontSize: "1.0625rem", lineHeight: 1.6, opacity: 0.8 } }, field(entry, ["subheading"], "")),
+          bullets.length > 0 &&
+            h(
+              "ul",
+              { style: { marginTop: "1.5rem", borderBottom: "1px solid rgba(0,0,0,0.2)" } },
+              bullets.map((b, i) =>
+                h(
+                  "li",
+                  { key: i, style: { display: "flex", gap: "0.5rem", padding: "0.6rem 0", borderTop: "1px solid rgba(0,0,0,0.2)", fontWeight: 500 } },
+                  "✓ ",
+                  b.text
+                )
+              )
+            ),
+          ctas[0] && h("a", { href: ctas[0].href, className: "btn btn-ink", style: { marginTop: "1.25rem", display: "inline-flex" } }, ctas[0].label)
+        );
+      });
+
+      // sections/book-demo.md. BookDemoSection.astro's ink band: copy +
+      // testimonial on the left, the booking form's title/subtitle on the
+      // right. BookingForm.astro's actual fields aren't reproduced.
+      CMS.registerPreviewTemplate("book-demo", ({ entry }) => {
+        const quote = field(entry, ["testimonial", "quote"], "");
+        return h(
+          "section",
+          { className: "on-dark bg-ink", style: { padding: "2.5rem 2rem", color: "#fff" } },
+          sectionHeader({
+            label: field(entry, ["eyebrow"], ""),
+            heading: field(entry, ["heading"], ""),
+            sub: field(entry, ["subheading"], ""),
+            dark: true,
+          }),
+          quote &&
+            h(
+              "blockquote",
+              { className: "font-display", style: { marginTop: "2rem", borderLeft: "2px solid var(--color-brand)", paddingLeft: "1.5rem", fontSize: "1.25rem", maxWidth: "40ch" } },
+              `“${quote}”`
+            ),
+          h(
+            "div",
+            { style: { marginTop: "2rem", backgroundColor: "#fff", color: "var(--color-ink)", borderRadius: "4px", padding: "1.25rem", maxWidth: "24rem" } },
+            h("h3", { className: "h-row" }, field(entry, ["form", "title"], "")),
+            field(entry, ["form", "subtitle"], "") &&
+              h("p", { className: "text-mute text-[0.9375rem]", style: { marginTop: "0.375rem" } }, field(entry, ["form", "subtitle"], ""))
+          )
+        );
+      });
+
+      // sections/cookie-consent.md. The fixed banner's text and buttons,
+      // matching CookieConsent.astro. `{links}` in the subheading is
+      // replaced with the real policy links, same as the component does.
+      CMS.registerPreviewTemplate("cookie-consent", ({ entry }) => {
+        const subheading = field(entry, ["subheading"], "");
+        const [before, after] = subheading.split("{links}");
+        const links = list(entry, ["links"]);
+        const ctas = list(entry, ["ctas"]);
+        const [decline, accept] = ctas;
+
+        return h(
+          "div",
+          { className: "sheet", style: { padding: "1.25rem", maxWidth: "26rem" } },
+          h("h3", { className: "font-display font-semibold text-lg", style: { marginBottom: "0.375rem" } }, field(entry, ["heading"], "")),
+          h(
+            "p",
+            { className: "text-sm text-mute", style: { lineHeight: 1.6 } },
+            before,
+            links.map((link, i) => h("span", { key: i }, i > 0 && " and ", h("a", { className: "link", href: link.href }, link.label))),
+            after
+          ),
+          h(
+            "div",
+            { style: { display: "flex", gap: "0.625rem", marginTop: "1rem" } },
+            accept && h("span", { className: "btn btn-sm btn-ink" }, accept.label),
+            decline && h("span", { className: "btn btn-sm btn-line" }, decline.label)
+          )
+        );
+      });
+
+      // sections/email-popup.md. EmailPopup.astro's idle state: badge,
+      // headline, subheading, the scarcity label (shown literally, not
+      // decayed through today's date — that's runtime logic, not content)
+      // and trust points. The form fields aren't reproduced.
+      CMS.registerPreviewTemplate("email-popup", ({ entry }) => {
+        const accent = field(entry, ["headline", "accent"], "");
+        const scarcityLabel = field(entry, ["scarcity", "label"], "");
+        const totalSpots = field(entry, ["scarcity", "totalSpots"], null);
+        const baseSpotsLeft = field(entry, ["scarcity", "baseSpotsLeft"], null);
+
+        return h(
+          "div",
+          { className: "sheet", style: { padding: "1.75rem", maxWidth: "28rem" } },
+          field(entry, ["badge"], "") && h("p", { className: "label", style: { marginBottom: "1rem" } }, field(entry, ["badge"], "")),
+          h("h3", { className: "h-section" }, `${field(entry, ["headline", "before"], "")} `, h("span", { className: "mark" }, accent)),
+          field(entry, ["subheading"], "") &&
+            h("p", { className: "text-mute", style: { marginTop: "0.75rem", lineHeight: 1.6 } }, field(entry, ["subheading"], "")),
+          scarcityLabel &&
+            h(
+              "p",
+              { className: "text-sm font-medium text-ink", style: { marginTop: "1.25rem" } },
+              scarcityLabel.replace("{left}", baseSpotsLeft ?? "?").replace("{total}", totalSpots ?? "?")
+            ),
+          bulletRow(list(entry, ["trustPoints"]))
+        );
+      });
+
+      // sections/try-free.md. TryItFree.astro's header + the supported-banks
+      // panel and bullet list; the uploader itself is an interactive widget,
+      // so only its static copy (drop title/hint, submit label) is shown.
+      CMS.registerPreviewTemplate("try-free", ({ entry }) => {
+        const bullets = list(entry, ["bullets"]);
+        const banks = list(entry, ["supportedBanks"]);
+
+        return h(
+          "section",
+          { className: "bg-paper grid-paper", style: { padding: "2.5rem 2rem" } },
+          sectionHeader({
+            label: field(entry, ["eyebrow"], ""),
+            heading: field(entry, ["heading"], ""),
+            sub: field(entry, ["subheading"], ""),
+          }),
+          h(
+            "div",
+            { className: "sheet", style: { marginTop: "1.5rem", padding: "1.25rem", maxWidth: "26rem" } },
+            h("p", { className: "font-medium text-ink" }, field(entry, ["uploader", "dropTitle"], "")),
+            field(entry, ["uploader", "dropHint"], "") &&
+              h("p", { className: "text-sm text-mute", style: { marginTop: "0.375rem" } }, field(entry, ["uploader", "dropHint"], ""))
+          ),
+          h(
+            "div",
+            { className: "sheet", style: { marginTop: "1rem", padding: "1.25rem", maxWidth: "26rem" } },
+            field(entry, ["panelTitle"], "") && h("h3", { className: "h-row", style: { marginBottom: "0.75rem" } }, field(entry, ["panelTitle"], "")),
+            banks.length > 0 &&
+              h(
+                "div",
+                { style: { display: "flex", flexWrap: "wrap", gap: "0.375rem", marginBottom: "1rem" } },
+                banks.map((bank, i) => h("span", { key: i, className: "tag" }, bank))
+              ),
+            bullets.length > 0 &&
+              h(
+                "ul",
+                { style: { fontSize: "0.9375rem" } },
+                bullets.map((b, i) =>
+                  h(
+                    "li",
+                    { key: i, style: { display: "flex", gap: "0.5rem", padding: "0.5rem 0", borderTop: "1px solid var(--color-rule)" } },
+                    b.tone === "warning" ? "⚠ " : "✓ ",
+                    b.text
+                  )
+                )
+              )
+          )
+        );
+      });
+
+      // sections/not-found.md. The 404 page body: the big numerals are
+      // static chrome in 404.astro, not content, so only heading/subheading/ctas
+      // (this entry's actual fields) are shown.
+      CMS.registerPreviewTemplate("not-found", ({ entry }) => {
+        const ctas = list(entry, ["ctas"]);
+        return h(
+          "div",
+          { className: "bg-paper grid-paper", style: { padding: "2.5rem 2rem" } },
+          h(
+            "p",
+            { "aria-hidden": "true", className: "font-display font-bold text-ink", style: { fontSize: "4rem", lineHeight: 1 } },
+            "4",
+            h("span", { className: "text-brand" }, "0"),
+            "4"
+          ),
+          h("h1", { className: "h-section", style: { marginTop: "1rem" } }, field(entry, ["heading"], "")),
+          field(entry, ["subheading"], "") &&
+            h("p", { className: "lede", style: { marginTop: "0.75rem", maxWidth: "48ch" } }, field(entry, ["subheading"], "")),
+          ctas.length > 0 &&
+            h(
+              "div",
+              { style: { display: "flex", gap: "0.75rem", marginTop: "1.5rem", flexWrap: "wrap" } },
+              ctas.map((c, i) => ctaLink(c, {}, i))
+            )
+        );
+      });
+
+      // sections/blog-index.md. The PageHead-style header above the blog
+      // grid (badge/headline/subheading) plus the search input and the
+      // "All" category pill, matching blogs/index.astro. The post grid
+      // itself comes from the `blog` collection, not this entry.
+      CMS.registerPreviewTemplate("blog-index", ({ entry }) => {
+        const before = field(entry, ["headline", "before"], "");
+        const accent = field(entry, ["headline", "accent"], "");
+        const after = field(entry, ["headline", "after"], "");
+        return h(
+          "section",
+          { className: "bg-paper grid-paper", style: { padding: "2.5rem 2rem" } },
+          field(entry, ["badge"], "") && h("p", { className: "label", style: { marginBottom: "1.5rem" } }, field(entry, ["badge"], "")),
+          h("h1", { className: "display-sm" }, `${before} `, h("span", { className: "mark" }, accent), ` ${after}`),
+          field(entry, ["subheading"], "") &&
+            h("p", { className: "lede", style: { marginTop: "1.5rem", maxWidth: "60ch" } }, field(entry, ["subheading"], "")),
+          h(
+            "div",
+            { style: { display: "flex", alignItems: "center", gap: "1.5rem", marginTop: "2rem", borderBottom: "1px solid var(--color-ink)", paddingBottom: "0.75rem" } },
+            h("span", { style: { fontWeight: 500, color: "var(--color-ink)", borderBottom: "2px solid var(--color-brand)" } }, field(entry, ["allCategoriesLabel"], "All")),
+            h("input", { className: "field", placeholder: field(entry, ["searchPlaceholder"], ""), readOnly: true, style: { marginLeft: "auto", width: "16rem" } })
+          )
+        );
+      });
+
+      // sections/blog-cta.md and sections/blog-post-cta.md: the same brand
+      // band shape (eyebrow is optional — blog-post-cta.md doesn't have one),
+      // used at the bottom of the blog index and every post. One renderer
+      // covers both since the markup is identical in both real templates.
+      function renderBrandCtaBand(entry) {
+        const ctas = list(entry, ["ctas"]);
+        return h(
+          "section",
+          { className: "bg-brand text-ink", style: { padding: "2rem" } },
+          field(entry, ["eyebrow"], "") && h("p", { style: { fontWeight: 500, marginBottom: "0.75rem" } }, field(entry, ["eyebrow"], "")),
+          h("h2", { className: "h-section", style: { maxWidth: "20ch" } }, field(entry, ["heading"], "")),
+          field(entry, ["subheading"], "") &&
+            h("p", { style: { marginTop: "0.75rem", maxWidth: "56ch", opacity: 0.8 } }, field(entry, ["subheading"], "")),
+          ctas.length > 0 &&
+            h(
+              "div",
+              { style: { display: "flex", gap: "0.75rem", marginTop: "1.25rem", flexWrap: "wrap" } },
+              ctas.map((c, i) => h("a", { key: i, href: c.href, className: i === 0 ? "btn btn-ink" : "btn btn-line border-ink/40" }, c.label))
+            )
+        );
+      }
+      CMS.registerPreviewTemplate("blog-cta", ({ entry }) => renderBrandCtaBand(entry));
+      CMS.registerPreviewTemplate("blog-post-cta", ({ entry }) => renderBrandCtaBand(entry));
+
+      // sections/sitemap.md: just the PageHead-style header on /sitemap
+      // (badge/headline/subheading) — the page's actual link groups are
+      // assembled from five other collections, not fields on this entry.
+      CMS.registerPreviewTemplate("sitemap", ({ entry }) => {
+        const before = field(entry, ["headline", "before"], "");
+        const accent = field(entry, ["headline", "accent"], "");
+        const after = field(entry, ["headline", "after"], "");
+        return h(
+          "section",
+          { className: "bg-paper grid-paper", style: { padding: "2.5rem 2rem" } },
+          field(entry, ["badge"], "") && h("p", { className: "label", style: { marginBottom: "1.5rem" } }, field(entry, ["badge"], "")),
+          h("h1", { className: "display-sm" }, `${before} `, h("span", { className: "mark" }, accent), ` ${after}`),
+          field(entry, ["subheading"], "") &&
+            h("p", { className: "lede", style: { marginTop: "1.5rem", maxWidth: "60ch" } }, field(entry, ["subheading"], ""))
+        );
+      });
+
+      // ───────────────────────────────────────────────────────────────────
+      // "integrations" naming collision: exactly the same situation as
+      // "features" above. config.yml uses the literal name "integrations"
+      // for both a file in `sections` (the /integrations page's own copy:
+      // headline, `apps`/`flow`/`notes` bands) and a file in `site` (the flat
+      // list of platform logos/taglines, which also feeds the showcase
+      // diagram and the footer). `apps` is a field that only ever exists on
+      // the sections file, so it's the dispatch key, same reasoning as the
+      // `title` check on "features".
+      CMS.registerPreviewTemplate("integrations", ({ entry }) => {
+        const hasAppsBand = field(entry, ["apps"], null) !== null;
+        if (!hasAppsBand) {
+          // site/integrations.md: the platform list.
+          const platforms = list(entry, ["integrations"]);
+          return h(
+            "div",
+            { style: { padding: "2rem" } },
+            field(entry, ["menuLabel"], "") && h("p", { className: "label", style: { marginBottom: "1.25rem" } }, field(entry, ["menuLabel"], "")),
+            h(
+              "ul",
+              { style: { display: "grid", gap: "0.75rem", maxWidth: "26rem" } },
+              platforms.map((platform, i) =>
+                h(
+                  "li",
+                  { key: i, className: "sheet", style: { padding: "1rem" } },
+                  h("p", { className: "h-row", style: { fontSize: "1.0625rem" } }, platform.name),
+                  platform.tagline && h("p", { className: "text-mute text-sm", style: { marginTop: "0.25rem" } }, platform.tagline),
+                  platform.sends && h("p", { className: "text-sm font-medium text-ink", style: { marginTop: "0.5rem" } }, platform.sends)
+                )
+              )
+            )
+          );
+        }
+
+        // sections/integrations.md: the page header + apps/flow/notes bands.
+        const before = field(entry, ["headline", "before"], "");
+        const accent = field(entry, ["headline", "accent"], "");
+        const after = field(entry, ["headline", "after"], "");
+        return h(
+          "div",
+          {},
+          h(
+            "section",
+            { className: "bg-paper grid-paper", style: { padding: "2.5rem 2rem" } },
+            field(entry, ["badge"], "") && h("p", { className: "label", style: { marginBottom: "1.5rem" } }, field(entry, ["badge"], "")),
+            h("h1", { className: "display-sm" }, `${before} `, h("span", { className: "mark" }, accent), ` ${after}`),
+            field(entry, ["subheading"], "") &&
+              h("p", { className: "lede", style: { marginTop: "1.5rem", maxWidth: "60ch" } }, field(entry, ["subheading"], ""))
+          ),
+          h(
+            "section",
+            { style: { padding: "2rem", borderTop: "1px solid var(--color-rule)" } },
+            sectionHeader({
+              label: field(entry, ["apps", "eyebrow"], ""),
+              heading: field(entry, ["apps", "heading"], ""),
+              sub: field(entry, ["apps", "subheading"], ""),
+            })
+          ),
+          h(
+            "section",
+            { className: "bg-paper grid-paper", style: { padding: "2rem", borderTop: "1px solid var(--color-rule)" } },
+            sectionHeader({
+              label: field(entry, ["flow", "eyebrow"], ""),
+              heading: field(entry, ["flow", "heading"], ""),
+              sub: field(entry, ["flow", "subheading"], ""),
+            })
+          ),
+          renderItemBand(entry, "notes")
+        );
+      });
+
+      // site/footer.md. Footer.astro's bottom strip (copyright) plus this
+      // entry's own flat link list. The real footer splits links into
+      // Solutions/Site/Legal columns using data from three other
+      // collections (nav, solutions) — not reproduced; every link here is
+      // shown in one list instead.
+      CMS.registerPreviewTemplate("footer", ({ entry }) => {
+        const links = list(entry, ["links"]);
+        return h(
+          "div",
+          { className: "bg-paper", style: { padding: "2rem", borderTop: "1px solid var(--color-rule)" } },
+          links.length > 0 &&
+            h(
+              "ul",
+              { style: { display: "flex", flexWrap: "wrap", gap: "1.5rem", fontSize: "0.9375rem" } },
+              links.map((link, i) => h("li", { key: i }, h("a", { className: "link", href: link.href }, link.label)))
+            ),
+          h(
+            "p",
+            { className: "text-mute", style: { marginTop: "1.5rem", paddingTop: "1rem", borderTop: "1px solid var(--color-rule)", fontSize: "0.8125rem" } },
+            field(entry, ["copyright"], "")
+          )
+        );
+      });
+
+      // site/navigation.md. Nav.astro's link row, login link and CTA
+      // button. The Solutions dropdown's entries come from the `solutions`
+      // collection, not this entry, so only `nav.menuLabel` (the dropdown's
+      // own label) is shown, without its contents.
+      CMS.registerPreviewTemplate("navigation", ({ entry }) => {
+        const links = list(entry, ["links"]);
+        const login = field(entry, ["login"], null);
+        const cta = field(entry, ["cta"], null);
+        const menuLabel = field(entry, ["menuLabel"], "");
+
+        return h(
+          "nav",
+          { className: "bg-white", style: { padding: "1rem 1.5rem", borderBottom: "1px solid var(--color-rule)", display: "flex", alignItems: "center", gap: "1.5rem", flexWrap: "wrap" } },
+          menuLabel && h("span", { className: "text-mute text-sm" }, menuLabel, " ▾"),
+          links.map((link, i) => h("a", { key: i, className: "text-mute text-sm", href: link.href, style: { textDecoration: "none" } }, link.label)),
+          h(
+            "span",
+            { style: { marginLeft: "auto", display: "flex", alignItems: "center", gap: "1rem" } },
+            login && h("a", { href: login.href, className: "text-sm font-medium text-ink" }, login.label),
+            cta && h("a", { href: cta.href, className: "btn btn-sm btn-primary" }, cta.label)
+          )
+        );
+      });
     </script>
   </body>
 </html>
