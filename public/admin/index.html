@@ -13,6 +13,9 @@
       // Login popup must answer from this exact origin (see admin/callback.html).
       CMS.init({ config: { backend: { base_url: window.location.origin } } });
 
+      // ───────────────────────────────────────────────────────────────────
+      // CSS: reuse the real built site, don't recreate it.
+      //
       // The build inlines each page's CSS into its own <style> tag (see
       // astro.config.mjs: inlineStylesheets: 'always'), so there is no single
       // standalone stylesheet to link — the only way to get real site styles
@@ -21,13 +24,14 @@
       // JIT scan is project-wide, not per page), but each page also carries
       // its own hashed component-scoped styles (Astro's `data-astro-cid-*`
       // rules) for whatever components that page actually uses. So one route
-      // is not enough for every preview:
-      //   - "/blogs/" carries .prose-content (blog + legal bodies) and is
-      //     byte-identical, CSS-wise, to a legal page.
+      // is not enough for every preview below:
+      //   - "/blogs/" carries .prose-content (blog + legal bodies).
       //   - "/" (the homepage) additionally carries the scoped styles for
-      //     Hero/FaqSection/HowItWorks and friends, which "/blogs/" does not.
-      // Fetching both is the smallest set that covers every preview below;
-      // a failed fetch is logged rather than swallowed, since a silent
+      //     Hero/FaqSection/HowItWorks/FeaturesSection and friends.
+      //   - "/pricing" additionally carries pricing.astro's own scoped
+      //     <style> block (.billing-btn, .billing-note), which exists
+      //     nowhere else in the built output.
+      // A failed fetch is logged rather than swallowed, since a silent
       // failure would just look like "the preview has no styling" with no
       // clue why.
       function loadPreviewStyles(path) {
@@ -49,6 +53,13 @@
 
       loadPreviewStyles("/blogs/");
       loadPreviewStyles("/");
+      loadPreviewStyles("/pricing");
+
+      // ───────────────────────────────────────────────────────────────────
+      // Shared helpers. Every template below reads fields the same safe way
+      // and renders the same handful of repeated pieces (a section header,
+      // a CTA button, a row of trust-point bullets) through these, rather
+      // than re-implementing them per collection.
 
       // Reads one frontmatter field without throwing on a missing/empty entry.
       function field(entry, path, fallback) {
@@ -61,7 +72,64 @@
         return value && typeof value.toJS === "function" ? value.toJS() : [];
       }
 
-      // Same wrapper as src/pages/blogs/[slug].astro, so .prose-content styles apply.
+      // A nested list field reached through `list()` (e.g. one item of a list
+      // of objects that itself has a list field) should already be a plain
+      // array, since Immutable's `toJS()` converts recursively. Normalizing
+      // again here costs nothing and avoids depending on that always holding.
+      function toPlainArray(value) {
+        if (Array.isArray(value)) return value;
+        if (value && typeof value.toJS === "function") return value.toJS();
+        return [];
+      }
+
+      // The label + h2.h-section + optional lede pattern SectionHead.astro
+      // renders everywhere (features, pricing, every optional band on a
+      // solutions page). `dark` matches its own `dark` prop (ink background).
+      function sectionHeader({ label, heading, sub, dark }) {
+        return h(
+          "div",
+          {},
+          label && h("p", { className: dark ? "label label-dark" : "label", style: { marginBottom: "1.25rem" } }, label),
+          heading && h("h2", { className: "h-section", style: dark ? { color: "#fff" } : undefined }, heading),
+          sub &&
+            h(
+              "p",
+              { className: "lede", style: { marginTop: "1rem", color: dark ? "rgba(255,255,255,0.7)" : undefined } },
+              sub
+            )
+        );
+      }
+
+      // One CTA, styled like the real `btn btn-primary` / `btn btn-line`
+      // pair every cta object renders as (see e.g. [...slug].astro's `ctaClass`).
+      function ctaLink(cta, opts, key) {
+        if (!cta) return null;
+        const primary = (opts && opts.primary) || "btn btn-primary";
+        const secondary = (opts && opts.secondary) || "btn btn-line";
+        return h("a", { key, href: cta.href, className: cta.style === "primary" ? primary : secondary }, cta.label);
+      }
+
+      // The "No credit card required / GDPR ready" style row of bullets
+      // (HeroSection.astro, the solutions hero, pricing, try-free).
+      function bulletRow(points) {
+        if (!points || points.length === 0) return null;
+        return h(
+          "div",
+          { style: { display: "flex", flexWrap: "wrap", gap: "1.25rem", marginTop: "1.25rem" } },
+          points.map((point, i) =>
+            h(
+              "span",
+              { key: i, className: "text-sm text-mute", style: { display: "flex", alignItems: "center", gap: "0.5rem" } },
+              h("span", { "aria-hidden": "true", className: "size-1.5 bg-brand" }),
+              point
+            )
+          )
+        );
+      }
+
+      // ───────────────────────────────────────────────────────────────────
+      // blog (folder collection). Same wrapper as src/pages/blogs/[slug].astro,
+      // so .prose-content styles apply.
       CMS.registerPreviewTemplate("blog", ({ entry, widgetFor }) =>
         h("div", { className: "prose-content", style: { padding: "2rem" } },
           h("h1", {}, entry.getIn(["data", "title"])),
@@ -69,8 +137,8 @@
         )
       );
 
-      // Same wrapper as src/pages/legal/[slug].astro: title, "Last updated"
-      // line, then the policy body through .prose-content.
+      // legal (folder collection). Same wrapper as src/pages/legal/[slug].astro:
+      // title, "Last updated" line, then the policy body through .prose-content.
       CMS.registerPreviewTemplate("legal", ({ entry, widgetFor }) =>
         h("div", { style: { padding: "2rem" } },
           h("p", { className: "label", style: { marginBottom: "0.75rem" } }, "Legal"),
@@ -93,10 +161,9 @@
       // don't carry — the preview sticks to what hero.md actually controls:
       // badge, headline, trust points and the secondary CTA.
       CMS.registerPreviewTemplate("hero", ({ entry }) => {
-        const headlineBefore = field(entry, ["headline", "before"], "");
-        const headlineAccent = field(entry, ["headline", "accent"], "");
-        const headlineAfter = field(entry, ["headline", "after"], "");
-        const trustPoints = list(entry, ["trustPoints"]);
+        const before = field(entry, ["headline", "before"], "");
+        const accent = field(entry, ["headline", "accent"], "");
+        const after = field(entry, ["headline", "after"], "");
         const ctas = list(entry, ["ctas"]);
         const secondaryCta = ctas[0];
 
@@ -108,32 +175,13 @@
           h(
             "h1",
             { className: "display", style: { maxWidth: "20ch" } },
-            `${headlineBefore} `,
-            h("span", { className: "mark" }, headlineAccent),
-            ` ${headlineAfter}`
+            `${before} `,
+            h("span", { className: "mark" }, accent),
+            ` ${after}`
           ),
-          h(
-            "div",
-            {
-              style: {
-                display: "flex",
-                flexWrap: "wrap",
-                alignItems: "center",
-                gap: "1.25rem",
-                marginTop: "1.75rem",
-              },
-            },
-            trustPoints.map((point, i) =>
-              h(
-                "span",
-                { key: i, className: "text-sm text-mute", style: { display: "flex", alignItems: "center", gap: "0.5rem" } },
-                h("span", { "aria-hidden": "true", className: "size-1.5 bg-brand" }),
-                point
-              )
-            ),
-            secondaryCta &&
-              h("a", { className: "link", href: secondaryCta.href }, secondaryCta.label)
-          )
+          bulletRow(list(entry, ["trustPoints"])),
+          secondaryCta &&
+            h("a", { className: "link", href: secondaryCta.href, style: { display: "inline-block", marginTop: "1rem" } }, secondaryCta.label)
         );
       });
 
@@ -145,15 +193,38 @@
         h(
           "section",
           { className: "bg-paper grid-paper", style: { padding: "2.5rem 2rem" } },
-          field(entry, ["eyebrow"], "") &&
-            h("p", { className: "label", style: { marginBottom: "1.25rem" } }, field(entry, ["eyebrow"], "")),
-          h("h2", { className: "h-section" }, field(entry, ["heading"], "")),
-          field(entry, ["subheading"], "") &&
-            h("p", { className: "lede", style: { marginTop: "1rem" } }, field(entry, ["subheading"], "")),
+          sectionHeader({
+            label: field(entry, ["eyebrow"], ""),
+            heading: field(entry, ["heading"], ""),
+            sub: field(entry, ["subheading"], ""),
+          }),
           h(
             "p",
             { className: "text-sm text-mute", style: { marginTop: "1.5rem" } },
             "Questions themselves are edited in the FAQs collection."
+          )
+        )
+      );
+
+      // faqs (folder collection): one accordion row, matching the
+      // <details>/<summary> markup FaqList.astro renders inside FaqBlock's sheet.
+      CMS.registerPreviewTemplate("faqs", ({ entry }) =>
+        h(
+          "div",
+          { className: "sheet", style: { padding: "0 1.25rem" } },
+          h(
+            "details",
+            { open: true, style: { padding: "1.25rem 0" } },
+            h(
+              "summary",
+              { className: "text-[1.0625rem] font-medium text-ink", style: { listStyle: "none", cursor: "default" } },
+              field(entry, ["question"], "")
+            ),
+            h(
+              "p",
+              { className: "text-mute", style: { marginTop: "0.75rem", lineHeight: 1.6 } },
+              field(entry, ["answer"], "")
+            )
           )
         )
       );
@@ -165,10 +236,12 @@
       CMS.registerPreviewTemplate("how-it-works", ({ entry }) =>
         h(
           "section",
-          { className: "on-dark bg-ink", style: { padding: "2.5rem 2rem", color: "#fff" } },
-          field(entry, ["eyebrow"], "") &&
-            h("p", { className: "label label-dark", style: { marginBottom: "1.25rem" } }, field(entry, ["eyebrow"], "")),
-          h("h2", { className: "h-section", style: { color: "#fff" } }, field(entry, ["heading"], "")),
+          { className: "on-dark bg-ink", style: { padding: "2.5rem 2rem" } },
+          sectionHeader({
+            label: field(entry, ["eyebrow"], ""),
+            heading: field(entry, ["heading"], ""),
+            dark: true,
+          }),
           h(
             "p",
             { className: "text-sm", style: { marginTop: "1.5rem", color: "rgba(255,255,255,0.65)" } },
@@ -176,6 +249,502 @@
           )
         )
       );
+
+      // steps (folder collection): one numbered card, matching the <li> Steps.astro
+      // renders on the ink band (big numeral, optional icon, title, description).
+      // Icons are skipped — the icon set lives in icons-data.ts and isn't loaded here.
+      CMS.registerPreviewTemplate("steps", ({ entry }) =>
+        h(
+          "div",
+          { className: "on-dark bg-ink", style: { padding: "2rem", maxWidth: "24rem" } },
+          h(
+            "span",
+            { className: "font-display font-bold text-6xl text-brand", style: { display: "block", lineHeight: 1 } },
+            field(entry, ["number"], "")
+          ),
+          h("h3", { className: "h-row text-2xl", style: { color: "#fff", marginTop: "1.5rem" } }, field(entry, ["title"], "")),
+          h(
+            "p",
+            { className: "text-white/65", style: { marginTop: "0.75rem", lineHeight: 1.6 } },
+            field(entry, ["description"], "")
+          )
+        )
+      );
+
+      // ───────────────────────────────────────────────────────────────────
+      // "features" naming collision: config.yml uses the literal name
+      // "features" for TWO different things — the top-level `features`
+      // folder collection (one full card per product feature) and the file
+      // named "features" inside the `sections` files collection (just the
+      // header above those cards, rendered by FeaturesSection.astro via
+      // SectionHead). Decap's preview-template registry is a flat
+      // {name: component} map with no per-collection scoping — confirmed
+      // against the decap-cms@3.17.1 bundle itself:
+      //   registerPreviewTemplate: function(e,t){dr.templates[e]=t}
+      // — so whichever of the two is registered last would silently replace
+      // the other under a naive per-collection registration. Rather than
+      // assume which one Decap's internal lookup actually passes through
+      // (the docs only confirm "file collections use the file's name," not
+      // how a clash like this resolves), this single registration inspects
+      // the entry's own fields and renders the matching markup either way:
+      // a feature card entry always has a required `title`; the sections
+      // header file never does.
+      function renderFeatureVisual(entry, visual) {
+        const row = { borderBottom: "1px solid var(--color-rule)", padding: "0.75rem 1.25rem" };
+
+        if (visual === "email") {
+          const emails = list(entry, ["emails"]);
+          const emailNote = field(entry, ["emailNote"], "");
+          return h(
+            "ul",
+            {},
+            emails.map((email, i) =>
+              h(
+                "li",
+                { key: i, style: { ...row, display: "flex", gap: "1rem" } },
+                h("span", { className: "fig text-xs text-mute" }, email.time),
+                h(
+                  "div",
+                  {},
+                  h("p", { className: "text-xs text-mute" }, email.from),
+                  h("p", { className: "text-[0.9375rem] font-medium text-ink" }, email.subject),
+                  emailNote &&
+                    h("p", { className: "text-xs text-ink", style: { marginTop: "0.375rem" } }, `✓ ${emailNote}`)
+                )
+              )
+            )
+          );
+        }
+
+        if (visual === "statements") {
+          const banks = list(entry, ["banks"]);
+          const bankBadge = field(entry, ["bankBadge"], "");
+          return h(
+            "ul",
+            {},
+            banks.map((bank, i) =>
+              h(
+                "li",
+                { key: i, style: { ...row, display: "flex", alignItems: "center", gap: "1rem" } },
+                h(
+                  "span",
+                  {
+                    "aria-hidden": "true",
+                    style: {
+                      display: "inline-grid",
+                      placeItems: "center",
+                      width: "2rem",
+                      height: "2rem",
+                      borderRadius: "3px",
+                      color: "#fff",
+                      fontWeight: 700,
+                      backgroundColor: bank.color,
+                    },
+                  },
+                  (bank.name || "?")[0]
+                ),
+                h(
+                  "div",
+                  {},
+                  h("p", { className: "text-[0.9375rem] font-medium text-ink" }, `${bank.name} · ${bank.client}`),
+                  h("p", { className: "fig text-xs text-mute" }, `${bank.date} · ${bank.transactions} transactions`)
+                ),
+                bankBadge &&
+                  h("span", { className: "text-xs font-medium text-ink", style: { marginLeft: "auto" } }, `✓ ${bankBadge}`)
+              )
+            )
+          );
+        }
+
+        if (visual === "categorise") {
+          const transactions = list(entry, ["transactions"]);
+          return h(
+            "ul",
+            {},
+            transactions.map((txn, i) =>
+              h(
+                "li",
+                { key: i, style: { ...row, display: "flex", alignItems: "center", justifyContent: "space-between", gap: "1rem" } },
+                h("span", { className: "text-[0.9375rem] text-ink" }, txn.name),
+                h(
+                  "span",
+                  { className: "text-xs font-medium text-ink", style: { display: "flex", alignItems: "center", gap: "0.5rem" } },
+                  h("span", { "aria-hidden": "true", style: { width: "0.5rem", height: "0.5rem", borderRadius: "1px", backgroundColor: txn.color } }),
+                  txn.category
+                ),
+                h("span", { className: "fig text-sm text-ink" }, txn.amount)
+              )
+            )
+          );
+        }
+
+        if (visual === "alerts") {
+          const alerts = list(entry, ["alerts"]);
+          return h(
+            "ul",
+            {},
+            alerts.map((alert, i) =>
+              h(
+                "li",
+                { key: i, style: { ...row, display: "flex", alignItems: "center", gap: "1rem" } },
+                h("span", { "aria-hidden": "true", style: { color: alert.color } }, "●"),
+                h(
+                  "div",
+                  {},
+                  h("p", { className: "text-[0.9375rem] font-medium text-ink" }, alert.company),
+                  h("p", { className: "text-xs text-mute" }, `${alert.bank} · ${alert.label}`)
+                )
+              )
+            )
+          );
+        }
+
+        if (visual === "balance") {
+          const columns = list(entry, ["ledger", "columns"]);
+          const rows = list(entry, ["ledger", "rows"]);
+          const footer = field(entry, ["ledger", "footer"], "");
+          if (columns.length === 0 && rows.length === 0) return null;
+          const grid = `minmax(0,1fr) ${columns.slice(1).map(() => "4.5rem").join(" ")}`;
+          return h(
+            "div",
+            {},
+            h(
+              "div",
+              { style: { display: "grid", gridTemplateColumns: grid, padding: "0.625rem 1.25rem", fontSize: "0.75rem", fontWeight: 500, color: "var(--color-mute)", borderBottom: "1px solid var(--color-ink)" } },
+              columns.map((c, i) => h("span", { key: i, style: { textAlign: i === 0 ? "left" : "right" } }, c))
+            ),
+            rows.map((entryRow, i) =>
+              h(
+                "div",
+                { key: i, style: { ...row, display: "grid", gridTemplateColumns: "minmax(0,1fr) 4.5rem 4.5rem" } },
+                h("span", { className: "text-ink" }, entryRow.account),
+                h("span", { className: "fig text-sm text-ink", style: { textAlign: "right" } }, entryRow.debit || ""),
+                h("span", { className: "fig text-sm text-ink", style: { textAlign: "right" } }, entryRow.credit || "")
+              )
+            ),
+            footer &&
+              h(
+                "p",
+                { className: "text-sm font-medium text-ink", style: { padding: "0.75rem 1.25rem", borderTop: "1px solid var(--color-ink)" } },
+                `✓ ${footer}`
+              )
+          );
+        }
+
+        return null;
+      }
+
+      function renderFeatureCard(entry) {
+        const title = field(entry, ["title"], "");
+        const description = field(entry, ["description"], "");
+        const visual = field(entry, ["visual"], "");
+        return h(
+          "article",
+          { className: "sheet", style: { maxWidth: "28rem", overflow: "hidden" } },
+          h(
+            "div",
+            { style: { padding: "1.5rem" } },
+            h("h3", { className: "h-row text-2xl" }, title),
+            description && h("p", { className: "text-mute text-[0.9375rem]", style: { marginTop: "0.625rem" } }, description)
+          ),
+          h(
+            "div",
+            { style: { borderTop: "1px solid var(--color-rule)", backgroundColor: "var(--color-paper)" } },
+            h("div", { style: { backgroundColor: "#fff" } }, renderFeatureVisual(entry, visual))
+          )
+        );
+      }
+
+      CMS.registerPreviewTemplate("features", ({ entry }) => {
+        const title = field(entry, ["title"], null);
+        if (title !== null) return renderFeatureCard(entry);
+        return h(
+          "section",
+          { style: { padding: "2.5rem 2rem" } },
+          sectionHeader({
+            label: field(entry, ["eyebrow"], ""),
+            heading: field(entry, ["heading"], ""),
+            sub: field(entry, ["subheading"], ""),
+          })
+        );
+      });
+
+      // plans (folder collection): one pricing card, matching the <article>
+      // in src/pages/pricing.astro (name/badge, tagline, monthly price, cta,
+      // allowances, feature checklist). Yearly price/toggle state and the
+      // comparison table are page-level concerns, not fields on a single plan.
+      CMS.registerPreviewTemplate("plans", ({ entry }) => {
+        const featured = field(entry, ["featured"], false);
+        const dark = Boolean(featured);
+        const allowances = list(entry, ["allowances"]);
+        const features = list(entry, ["features"]);
+        const cta = field(entry, ["cta"], null);
+
+        return h(
+          "article",
+          {
+            className: dark ? "on-dark bg-ink text-white" : "bg-white",
+            style: { padding: "1.5rem 1.75rem", border: "1px solid var(--color-ink)", borderRadius: "4px", maxWidth: "22rem" },
+          },
+          h(
+            "div",
+            { style: { display: "flex", alignItems: "flex-start", justifyContent: "space-between", gap: "1rem" } },
+            h("h2", { className: "font-display font-semibold text-2xl", style: dark ? { color: "#fff" } : undefined }, field(entry, ["name"], "")),
+            field(entry, ["badge"], "") &&
+              h("span", { className: "bg-brand text-ink text-xs font-semibold", style: { padding: "0.25rem 0.5rem", borderRadius: "3px", whiteSpace: "nowrap" } }, field(entry, ["badge"], ""))
+          ),
+          field(entry, ["tagline"], "") &&
+            h("p", { className: dark ? "text-white/70" : "text-mute", style: { marginTop: "0.5rem" } }, field(entry, ["tagline"], "")),
+          h(
+            "p",
+            { style: { marginTop: "1.5rem" } },
+            h("span", { className: "font-display font-bold text-5xl tabular-nums" }, `£${field(entry, ["monthlyPrice"], 0)}`),
+            h("span", { className: dark ? "text-white/60" : "text-mute", style: { fontSize: "0.875rem", marginLeft: "0.25rem" } }, "/ month")
+          ),
+          cta &&
+            h("a", { href: cta.href, className: dark ? "btn btn-primary" : "btn btn-line", style: { marginTop: "1.5rem", display: "inline-flex" } }, cta.label),
+          allowances.length > 0 &&
+            h(
+              "dl",
+              { style: { marginTop: "1.75rem", fontSize: "0.875rem" } },
+              allowances.map((item, i) =>
+                h(
+                  "div",
+                  { key: i, style: { display: "flex", justifyContent: "space-between", gap: "1rem", borderTop: dark ? "1px solid rgba(255,255,255,0.15)" : "1px solid var(--color-rule)", padding: "0.6rem 0" } },
+                  h("dt", { className: dark ? "text-white/70" : "text-mute" }, item.label),
+                  h("dd", { className: "font-medium tabular-nums" }, item.value)
+                )
+              )
+            ),
+          features.length > 0 &&
+            h(
+              "ul",
+              { style: { marginTop: "0.5rem", fontSize: "0.875rem" } },
+              features.map((f, i) => h("li", { key: i, style: { padding: "0.4rem 0", display: "flex", gap: "0.5rem" } }, "✓ ", f))
+            )
+        );
+      });
+
+      // sections/pricing.md: the header + billing toggle at the top of
+      // /pricing (PageHead + the "monthly / yearly" button group). The plan
+      // cards and comparison table are driven by the `plans` collection and
+      // this file's own `comparison.rows`, not reproduced here — the hint in
+      // config.yml already says the comparison rows are edited in Git.
+      CMS.registerPreviewTemplate("pricing", ({ entry }) => {
+        const before = field(entry, ["headline", "before"], "");
+        const accent = field(entry, ["headline", "accent"], "");
+        const after = field(entry, ["headline", "after"], "");
+        const monthlyLabel = field(entry, ["billing", "monthlyLabel"], "");
+        const yearlyLabel = field(entry, ["billing", "yearlyLabel"], "");
+
+        return h(
+          "section",
+          { className: "bg-paper grid-paper", style: { padding: "2.5rem 2rem" } },
+          field(entry, ["badge"], "") && h("p", { className: "label", style: { marginBottom: "1.5rem" } }, field(entry, ["badge"], "")),
+          h("h1", { className: "display-sm" }, `${before} `, h("span", { className: "mark" }, accent), ` ${after}`),
+          field(entry, ["subheading"], "") &&
+            h("p", { className: "lede", style: { marginTop: "1.5rem", maxWidth: "60ch" } }, field(entry, ["subheading"], "")),
+          (monthlyLabel || yearlyLabel) &&
+            h(
+              "div",
+              { style: { display: "inline-flex", border: "1px solid var(--color-ink)", borderRadius: "4px", padding: "0.25rem", marginTop: "1.5rem" } },
+              monthlyLabel && h("span", { className: "billing-btn", "aria-pressed": "true" }, monthlyLabel),
+              yearlyLabel && h("span", { className: "billing-btn" }, yearlyLabel)
+            ),
+          bulletRow(list(entry, ["trustPoints"]))
+        );
+      });
+
+      // sections/topbar.md: the ink announcement strip (TopBar.astro).
+      CMS.registerPreviewTemplate("topbar", ({ entry }) =>
+        h(
+          "div",
+          { className: "bg-ink text-white", style: { padding: "0.75rem 1.5rem", display: "flex", alignItems: "center", justifyContent: "center", gap: "0.625rem" } },
+          h("span", { "aria-hidden": "true", className: "bg-brand", style: { width: "0.5rem", height: "0.5rem", display: "inline-block" } }),
+          h(
+            "span",
+            {},
+            `${field(entry, ["announcement", "before"], "")} `,
+            h("span", { style: { fontWeight: 600 } }, field(entry, ["announcement", "highlight"], "")),
+            ` ${field(entry, ["announcement", "after"], "")}`
+          ),
+          field(entry, ["announcement", "linkLabel"], "") &&
+            h(
+              "span",
+              { style: { textDecoration: "underline", textDecorationColor: "var(--color-brand)", textDecorationThickness: "2px" } },
+              field(entry, ["announcement", "linkLabel"], "")
+            )
+        )
+      );
+
+      // ───────────────────────────────────────────────────────────────────
+      // solutions (folder collection): a full landing page, src/pages/[...slug].astro.
+      // Every section after the hero is optional on the real page, and each one
+      // is rendered here only if its own fields are present — matching the
+      // real template's behaviour of silently skipping whatever a brief didn't
+      // specify. Images and icons are not rendered (no asset/icon loading here);
+      // every heading/body/list field that drives the real page's copy is.
+      function itemLabel(item) {
+        return item.title || item.text || item.label || item.question || "";
+      }
+      function itemBody(item) {
+        return item.description || item.answer || "";
+      }
+
+      function renderItemBand(entry, key) {
+        const eyebrow = field(entry, [key, "eyebrow"], "");
+        const heading = field(entry, [key, "heading"], "");
+        const sub = field(entry, [key, "subheading"], "");
+        const items = list(entry, [key, "items"]);
+        if (!eyebrow && !heading && !sub && items.length === 0) return null;
+        return h(
+          "section",
+          { style: { padding: "2rem", borderTop: "1px solid var(--color-rule)" } },
+          sectionHeader({ label: eyebrow, heading, sub }),
+          items.length > 0 &&
+            h(
+              "ul",
+              { style: { marginTop: "1.5rem", display: "grid", gap: "0.75rem" } },
+              items.map((item, i) =>
+                h(
+                  "li",
+                  { key: i, style: { padding: "0.75rem 1rem", border: "1px solid var(--color-rule)", borderRadius: "4px" } },
+                  h("p", { className: "font-medium text-ink" }, itemLabel(item)),
+                  itemBody(item) && h("p", { className: "text-mute text-sm", style: { marginTop: "0.25rem" } }, itemBody(item))
+                )
+              )
+            )
+        );
+      }
+
+      function renderWhatBand(entry) {
+        const eyebrow = field(entry, ["what", "eyebrow"], "");
+        const heading = field(entry, ["what", "heading"], "");
+        const body = list(entry, ["what", "body"]);
+        const highlights = list(entry, ["what", "highlights"]);
+        if (!eyebrow && !heading && body.length === 0 && highlights.length === 0) return null;
+        return h(
+          "section",
+          { style: { padding: "2rem", borderTop: "1px solid var(--color-rule)" } },
+          sectionHeader({ label: eyebrow, heading }),
+          body.map((paragraph, i) => h("p", { key: i, className: "lede", style: { marginTop: "0.75rem", maxWidth: "62ch" } }, paragraph)),
+          highlights.length > 0 &&
+            h(
+              "ul",
+              { style: { marginTop: "1.5rem", display: "grid", gap: "0.75rem" } },
+              highlights.map((item, i) =>
+                h(
+                  "li",
+                  { key: i, style: { padding: "0.75rem 1rem", border: "1px solid var(--color-rule)", borderRadius: "4px" } },
+                  h("p", { className: "font-medium text-ink" }, item.title),
+                  item.description && h("p", { className: "text-mute text-sm", style: { marginTop: "0.25rem" } }, item.description)
+                )
+              )
+            )
+        );
+      }
+
+      function renderIntegrationsBand(entry) {
+        const eyebrow = field(entry, ["integrations", "eyebrow"], "");
+        const heading = field(entry, ["integrations", "heading"], "");
+        const groups = list(entry, ["integrations", "groups"]);
+        if (!eyebrow && !heading && groups.length === 0) return null;
+        return h(
+          "section",
+          { style: { padding: "2rem", borderTop: "1px solid var(--color-rule)" } },
+          sectionHeader({ label: eyebrow, heading }),
+          groups.length > 0 &&
+            h(
+              "dl",
+              { style: { marginTop: "1.5rem", display: "grid", gap: "1rem" } },
+              groups.map((group, i) =>
+                h(
+                  "div",
+                  { key: i, style: { padding: "1rem", border: "1px solid var(--color-rule)", borderRadius: "4px" } },
+                  h("dt", { className: "h-row", style: { marginBottom: "0.5rem" } }, group.title),
+                  h(
+                    "dd",
+                    { style: { display: "flex", flexWrap: "wrap", gap: "0.375rem" } },
+                    toPlainArray(group.items).map((name, j) => h("span", { key: j, className: "tag bg-paper" }, name))
+                  )
+                )
+              )
+            )
+        );
+      }
+
+      function renderClosingBand(entry) {
+        const eyebrow = field(entry, ["closing", "eyebrow"], "");
+        const heading = field(entry, ["closing", "heading"], "");
+        const body = field(entry, ["closing", "body"], "");
+        const ctas = list(entry, ["closing", "ctas"]);
+        if (!eyebrow && !heading && !body && ctas.length === 0) return null;
+        return h(
+          "section",
+          { className: "bg-brand text-ink", style: { padding: "2rem" } },
+          eyebrow && h("p", { style: { fontWeight: 500, marginBottom: "0.75rem" } }, eyebrow),
+          heading && h("h2", { className: "h-section", style: { maxWidth: "20ch" } }, heading),
+          body && h("p", { style: { marginTop: "0.75rem", maxWidth: "56ch" } }, body),
+          ctas.length > 0 &&
+            h(
+              "div",
+              { style: { display: "flex", gap: "0.75rem", marginTop: "1.25rem", flexWrap: "wrap" } },
+              ctas.map((c, i) => ctaLink(c, { primary: "btn btn-ink", secondary: "btn btn-line border-ink/40" }, i))
+            )
+        );
+      }
+
+      CMS.registerPreviewTemplate("solutions", ({ entry }) => {
+        const heroCtas = list(entry, ["hero", "ctas"]);
+        const faqs = list(entry, ["faqs"]);
+
+        return h(
+          "div",
+          {},
+          h(
+            "section",
+            { className: "bg-paper grid-paper", style: { padding: "2.5rem 2rem" } },
+            field(entry, ["hero", "badge"], "") &&
+              h("p", { className: "label", style: { marginBottom: "1.5rem" } }, field(entry, ["hero", "badge"], "")),
+            h("h1", { className: "display-sm", style: { maxWidth: "20ch" } }, field(entry, ["hero", "h1"], "")),
+            field(entry, ["hero", "intro"], "") &&
+              h("p", { className: "lede", style: { marginTop: "1.5rem", maxWidth: "58ch" } }, field(entry, ["hero", "intro"], "")),
+            heroCtas.length > 0 &&
+              h(
+                "div",
+                { style: { display: "flex", gap: "0.75rem", marginTop: "2.25rem", flexWrap: "wrap" } },
+                heroCtas.map((c, i) => ctaLink(c, {}, i))
+              ),
+            bulletRow(list(entry, ["hero", "trustPoints"]))
+          ),
+          renderItemBand(entry, "challenges"),
+          renderWhatBand(entry),
+          renderItemBand(entry, "process"),
+          renderItemBand(entry, "benefits"),
+          renderItemBand(entry, "audience"),
+          renderIntegrationsBand(entry),
+          renderItemBand(entry, "related"),
+          faqs.length > 0 &&
+            h(
+              "section",
+              { style: { padding: "2rem", borderTop: "1px solid var(--color-rule)" } },
+              h("h2", { className: "h-section" }, "FAQs"),
+              h(
+                "ul",
+                { style: { marginTop: "1.5rem", display: "grid", gap: "0.75rem" } },
+                faqs.map((f, i) =>
+                  h(
+                    "li",
+                    { key: i, style: { padding: "0.75rem 1rem", border: "1px solid var(--color-rule)", borderRadius: "4px" } },
+                    h("p", { className: "font-medium text-ink" }, f.question),
+                    h("p", { className: "text-mute text-sm", style: { marginTop: "0.25rem" } }, f.answer)
+                  )
+                )
+              )
+            ),
+          renderClosingBand(entry)
+        );
+      });
     </script>
   </body>
 </html>

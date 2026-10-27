@@ -1,0 +1,35 @@
+---
+/**
+ * Phase 1 proof of concept: render the real `FaqBlock.astro` from the main
+ * site with hardcoded demonstration props. No Decap integration yet — this
+ * only proves the import and its transitive dependencies resolve and render
+ * correctly from a separate, isolated Astro project.
+ */
+import FaqBlock from "../../../src/components/FaqBlock.astro";
+import "../../../src/styles/global.css";
+
+const items = [
+  {
+    question: "Does this proof of concept talk to Decap CMS?",
+    answer: "No. These props are hardcoded in this file — wiring draft data from Decap is a later phase.",
+  },
+  {
+    question: "Is this the real FaqBlock component?",
+    answer: "Yes — imported directly from src/components/FaqBlock.astro, not recreated.",
+  },
+  {
+    question: "Does this affect the production build?",
+    answer: "No. This project lives under preview/, has its own Astro config, and is never referenced by the main site's build or deploy workflow.",
+  },
+];
+---
+
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <title>FaqBlock preview POC</title>
+  </head>
+  <body class="bg-white text-ink font-sans">
+    <FaqBlock heading="Frequently asked questions" sub="Phase 1 proof of concept" items={items} name="poc-faq" />
+  </body>
+</html>
