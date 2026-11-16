@@ -13,7 +13,7 @@ login:
   label: "Login"
   href: "https://la.backoffice.digital/"
 cta:
-  label: "Get started for free"
+  label: "Get Started For Free"
   href: "https://la.backoffice.digital/signup"
   event: "nav"
   style: "primary"
