@@ -13,8 +13,8 @@ login:
   label: "Login"
   href: "https://la.backoffice.digital/"
 cta:
-  label: "Book a demo"
-  href: "/#book-demo"
+  label: "Get started for free"
+  href: "https://la.backoffice.digital/signup"
   event: "nav"
   style: "primary"
 ---
