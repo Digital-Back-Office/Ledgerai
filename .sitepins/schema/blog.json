@@ -1,0 +1,130 @@
+{
+  "file": "src/content/blog/from-pdf-to-trial-balance-workflow-modern-accountants.md",
+  "name": "blog",
+  "fileType": "md",
+  "fmType": "yaml",
+  "template": [
+    {
+      "name": "order",
+      "label": "Order",
+      "type": "number",
+      "value": 0,
+      "isIgnored": false,
+      "defaultValue": 0
+    },
+    {
+      "name": "title",
+      "label": "Title",
+      "type": "string",
+      "value": "",
+      "isIgnored": false,
+      "defaultValue": ""
+    },
+    {
+      "name": "excerpt",
+      "label": "Excerpt",
+      "type": "string",
+      "value": "",
+      "isIgnored": false,
+      "defaultValue": ""
+    },
+    {
+      "name": "coverImage",
+      "label": "CoverImage",
+      "type": "media",
+      "value": "",
+      "isIgnored": false,
+      "defaultValue": ""
+    },
+    {
+      "name": "category",
+      "label": "Category",
+      "type": "string",
+      "value": "",
+      "isIgnored": false,
+      "defaultValue": ""
+    },
+    {
+      "name": "date",
+      "label": "Date",
+      "type": "string",
+      "value": "",
+      "isIgnored": false,
+      "defaultValue": ""
+    },
+    {
+      "name": "readingTime",
+      "label": "ReadingTime",
+      "type": "string",
+      "value": "",
+      "isIgnored": false,
+      "defaultValue": ""
+    },
+    {
+      "name": "author",
+      "label": "Author",
+      "type": "string",
+      "value": "",
+      "isIgnored": false,
+      "defaultValue": ""
+    },
+    {
+      "name": "seo",
+      "label": "Seo",
+      "type": "object",
+      "isIgnored": false,
+      "isRequired": true,
+      "defaultValue": "",
+      "fields": [
+        {
+          "name": "title",
+          "label": "Title",
+          "type": "string",
+          "value": "",
+          "isIgnored": false,
+          "defaultValue": ""
+        },
+        {
+          "name": "description",
+          "label": "Description",
+          "type": "string",
+          "value": "",
+          "isIgnored": false,
+          "defaultValue": ""
+        },
+        {
+          "name": "ogTitle",
+          "label": "OgTitle",
+          "type": "string",
+          "value": "",
+          "isIgnored": false,
+          "defaultValue": ""
+        },
+        {
+          "name": "ogDescription",
+          "label": "OgDescription",
+          "type": "string",
+          "value": "",
+          "isIgnored": false,
+          "defaultValue": ""
+        },
+        {
+          "name": "suggestedImagePrompt",
+          "label": "SuggestedImagePrompt",
+          "type": "string",
+          "value": "",
+          "isIgnored": false,
+          "defaultValue": ""
+        }
+      ]
+    },
+    {
+      "name": "related",
+      "label": "Related",
+      "type": "Array",
+      "value": [],
+      "isIgnored": false,
+      "defaultValue": ""
+    }
+  ]
+}
