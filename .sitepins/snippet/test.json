@@ -1,0 +1,7 @@
+{
+  "label": "test",
+  "schema": [
+    "blog"
+  ],
+  "code": "<h1> hello this test snippet </h1>"
+}
