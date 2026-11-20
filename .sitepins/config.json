@@ -1,12 +1,20 @@
 {
   "content": "src/content",
   "media": "public",
-  "public": "public",
+  "public": "",
   "configs": [
     ".sitepins/config.json",
     ".github/workflows/deploy.yml",
     ".sitepins"
   ],
   "custom-commit": false,
-  "arrangement": []
+  "arrangement": [
+    {
+      "type": "folder",
+      "targetPath": "src/content/blog",
+      "groupName": "blog list",
+      "include": "*.md",
+      "exclude": "*index.md"
+    }
+  ]
 }
