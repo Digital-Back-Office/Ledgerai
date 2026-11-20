@@ -1,8 +1,12 @@
 {
   "content": "src/content",
-  "media": "public/blogs",
+  "media": "public",
   "public": "public",
-  "configs": [],
+  "configs": [
+    ".sitepins/config.json",
+    ".github/workflows/deploy.yml",
+    ".sitepins"
+  ],
   "custom-commit": false,
   "arrangement": []
 }
