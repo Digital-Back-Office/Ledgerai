@@ -8,13 +8,5 @@
     ".sitepins"
   ],
   "custom-commit": false,
-  "arrangement": [
-    {
-      "type": "folder",
-      "targetPath": "src/content/blog",
-      "groupName": "blog list",
-      "include": "*.md",
-      "exclude": "*index.md"
-    }
-  ]
+  "arrangement": []
 }
